@@ -1,16 +1,17 @@
 {
-  "version": "0.0.2-bootstrap-ingestion",
+  "version": "0.0.3-rc4-successors",
   "status": "EXPERIMENTAL",
   "validation_level": "STATIC_VALIDATED",
   "created_at": "2026-08-11T05:34:00-06:00",
-  "updated_at": "2026-08-11T05:37:00-06:00",
-  "target": "repository-bootstrap-and-provenance-ingestion",
+  "updated_at": "2026-08-11T05:55:00-06:00",
+  "target": "rc4-convergence-successor-tooling",
   "current_release_target": "1.0.0-rc4-converged",
   "current_release_status": "REVIEW",
   "artifacts": [
     "provenance/ARTIFACT_REGISTRY.json",
     "releases/1.0.0-rc3-ga-campaign",
-    "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh"
+    "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh",
+    "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER_SUCCESSOR.sh"
   ],
   "gates": {
     "repository_structure": true,
@@ -20,14 +21,16 @@
     "legacy_artifacts_imported": true,
     "provenance_registry_present": true,
     "rc4_target_registered": true,
+    "rc4_companion_successors_present": true,
     "rc4_semantic_branch_convergence_reviewed": false,
     "rc4_candidate_constructed": false,
     "rc4_host_qualified": false,
     "android_device_validated": false,
     "endurance_validated": false,
     "device_sync_validated": false,
+    "recovery_drill_validated": false,
     "native_candidate_certified": false,
     "explicit_human_promotion": false
   },
-  "notes": "Repository bootstrap and first provenance ingestion are complete. RC4-converged is the highest recoverable release target, not GA. Exact originals whose full bytes are not mounted remain registry references rather than reconstructed substitutes."
+  "notes": "RC4 successor companion tooling is implemented as RECONSTRUCTED_SUCCESSOR rather than represented as unrecovered originals. No semantic merge review, real candidate construction against the exact parents, host qualification of that real candidate, physical device evidence, native certification, or promotion is claimed."
 }
