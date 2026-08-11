@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .core import AuditLog, Engine, Grant, JobStore
-from .qualification import run_qualification, verify_bundle
+from .qualification import assess_bundle, run_qualification, verify_bundle
 
 
 def state_home() -> Path:
@@ -37,6 +37,9 @@ def main() -> None:
     qualify.add_argument("--output", type=Path, required=True)
     verify = sub.add_parser("verify-evidence")
     verify.add_argument("bundle", type=Path)
+    assess = sub.add_parser("assess-evidence")
+    assess.add_argument("bundle", type=Path)
+    assess.add_argument("--output", type=Path)
     args = parser.parse_args()
 
     if args.command == "qualify":
@@ -47,6 +50,13 @@ def main() -> None:
         valid = verify_bundle(args.bundle.expanduser())
         print(json.dumps({"bundle": str(args.bundle), "valid": valid}, sort_keys=True))
         raise SystemExit(0 if valid else 1)
+    if args.command == "assess-evidence":
+        report = assess_bundle(args.bundle.expanduser())
+        rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+        if args.output:
+            args.output.expanduser().write_text(rendered, encoding="utf-8")
+        print(rendered, end="")
+        raise SystemExit(0 if report["decision"] != "INVALID" else 1)
 
     runtime = engine()
     if args.command == "init":
