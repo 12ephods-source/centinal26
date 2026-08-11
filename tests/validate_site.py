@@ -7,6 +7,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 REQUIRED = [SITE / "index.html", SITE / "styles.css", SITE / "data.js", SITE / "app.js"]
+DISTRIBUTION_REQUIRED = [
+    ROOT / "scripts" / "package_site.py",
+    ROOT / ".github" / "workflows" / "site-artifact.yml",
+    ROOT / ".github" / "workflows" / "site-release.yml",
+    ROOT / "docs" / "WEBSITE_RESILIENCE.md",
+]
 REQUIRED_COPY = [
     "Automation OS — Centinal26",
     "1.0.0-rc4-converged",
@@ -48,10 +54,23 @@ class SiteParser(HTMLParser):
                 self.local_refs.append(value[2:].split("#", 1)[0].split("?", 1)[0])
 
 
+def require_markers(path: Path, markers: list[str]) -> None:
+    text = path.read_text(encoding="utf-8")
+    missing = [marker for marker in markers if marker not in text]
+    if missing:
+        raise SystemExit(f"distribution invariants missing from {path.relative_to(ROOT)}: {missing}")
+
+
 def main() -> int:
     missing = [str(path.relative_to(ROOT)) for path in REQUIRED if not path.is_file()]
     if missing:
         raise SystemExit(f"site files missing: {missing}")
+
+    distribution_missing = [
+        str(path.relative_to(ROOT)) for path in DISTRIBUTION_REQUIRED if not path.is_file()
+    ]
+    if distribution_missing:
+        raise SystemExit(f"site distribution files missing: {distribution_missing}")
 
     html = (SITE / "index.html").read_text(encoding="utf-8")
     parser = SiteParser()
@@ -79,6 +98,28 @@ def main() -> int:
     for pattern in forbidden:
         if re.search(pattern, combined, re.IGNORECASE):
             raise SystemExit(f"forbidden website claim/pattern detected: {pattern}")
+
+    require_markers(
+        ROOT / "scripts" / "package_site.py",
+        ["automation-os-static-site-manifest-v1", "FIXED_ZIP_TIME", "SHA256SUMS"],
+    )
+    require_markers(
+        ROOT / ".github" / "workflows" / "site-artifact.yml",
+        ["python scripts/package_site.py", "sha256sum -c SHA256SUMS"],
+    )
+    require_markers(
+        ROOT / ".github" / "workflows" / "site-release.yml",
+        [
+            "contents: write",
+            "website-${short_sha}",
+            "--latest=false",
+            "It is not an Automation OS GA/product release",
+        ],
+    )
+    require_markers(
+        ROOT / "docs" / "WEBSITE_RESILIENCE.md",
+        ["Permanent GitHub website release", "distribution releases only"],
+    )
 
     print("Automation OS website validation: PASS")
     return 0
