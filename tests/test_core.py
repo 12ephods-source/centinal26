@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -9,7 +9,7 @@ def grant(capability: str, minutes: int = 5) -> Grant:
     return Grant(
         grant_id="test",
         capability=capability,
-        expires_at=(datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(),
+        expires_at=(datetime.now(UTC) + timedelta(minutes=minutes)).isoformat(),
     )
 
 
