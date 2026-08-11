@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/audit.schema.json",
+  "title": "AutomationAuditEvent",
+  "type": "object",
+  "required": ["event_id", "job_id", "event_type", "timestamp", "event_hash"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "job_id": {"type": "string", "minLength": 1},
+    "event_type": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "actor": {"type": ["string", "null"]},
+    "capability": {"type": ["string", "null"]},
+    "input_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "output_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "prev_hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "event_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": false
+}
