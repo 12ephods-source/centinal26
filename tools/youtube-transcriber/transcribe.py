@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 """Pure local-first YouTube transcriber for Android/Termux."""
+# ruff: noqa: BLE001, S110
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import html
 import json
 import os
@@ -125,7 +124,7 @@ def select_caption(meta: dict[str, Any]) -> tuple[str, str] | None:
                     if base_lang(lang) == target:
                         return kind, lang
         if tracks:
-            return kind, sorted(tracks)[0]
+            return kind, min(tracks)
     return None
 
 
@@ -137,7 +136,7 @@ def ts_seconds(value: str) -> float:
 
 
 def fmt_ts(sec: float, *, srt: bool = False) -> str:
-    ms = max(0, int(round(float(sec) * 1000)))
+    ms = max(0, round(float(sec) * 1000))
     hh, rem = divmod(ms, 3_600_000)
     mm, rem = divmod(rem, 60_000)
     ss, ms = divmod(rem, 1000)
