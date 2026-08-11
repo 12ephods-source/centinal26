@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .core import AuditLog, Engine, Grant, JobStore
+from .qualification import run_qualification, verify_bundle
 
 
 def state_home() -> Path:
@@ -32,9 +33,22 @@ def main() -> None:
     sub.add_parser("demo")
     sub.add_parser("run-once")
     sub.add_parser("status")
+    qualify = sub.add_parser("qualify")
+    qualify.add_argument("--output", type=Path, required=True)
+    verify = sub.add_parser("verify-evidence")
+    verify.add_argument("bundle", type=Path)
     args = parser.parse_args()
-    runtime = engine()
 
+    if args.command == "qualify":
+        report = run_qualification(args.output.expanduser())
+        print(json.dumps(report, sort_keys=True))
+        raise SystemExit(0 if report["passed"] else 1)
+    if args.command == "verify-evidence":
+        valid = verify_bundle(args.bundle.expanduser())
+        print(json.dumps({"bundle": str(args.bundle), "valid": valid}, sort_keys=True))
+        raise SystemExit(0 if valid else 1)
+
+    runtime = engine()
     if args.command == "init":
         print(json.dumps({"initialized": str(state_home())}))
     elif args.command == "demo":
