@@ -1,0 +1,201 @@
+{
+  "format": "automation-artifact-registry-v1",
+  "generated_at": "2026-08-11T11:37:00Z",
+  "policy": {
+    "unknown_bytes_are_not_reconstructed_as_original": true,
+    "physical_validation_is_not_inferred_from_host_validation": true,
+    "promotion_requires_explicit_evidence": true
+  },
+  "artifacts": [
+    {
+      "artifact_id": "ACP-RC4-ORCHESTRATOR",
+      "name": "FROST_AUTOMATION_RC4_ALL_IN_ONE_TERMUX_v1.0.sh",
+      "classification": "CANONICAL",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000ac6081fb91cfb707a92e9862",
+        "created_at": "2026-08-07T21:47:42Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": "9d9b6a03e2ad7e3db23cf3dcb960bbeff3ab5424fecddeb81b98dfdae94b143a",
+      "validation": {
+        "state": "REVIEW",
+        "physical_device_validated": false,
+        "notes": [
+          "Targets 1.0.0-rc4-converged, schema 10.",
+          "Exact File Library original is located; full bytes are not mounted in the active runtime.",
+          "Orchestrator refuses fabricated merge decisions, physical PASS evidence, native certification, and automatic human promotion."
+        ]
+      }
+    },
+    {
+      "artifact_id": "ACP-RC4-CONTROLLER",
+      "name": "RC4_RELEASE_CONTROLLER.sh",
+      "classification": "CANONICAL",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_0000000012fc81fbbf8e9f45a71a3137",
+        "created_at": "2026-08-07T21:26:33Z"
+      },
+      "content_imported": true,
+      "repository_path": "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh",
+      "sha256": null,
+      "validation": {
+        "state": "REVIEW",
+        "physical_device_validated": false,
+        "notes": [
+          "Retrieved from the File Library text representation; byte identity has not been independently hash-verified.",
+          "State machine blocks automatic promotion and host-for-physical substitution."
+        ]
+      }
+    },
+    {
+      "artifact_id": "ACP-RC4-V6-BUNDLE",
+      "name": "Automation_Project_Compiled_v6_2026-08-07.zip",
+      "classification": "CANONICAL",
+      "source": {
+        "kind": "file_library",
+        "ref": "recovery-ledger:Automation_Project_Compiled_v6_2026-08-07.zip",
+        "created_at": "2026-08-07"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": "0c861a444fcadb5f6fd33b758fd14df221dd9e4a07c522e207fb9983c13f4a93",
+      "validation": {
+        "state": "REVIEW",
+        "physical_device_validated": false,
+        "notes": [
+          "Exact SHA-256 survives; ZIP bytes are not mounted in the active runtime.",
+          "Do not fabricate or substitute a reconstructed bundle."
+        ]
+      }
+    },
+    {
+      "artifact_id": "ACP-RC3-HISTORY",
+      "name": "Automation Canonical Platform 1.0.0-rc3-ga-campaign",
+      "classification": "SUPERSEDED",
+      "source": {
+        "kind": "file_library",
+        "ref": "release-history:1.0.0-rc3-ga-campaign",
+        "created_at": "2026-08-07"
+      },
+      "content_imported": true,
+      "repository_path": "releases/1.0.0-rc3-ga-campaign",
+      "sha256": null,
+      "validation": {
+        "state": "REVIEW",
+        "physical_device_validated": false,
+        "notes": [
+          "Host and distribution validation passed.",
+          "Release certificate remains REVIEW because Android, endurance, and device-sync evidence are missing."
+        ]
+      }
+    },
+    {
+      "artifact_id": "BASE44-TRANSCRIBER-V2",
+      "name": "TERMUX_BASE44_AUTOMATION_TRANSCRIBER_ALL_IN_ONE_v2.0.sh",
+      "classification": "COMPATIBLE_MODULE",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000e1e881fda713c5665dc18a0f",
+        "created_at": "2026-08-07T13:38:03Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": null,
+      "validation": {
+        "state": "STATIC_VALIDATED",
+        "physical_device_validated": false,
+        "notes": [
+          "Allowlisted operations only; arbitrary remote shell is rejected.",
+          "Prior record reports Bash syntax validation; physical Termux execution remains an empirical gate."
+        ]
+      }
+    },
+    {
+      "artifact_id": "BASE44-BRIDGE-V1-2",
+      "name": "TERMUX_BASE44_AUTOMATION_BRIDGE_v1.2_RESUME_SAFE.sh",
+      "classification": "COMPATIBLE_MODULE",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000fa2c81fba36ee0a4f30d898e",
+        "created_at": "2026-08-07T21:28:13Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": null,
+      "validation": {
+        "state": "STATIC_VALIDATED",
+        "physical_device_validated": false,
+        "notes": [
+          "Uses named allowlisted capabilities and hash-linked audit events.",
+          "End-to-end phone worker execution is not promoted without device evidence."
+        ]
+      }
+    },
+    {
+      "artifact_id": "HERMES-FAIR-EXECUTOR-V1",
+      "name": "fair_executor_v1_0_0.py",
+      "classification": "COMPATIBLE_MODULE",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000211481fbae2753cabb16fbdd",
+        "created_at": "2026-08-07T22:21:26Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": null,
+      "validation": {
+        "state": "STATIC_VALIDATED",
+        "physical_device_validated": false,
+        "notes": [
+          "Bounded local capability executor; no arbitrary shell capability.",
+          "Potentially consequential capabilities remain disabled until explicitly validated."
+        ]
+      }
+    },
+    {
+      "artifact_id": "HERMES-DISCORD-V1-0-1",
+      "name": "install_hermes_discord_termux_secure_v1_0_1.sh",
+      "classification": "COMPATIBLE_MODULE",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000d21881fb854090f792f3f9db",
+        "created_at": "2026-08-07T21:58:41Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": null,
+      "validation": {
+        "state": "STATIC_VALIDATED",
+        "physical_device_validated": false,
+        "notes": [
+          "Dedicated Hermes profile and broker/executor separation.",
+          "Termux is not treated as a strong sandbox."
+        ]
+      }
+    },
+    {
+      "artifact_id": "FROST-LAB-2026-08-11",
+      "name": "Frost Automation Lab v1.1 integration run",
+      "classification": "EXPERIMENTAL",
+      "source": {
+        "kind": "file_library",
+        "ref": "file_00000000e54881fbab7032171a4f1340",
+        "created_at": "2026-08-11T03:26:55Z"
+      },
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": null,
+      "validation": {
+        "state": "HOST_VALIDATED",
+        "physical_device_validated": false,
+        "notes": [
+          "Host static/core/integration tests passed in the isolated runtime.",
+          "External Android/Termux adapters were unavailable there; Android certification remained pending."
+        ]
+      }
+    }
+  ]
+}
