@@ -7,10 +7,11 @@ import sqlite3
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .core import AuditLog, Grant, now_iso
 
@@ -75,22 +76,36 @@ class RuntimeStore:
         )
         self.db.commit()
 
-    def submit(self, intent: Intent, grant: Grant, key: str, max_attempts: int) -> tuple[str, bool]:
+    def submit(
+        self,
+        intent: Intent,
+        grant: Grant,
+        key: str,
+        max_attempts: int,
+    ) -> tuple[str, bool]:
         job_id = str(uuid.uuid4())
         stamp = now_iso()
         try:
             self.db.execute(
                 "INSERT INTO jobs VALUES(?,?,?,?,?,'queued',0,?,NULL,NULL,NULL,?,?)",
-                (job_id, key, json.dumps(asdict(intent), sort_keys=True),
-                 json.dumps(asdict(grant), sort_keys=True), intent.capability,
-                 max_attempts, stamp, stamp),
+                (
+                    job_id,
+                    key,
+                    json.dumps(asdict(intent), sort_keys=True),
+                    json.dumps(asdict(grant), sort_keys=True),
+                    intent.capability,
+                    max_attempts,
+                    stamp,
+                    stamp,
+                ),
             )
             self.db.commit()
             return job_id, True
         except sqlite3.IntegrityError:
             self.db.rollback()
             row = self.db.execute(
-                "SELECT id FROM jobs WHERE idempotency_key=?", (key,)
+                "SELECT id FROM jobs WHERE idempotency_key=?",
+                (key,),
             ).fetchone()
             if row is None:
                 raise
@@ -100,7 +115,8 @@ class RuntimeStore:
         stamp = now_iso()
         rows = self.db.execute(
             "SELECT id,attempts,max_attempts FROM jobs "
-            "WHERE state='running' AND lease_until IS NOT NULL AND lease_until<?", (stamp,)
+            "WHERE state='running' AND lease_until IS NOT NULL AND lease_until<?",
+            (stamp,),
         ).fetchall()
         for row in rows:
             state = "queued" if row["attempts"] < row["max_attempts"] else "failed"
@@ -123,32 +139,52 @@ class RuntimeStore:
         lease_until = (datetime.now(UTC) + timedelta(seconds=lease_seconds)).isoformat()
         self.db.execute(
             "UPDATE jobs SET state='running',attempts=attempts+1,lease_until=?,updated_at=? "
-            "WHERE id=? AND state='queued'", (lease_until, now_iso(), row["id"])
+            "WHERE id=? AND state='queued'",
+            (lease_until, now_iso(), row["id"]),
         )
         self.db.commit()
-        return self.db.execute("SELECT * FROM jobs WHERE id=?", (row["id"],)).fetchone()
+        return self.db.execute(
+            "SELECT * FROM jobs WHERE id=?",
+            (row["id"],),
+        ).fetchone()
 
-    def finish(self, job_id: str, state: str, result: Json, evidence: str | None) -> None:
+    def finish(
+        self,
+        job_id: str,
+        state: str,
+        result: Json,
+        evidence: str | None,
+    ) -> None:
         self.db.execute(
-            "UPDATE jobs SET state=?,result=?,evidence_path=?,lease_until=NULL,updated_at=? WHERE id=?",
+            "UPDATE jobs SET state=?,result=?,evidence_path=?,lease_until=NULL,updated_at=? "
+            "WHERE id=?",
             (state, json.dumps(result, sort_keys=True), evidence, now_iso(), job_id),
         )
         self.db.commit()
 
     def retry(self, job_id: str, result: Json, evidence: str) -> str:
         row = self.db.execute(
-            "SELECT attempts,max_attempts FROM jobs WHERE id=?", (job_id,)
+            "SELECT attempts,max_attempts FROM jobs WHERE id=?",
+            (job_id,),
         ).fetchone()
+        if row is None:
+            raise KeyError(job_id)
         state = "queued" if row["attempts"] < row["max_attempts"] else "failed"
         self.finish(job_id, state, result, evidence)
         return state
 
     def get_state(self, key: str) -> Json | None:
-        row = self.db.execute("SELECT value FROM canonical_state WHERE key=?", (key,)).fetchone()
+        row = self.db.execute(
+            "SELECT value FROM canonical_state WHERE key=?",
+            (key,),
+        ).fetchone()
         return None if row is None else json.loads(row["value"])
 
     def set_state(self, key: str, value: Json) -> int:
-        row = self.db.execute("SELECT version FROM canonical_state WHERE key=?", (key,)).fetchone()
+        row = self.db.execute(
+            "SELECT version FROM canonical_state WHERE key=?",
+            (key,),
+        ).fetchone()
         version = 1 if row is None else int(row["version"]) + 1
         self.db.execute(
             "INSERT INTO canonical_state VALUES(?,?,?,?) ON CONFLICT(key) DO UPDATE SET "
@@ -158,17 +194,32 @@ class RuntimeStore:
         self.db.commit()
         return version
 
-    def record(self, verified: bool, evidence: bool, recovery: bool, independent: bool) -> None:
+    def record(
+        self,
+        verified: bool,
+        evidence: bool,
+        recovery: bool,
+        independent: bool,
+    ) -> None:
         self.db.execute(
             "INSERT INTO run_history VALUES(?,?,?,?,?,?,?)",
-            (str(uuid.uuid4()), int(verified), int(evidence), 0,
-             int(recovery), int(independent), now_iso()),
+            (
+                str(uuid.uuid4()),
+                int(verified),
+                int(evidence),
+                0,
+                int(recovery),
+                int(independent),
+                now_iso(),
+            ),
         )
         self.db.commit()
 
     def counts(self) -> Json:
-        return {r["state"]: r["n"] for r in self.db.execute(
-            "SELECT state,COUNT(*) n FROM jobs GROUP BY state").fetchall()}
+        rows = self.db.execute(
+            "SELECT state,COUNT(*) n FROM jobs GROUP BY state"
+        ).fetchall()
+        return {row["state"]: row["n"] for row in rows}
 
     def evolution_status(self, minimum: int = 10) -> Json:
         rows = self.db.execute(
@@ -180,19 +231,30 @@ class RuntimeStore:
                 consecutive += 1
             else:
                 break
-        status = {
+        zero_divergence = not any(row["state_diverged"] for row in rows)
+        evidence_complete = bool(rows) and all(row["evidence_complete"] for row in rows)
+        recovery_pass = any(
+            row["recovery_test"] and row["verified"] for row in rows
+        )
+        verifier_independent = bool(rows) and all(
+            row["verifier_independent"] for row in rows
+        )
+        ready = (
+            consecutive >= minimum
+            and zero_divergence
+            and evidence_complete
+            and recovery_pass
+            and verifier_independent
+        )
+        return {
+            "ready": ready,
             "consecutive_passes": consecutive,
             "minimum_consecutive_passes": minimum,
-            "zero_state_divergence": not any(r["state_diverged"] for r in rows),
-            "evidence_complete": bool(rows) and all(r["evidence_complete"] for r in rows),
-            "recovery_pass": any(r["recovery_test"] and r["verified"] for r in rows),
-            "verifier_independent": bool(rows) and all(r["verifier_independent"] for r in rows),
+            "zero_state_divergence": zero_divergence,
+            "evidence_complete": evidence_complete,
+            "recovery_pass": recovery_pass,
+            "verifier_independent": verifier_independent,
         }
-        status["ready"] = consecutive >= minimum and all(
-            v for k, v in status.items()
-            if k not in {"consecutive_passes", "minimum_consecutive_passes", "ready"}
-        )
-        return status
 
 
 class EvidenceStore:
@@ -201,7 +263,12 @@ class EvidenceStore:
         root.mkdir(parents=True, exist_ok=True)
 
     def write(self, job_id: str, attempt: int, kind: str, payload: Json) -> Path:
-        body = {**payload, "job_id": job_id, "attempt": attempt, "recorded_at": now_iso()}
+        body = {
+            **payload,
+            "job_id": job_id,
+            "attempt": attempt,
+            "recorded_at": now_iso(),
+        }
         canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
         body["sha256"] = hashlib.sha256(canonical.encode()).hexdigest()
         folder = self.root / job_id
@@ -209,7 +276,12 @@ class EvidenceStore:
         path = folder / f"{attempt:04d}-{kind}.json"
         if path.exists():
             raise FileExistsError(path)
-        path.write_text(json.dumps(body, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        temp = path.with_suffix(".tmp")
+        temp.write_text(
+            json.dumps(body, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temp.replace(path)
         return path
 
     @staticmethod
@@ -223,7 +295,12 @@ class EvidenceStore:
 class AutomatedEngine:
     """Intent-to-state engine with evidence-gated state commits and recovery."""
 
-    def __init__(self, store: RuntimeStore, audit: AuditLog, evidence: EvidenceStore):
+    def __init__(
+        self,
+        store: RuntimeStore,
+        audit: AuditLog,
+        evidence: EvidenceStore,
+    ):
         self.store = store
         self.audit = audit
         self.evidence = evidence
@@ -235,25 +312,40 @@ class AutomatedEngine:
         self.capabilities[spec.name] = spec
         self.audit.append("capability_registered", {"capability": spec.name})
 
-    def submit(self, intent: Intent, grant: Grant, idempotency_key: str | None = None) -> str:
+    def submit(
+        self,
+        intent: Intent,
+        grant: Grant,
+        idempotency_key: str | None = None,
+    ) -> str:
         if not grant.permits(intent.capability):
             self.audit.append(
                 "authorization_denied",
-                {"intent_id": intent.intent_id, "capability": intent.capability},
+                {
+                    "intent_id": intent.intent_id,
+                    "capability": intent.capability,
+                },
             )
             raise PermissionError("grant does not authorize requested capability")
         spec = self.capabilities.get(intent.capability)
         if spec is None:
             self.audit.append(
                 "capability_unavailable",
-                {"intent_id": intent.intent_id, "capability": intent.capability},
+                {
+                    "intent_id": intent.intent_id,
+                    "capability": intent.capability,
+                },
             )
             raise KeyError(f"unknown capability: {intent.capability}")
         key = idempotency_key or f"intent:{intent.intent_id}"
         job_id, created = self.store.submit(intent, grant, key, spec.max_attempts)
         self.audit.append(
             "job_queued" if created else "job_deduplicated",
-            {"job_id": job_id, "intent_id": intent.intent_id, "capability": intent.capability},
+            {
+                "job_id": job_id,
+                "intent_id": intent.intent_id,
+                "capability": intent.capability,
+            },
         )
         return job_id
 
@@ -261,6 +353,7 @@ class AutomatedEngine:
         started = time.monotonic()
         alarm = (
             hasattr(signal, "setitimer")
+            and hasattr(signal, "SIGALRM")
             and threading.current_thread() is threading.main_thread()
         )
 
@@ -287,6 +380,36 @@ class AutomatedEngine:
             )
         return output, elapsed
 
+    def _record_failure(
+        self,
+        *,
+        job_id: str,
+        attempt: int,
+        intent: Intent,
+        spec: CapabilitySpec,
+        result: Json,
+        recovery_test: bool,
+    ) -> str:
+        evidence_path = self.evidence.write(
+            job_id,
+            attempt,
+            "execution-failure",
+            {
+                "intent": asdict(intent),
+                "capability": spec.name,
+                "execution_error": result,
+            },
+        )
+        state = self.store.retry(job_id, result, str(evidence_path))
+        self.audit.append(f"job_{state}", {"job_id": job_id, **result})
+        self.store.record(
+            False,
+            self.evidence.verify(evidence_path),
+            recovery_test,
+            spec.verifier_independent,
+        )
+        return job_id
+
     def run_once(self, recovery_test: bool = False) -> str | None:
         row = self.store.claim()
         if row is None:
@@ -298,40 +421,49 @@ class AutomatedEngine:
         spec = self.capabilities.get(row["capability"])
         self.audit.append(
             "job_started",
-            {"job_id": job_id, "attempt": attempt, "capability": row["capability"]},
+            {
+                "job_id": job_id,
+                "attempt": attempt,
+                "capability": row["capability"],
+            },
         )
 
         if spec is None or not grant.permits(row["capability"]):
-            result = {"ok": False, "error": "authorization_or_capability_invalid"}
+            result = {
+                "ok": False,
+                "error": "authorization_or_capability_invalid",
+            }
             evidence_path = self.evidence.write(
-                job_id, attempt, "rejected",
+                job_id,
+                attempt,
+                "rejected",
                 {"intent": asdict(intent), "result": result},
             )
             self.store.finish(job_id, "rejected", result, str(evidence_path))
             self.audit.append("job_rejected", {"job_id": job_id, **result})
-            self.store.record(False, self.evidence.verify(evidence_path), recovery_test, False)
+            self.store.record(
+                False,
+                self.evidence.verify(evidence_path),
+                recovery_test,
+                False,
+            )
             return job_id
 
         try:
             output, elapsed = self._execute(spec, intent.payload)
         except Exception as error:  # noqa: BLE001 - capability boundary captures failures
-            result = {
-                "ok": False,
-                "error": type(error).__name__,
-                "message": str(error),
-            }
-            evidence_path = self.evidence.write(
-                job_id, attempt, "execution-failure",
-                {"intent": asdict(intent), "capability": spec.name,
-                 "execution_error": result},
+            return self._record_failure(
+                job_id=job_id,
+                attempt=attempt,
+                intent=intent,
+                spec=spec,
+                result={
+                    "ok": False,
+                    "error": type(error).__name__,
+                    "message": str(error),
+                },
+                recovery_test=recovery_test,
             )
-            state = self.store.retry(job_id, result, str(evidence_path))
-            self.audit.append(f"job_{state}", {"job_id": job_id, **result})
-            self.store.record(
-                False, self.evidence.verify(evidence_path), recovery_test,
-                spec.verifier_independent,
-            )
-            return job_id
 
         verifier_error = None
         try:
@@ -351,13 +483,18 @@ class AutomatedEngine:
             "execution_seconds": elapsed,
             "verifier": {
                 "independent": spec.verifier_independent,
-                "name": getattr(spec.verifier, "__qualname__", type(spec.verifier).__name__),
+                "name": getattr(
+                    spec.verifier,
+                    "__qualname__",
+                    type(spec.verifier).__name__,
+                ),
                 "passed": verified,
                 "error": verifier_error,
             },
         }
         evidence_path = self.evidence.write(
-            job_id, attempt,
+            job_id,
+            attempt,
             "verified-output" if verified else "verification-failure",
             evidence_payload,
         )
@@ -369,10 +506,21 @@ class AutomatedEngine:
                 "evidence_complete": evidence_complete,
                 "verifier_error": verifier_error,
             }
-            self.store.finish(job_id, "failed_verification", result, str(evidence_path))
-            self.audit.append("job_failed_verification", {"job_id": job_id, **result})
+            self.store.finish(
+                job_id,
+                "failed_verification",
+                result,
+                str(evidence_path),
+            )
+            self.audit.append(
+                "job_failed_verification",
+                {"job_id": job_id, **result},
+            )
             self.store.record(
-                False, evidence_complete, recovery_test, spec.verifier_independent
+                False,
+                evidence_complete,
+                recovery_test,
+                spec.verifier_independent,
             )
             return job_id
 
@@ -390,34 +538,47 @@ class AutomatedEngine:
                     "message": str(error),
                 }
                 failure_path = self.evidence.write(
-                    job_id, attempt, "state-update-failure",
-                    {"output_evidence": str(evidence_path), "state_update_error": result},
+                    job_id,
+                    attempt,
+                    "state-update-failure",
+                    {
+                        "output_evidence": str(evidence_path),
+                        "state_update_error": result,
+                    },
                 )
                 self.store.finish(
-                    job_id, "state_update_failed", result, str(failure_path)
+                    job_id,
+                    "state_update_failed",
+                    result,
+                    str(failure_path),
                 )
                 self.audit.append(
-                    "job_state_update_failed", {"job_id": job_id, **result}
+                    "job_state_update_failed",
+                    {"job_id": job_id, **result},
                 )
                 self.store.record(
-                    False, self.evidence.verify(failure_path), recovery_test,
+                    False,
+                    self.evidence.verify(failure_path),
+                    recovery_test,
                     spec.verifier_independent,
                 )
                 return job_id
 
+        evidence_record = json.loads(evidence_path.read_text(encoding="utf-8"))
         result = {
             "ok": True,
             "verified": True,
-            "evidence_sha256": json.loads(
-                evidence_path.read_text(encoding="utf-8")
-            )["sha256"],
+            "evidence_sha256": evidence_record["sha256"],
             "state_version": state_version,
             "output": output,
         }
         self.store.finish(job_id, "verified", result, str(evidence_path))
         self.audit.append("job_verified", {"job_id": job_id, **result})
         self.store.record(
-            True, True, recovery_test, spec.verifier_independent
+            True,
+            True,
+            recovery_test,
+            spec.verifier_independent,
         )
         return job_id
 
