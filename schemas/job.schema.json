@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/job.schema.json",
+  "title": "AutomationJob",
+  "type": "object",
+  "required": ["job_id", "intent_id", "capability", "status", "requested_at"],
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "intent_id": {"type": "string", "minLength": 1},
+    "capability": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+    "parameters": {"type": "object"},
+    "authorization_ref": {"type": ["string", "null"]},
+    "worker_id": {"type": ["string", "null"]},
+    "status": {"enum": ["queued", "claimed", "running", "verifying", "completed", "failed", "cancelled", "rejected"]},
+    "requested_at": {"type": "string", "format": "date-time"},
+    "claimed_at": {"type": ["string", "null"], "format": "date-time"},
+    "started_at": {"type": ["string", "null"], "format": "date-time"},
+    "finished_at": {"type": ["string", "null"], "format": "date-time"},
+    "result_ref": {"type": ["string", "null"]},
+    "error": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {"enum": ["queued", "claimed", "running", "verifying"]}
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["authorization_ref"],
+        "properties": {
+          "authorization_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

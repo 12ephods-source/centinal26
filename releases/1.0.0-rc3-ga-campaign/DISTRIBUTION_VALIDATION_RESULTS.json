@@ -1,0 +1,39 @@
+{
+  "checks": {
+    "fresh_embedded_install": true,
+    "installed_files_checked": true,
+    "installed_manifest_verification": true,
+    "installed_source_only": true,
+    "installed_version": true,
+    "rc2_to_rc3_upgrade": true,
+    "rc3_only_wrapper_removed_on_rollback": true,
+    "rc3_to_rc2_rollback": true,
+    "rollback_state_preservation": true,
+    "upgrade_state_preservation": true
+  },
+  "evidence_type": "DISTRIBUTION_VALIDATION",
+  "fresh_install_probe": {
+    "app": "Automation Canonical Platform",
+    "errors": [],
+    "evidence_type": "DISTRIBUTION_VALIDATION",
+    "files_checked": 165,
+    "generated_at": "2026-08-07T11:57:20+00:00",
+    "manifest_schema_version": 10,
+    "manifest_sha256": "ecdbceaed114f54593dba20b3a99311201080fbef128682c26172b6ce48eeb9d",
+    "manifest_version": "1.0.0-rc3-device-validation",
+    "overall": "PASS",
+    "platform": "installed-tree",
+    "schema_version": 10,
+    "source_only": true,
+    "version": "1.0.0-rc3-device-validation"
+  },
+  "generated_at": "2026-08-07T11:58:43+00:00",
+  "limitations": [
+    "Host distribution validation is not physical Android validation.",
+    "The full approximately one-hour endurance gate was not executed on this host."
+  ],
+  "overall": "PASS",
+  "platform": "host-isolated-install",
+  "release": "1.0.0-rc3-device-validation",
+  "schema_version": 10
+}

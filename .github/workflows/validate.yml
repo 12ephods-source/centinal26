@@ -1,0 +1,23 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate repository invariant, provenance and release gates
+        run: python tests/validate_repository.py
+      - name: Compile Python
+        run: python -m compileall -q tests
+      - name: Validate imported shell syntax
+        run: bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh
