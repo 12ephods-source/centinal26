@@ -1,0 +1,63 @@
+name: site-artifact
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'site/**'
+      - 'deploy/termux/serve-site.sh'
+      - '.github/workflows/site-artifact.yml'
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'deploy/termux/serve-site.sh'
+      - '.github/workflows/site-artifact.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate site
+        run: python tests/validate_site.py
+      - name: Compile local server
+        run: python -m py_compile site/serve.py
+      - name: Build portable bundle
+        run: |
+          mkdir -p dist
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import zipfile
+
+          root = Path('site')
+          out = Path('dist/automation-os-site.zip')
+          files = sorted(p for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts)
+          manifest = []
+          for p in files:
+              digest = hashlib.sha256(p.read_bytes()).hexdigest()
+              manifest.append({'path': p.as_posix(), 'sha256': digest, 'size': p.stat().st_size})
+          Path('dist/site-manifest.json').write_text(json.dumps({'files': manifest}, indent=2) + '\n')
+          with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+              for p in files:
+                  z.write(p, p.as_posix())
+              z.write('dist/site-manifest.json', 'site-manifest.json')
+          print(out)
+          PY
+      - name: Upload portable website
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-os-site
+          path: |
+            dist/automation-os-site.zip
+            dist/site-manifest.json
+          if-no-files-found: error
+          retention-days: 30
