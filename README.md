@@ -41,6 +41,21 @@ bash scripts/install-termux.sh
 
 State defaults to `~/.local/state/centinal26`; set `CENTINAL26_HOME` to override it.
 
+## Automated vertical slice
+
+The additive automated runtime closes the canonical path through independently declared verification, immutable per-attempt evidence, evidence-gated state updates, idempotent durable submission, bounded retries, expiring worker leases, and crash recovery.
+
+```bash
+centinal26 auto-demo
+centinal26 auto-selftest
+centinal26 auto-status
+centinal26 auto-daemon --poll 2
+```
+
+`bash scripts/host-automation-gate.sh` executes ten verified passes plus a lease-recovery pass. GitHub Actions runs the same gate on pushes, pull requests, manual dispatch, and a daily schedule and preserves the host evidence as an artifact. The gate may report `evolution.ready=true`; that is runtime readiness only and never automatic GA promotion or physical-device validation.
+
+For opt-in Android boot persistence, `bash scripts/enable-termux-boot.sh` installs the bounded daemon as a Termux:Boot hook. See `docs/AUTOMATED_VERTICAL_SLICE.md`.
+
 ## Repository role
 
 GitHub is the durable engineering source of truth: code, deployment assets,
@@ -64,7 +79,7 @@ See `provenance/ARTIFACT_REGISTRY.json` and `releases/BOOTSTRAP_STATE.json` for 
 - `src/centinal26/` — runnable orchestration core and CLI
 - `workers/` — bounded workers and job consumers
 - `deploy/termux/`, `scripts/` — Android/Termux deployment
-- `schemas/` — job, evidence, audit, artifact, and release schemas
+- `schemas/` — intent, job, evidence, audit, artifact, and release schemas
 - `tests/` — invariant, schema, runtime, provenance, and release-gate validation
 - `docs/` — architecture, timeline, operating model, provenance
 - `.github/workflows/` — automated validation
