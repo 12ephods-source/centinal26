@@ -8,6 +8,15 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .core import AuditLog, Engine, Grant, JobStore
+from .pipeline import (
+    AutomatedEngine,
+    CapabilitySpec,
+    EvidenceStore,
+    Intent,
+    RuntimeStore,
+    echo_reducer,
+    echo_verifier,
+)
 from .qualification import run_qualification, verify_bundle
 
 
@@ -26,6 +35,33 @@ def engine() -> Engine:
     return runtime
 
 
+def automated_engine() -> AutomatedEngine:
+    home = state_home()
+    runtime = AutomatedEngine(
+        RuntimeStore(home / "automation.sqlite3"),
+        AuditLog(home / "automation-audit.jsonl"),
+        EvidenceStore(home / "evidence"),
+    )
+    runtime.register(
+        CapabilitySpec(
+            name="system.echo",
+            executor=echo,
+            verifier=echo_verifier,
+            reducer=echo_reducer,
+            verifier_independent=True,
+        )
+    )
+    return runtime
+
+
+def short_grant(capability: str) -> Grant:
+    return Grant(
+        grant_id=str(uuid.uuid4()),
+        capability=capability,
+        expires_at=(datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="centinal26")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -37,6 +73,12 @@ def main() -> None:
     qualify.add_argument("--output", type=Path, required=True)
     verify = sub.add_parser("verify-evidence")
     verify.add_argument("bundle", type=Path)
+    sub.add_parser("auto-demo")
+    sub.add_parser("auto-run-once")
+    auto_daemon = sub.add_parser("auto-daemon")
+    auto_daemon.add_argument("--poll", type=float, default=1.0)
+    sub.add_parser("auto-selftest")
+    sub.add_parser("auto-status")
     args = parser.parse_args()
 
     if args.command == "qualify":
@@ -48,26 +90,90 @@ def main() -> None:
         print(json.dumps({"bundle": str(args.bundle), "valid": valid}, sort_keys=True))
         raise SystemExit(0 if valid else 1)
 
+    if args.command.startswith("auto-"):
+        runtime = automated_engine()
+        if args.command == "auto-demo":
+            intent = Intent(
+                "system.echo",
+                {"message": "Centinal26 automated vertical slice online"},
+            )
+            job_id = runtime.submit(intent, short_grant(intent.capability))
+            runtime.run_once()
+            row = runtime.store.db.execute(
+                "SELECT state,evidence_path FROM jobs WHERE id=?", (job_id,)
+            ).fetchone()
+            print(
+                json.dumps(
+                    {
+                        "job_id": job_id,
+                        "state": row["state"],
+                        "evidence_path": row["evidence_path"],
+                    },
+                    sort_keys=True,
+                )
+            )
+        elif args.command == "auto-run-once":
+            print(json.dumps({"job_id": runtime.run_once()}))
+        elif args.command == "auto-daemon":
+            runtime.run_forever(poll_seconds=args.poll)
+        elif args.command == "auto-selftest":
+            intent = Intent("system.echo", {"selftest": "lease-recovery"})
+            job_id = runtime.submit(intent, short_grant(intent.capability))
+            claimed = runtime.store.claim(lease_seconds=60)
+            if claimed is None or claimed["id"] != job_id:
+                raise RuntimeError("selftest could not claim queued job")
+            runtime.store.db.execute(
+                "UPDATE jobs SET lease_until='2000-01-01T00:00:00+00:00' WHERE id=?",
+                (job_id,),
+            )
+            runtime.store.db.commit()
+            recovered = runtime.store.recover()
+            runtime.run_once(recovery_test=True)
+            print(
+                json.dumps(
+                    {
+                        "job_id": job_id,
+                        "recovered_leases": recovered,
+                        "evolution": runtime.store.evolution_status(),
+                    },
+                    sort_keys=True,
+                )
+            )
+        elif args.command == "auto-status":
+            print(
+                json.dumps(
+                    {
+                        "jobs": runtime.store.counts(),
+                        "audit_valid": runtime.audit.verify(),
+                        "evolution": runtime.store.evolution_status(),
+                        "home": str(state_home()),
+                    },
+                    sort_keys=True,
+                )
+            )
+        return
+
     runtime = engine()
     if args.command == "init":
         print(json.dumps({"initialized": str(state_home())}))
     elif args.command == "demo":
-        grant = Grant(
-            grant_id=str(uuid.uuid4()),
-            capability="system.echo",
-            expires_at=(datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
-        )
+        grant = short_grant("system.echo")
         job_id = runtime.submit("system.echo", {"message": "Centinal26 online"}, grant)
         runtime.run_once()
         print(json.dumps({"job_id": job_id, "state": "verified"}))
     elif args.command == "run-once":
         print(json.dumps({"job_id": runtime.run_once()}))
     elif args.command == "status":
-        print(json.dumps({
-            "jobs": runtime.store.counts(),
-            "audit_valid": runtime.audit.verify(),
-            "home": str(state_home()),
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "jobs": runtime.store.counts(),
+                    "audit_valid": runtime.audit.verify(),
+                    "home": str(state_home()),
+                },
+                sort_keys=True,
+            )
+        )
 
 
 if __name__ == "__main__":
