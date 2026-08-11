@@ -39,6 +39,7 @@ if [[ $rc -ne 0 ]]; then
   mkdir -p "$HOME/.gyp"
   printf "{'variables':{'android_ndk_path':''}}\n" > "$HOME/.gyp/include.gypi"
   POT_VER="${POT_PROVIDER_VERSION:-1.3.1}"
+  # Install the Python plugin from the pinned GitHub tag rather than PyPI.
   python -m pip install -U "git+https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git@${POT_VER}"
   POT_HOME="$HOME/bgutil-ytdlp-pot-provider"
   rm -rf "$POT_HOME.tmp"
@@ -59,6 +60,7 @@ fi
 
 OUT="$APP_DIR/output/$VID"
 if [[ ! -d "$OUT" ]]; then
+  # run.sh defaults output under package directory; preserve future renamed target IDs.
   OUT="$(find "$APP_DIR/output" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n1 | cut -d' ' -f2- || true)"
 fi
 
@@ -106,6 +108,7 @@ if pipeline != 'PASS':
     raise SystemExit(31)
 PY
 
+# Best-effort copy to Android Downloads.
 if [[ -d "$HOME/storage/downloads" && -w "$HOME/storage/downloads" ]]; then
   DEST="$HOME/storage/downloads/youtube-transcriber-$VID"
   rm -rf "$DEST"
