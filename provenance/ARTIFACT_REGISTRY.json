@@ -1,6 +1,6 @@
 {
   "format": "automation-artifact-registry-v1",
-  "generated_at": "2026-08-11T11:55:00Z",
+  "generated_at": "2026-08-11T12:16:00Z",
   "policy": {
     "unknown_bytes_are_not_reconstructed_as_original": true,
     "physical_validation_is_not_inferred_from_host_validation": true,
@@ -16,6 +16,32 @@
       "repository_path": null,
       "sha256": "9d9b6a03e2ad7e3db23cf3dcb960bbeff3ab5424fecddeb81b98dfdae94b143a",
       "validation": {"state": "REVIEW", "physical_device_validated": false, "notes": ["Targets 1.0.0-rc4-converged, schema 10.", "Exact File Library original is located; full bytes are not mounted in the active runtime.", "Orchestrator refuses fabricated merge decisions, physical PASS evidence, native certification, and automatic human promotion."]}
+    },
+    {
+      "artifact_id": "ACP-RC4-PARENT-SCHEMA10",
+      "name": "install_automation_platform_v1.0.0-rc3_2026-08-07.sh — schema-10 device-validation parent",
+      "classification": "CANONICAL",
+      "provenance_class": "RECOVERED_EXACT_IN_FILE_LIBRARY",
+      "source": {"kind": "file_library", "ref": "file_000000005ff881fda332f1e5ec79ca22", "created_at": "2026-08-07T11:59:52Z"},
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": "e21ed868d11ec7525a0fba54e58854b00a9fd151681a1efc26ffd9cf202f40d2",
+      "size_bytes": 844877,
+      "embedded_payload_sha256": "79e53364ff0462dadf9b1d454123791c0db26d0a860bda98cf3e788183106e0a",
+      "validation": {"state": "REVIEW", "physical_device_validated": false, "notes": ["Exact parent identity is independently preserved by historical SHA sidecar and distribution manifest.", "Full bytes are located in File Library but are not mounted in the GitHub execution environment.", "Transport and payload verification in an execution environment remain open."]}
+    },
+    {
+      "artifact_id": "ACP-RC4-PARENT-GA9",
+      "name": "install_automation_platform_v1.0.0-rc3_2026-08-07.sh — schema-9 GA-campaign parent",
+      "classification": "CANONICAL",
+      "provenance_class": "RECOVERED_EXACT_IN_FILE_LIBRARY",
+      "source": {"kind": "file_library", "ref": "file_000000005cd881fd9404a97fa7c7c32c", "created_at": "2026-08-07T12:24:59Z"},
+      "content_imported": false,
+      "repository_path": null,
+      "sha256": "cfd2e3e285550b2d4f995a7edf10377ca983276da9b79e16084e0a36b040e7d7",
+      "size_bytes": 278935,
+      "embedded_payload_sha256": "692c59e891d5f539933c363563b1256b10c225d15878598724b9b6cca03c8f58",
+      "validation": {"state": "REVIEW", "physical_device_validated": false, "notes": ["Exact GA-campaign parent identity is preserved by historical distribution validation and SHA records.", "Full bytes are located in File Library but are not mounted in the GitHub execution environment.", "Transport and payload verification in an execution environment remain open."]}
     },
     {
       "artifact_id": "ACP-RC4-CONTROLLER",
@@ -36,7 +62,7 @@
       "content_imported": true,
       "repository_path": "releases/1.0.0-rc4-converged",
       "sha256": null,
-      "validation": {"state": "STATIC_VALIDATED", "physical_device_validated": false, "notes": ["Explicit reconstruction from recoverable RC4 contracts; these files are not represented as the unrecovered original companions.", "Includes exact-parent analyzer, reviewed constructor, non-mutating static host harness, attested physical-evidence outer gate, and a stricter successor controller with a separate native-certification stage.", "Synthetic regression tests are present; exact-parent live convergence and physical-device gates remain open until CI and empirical execution support them."]}
+      "validation": {"state": "STATIC_VALIDATED", "physical_device_validated": false, "notes": ["Explicit reconstruction from recoverable RC4 contracts; these files are not represented as the unrecovered original companions.", "Includes exact-parent analyzer, reviewed constructor, non-mutating static host harness, attested physical-evidence outer gate, and a stricter successor controller with a separate native-certification stage.", "Synthetic regression tests are present; exact-parent live convergence and physical-device gates remain open until empirical execution supports them."]}
     },
     {
       "artifact_id": "ACP-RC4-V6-BUNDLE",
