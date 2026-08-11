@@ -1,0 +1,100 @@
+name: YouTube caption network matrix
+
+on:
+  push:
+    branches:
+      - agent/youtube-transcriber-v1.3.0
+    paths:
+      - .github/workflows/youtube-caption-matrix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  caption-probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      VIDEO_ID: tr9AqDYxFI4
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install caption client
+        shell: bash
+        run: python -m pip install 'git+https://github.com/jdepoix/youtube-transcript-api.git@v1.2.4'
+
+      - name: Probe exact target transcript
+        id: probe
+        continue-on-error: true
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import platform
+          from pathlib import Path
+          from youtube_transcript_api import YouTubeTranscriptApi
+
+          out = Path('evidence')
+          out.mkdir(exist_ok=True)
+          base = {
+              'video_id': os.environ['VIDEO_ID'],
+              'runner_os': platform.system(),
+              'runner_platform': platform.platform(),
+          }
+          try:
+              api = YouTubeTranscriptApi()
+              transcripts = api.list(os.environ['VIDEO_ID'])
+              chosen = next(iter(transcripts))
+              fetched = chosen.fetch()
+              text = '\n'.join(str(x.text).strip() for x in fetched if str(x.text).strip())
+              if not text:
+                  raise RuntimeError('empty transcript')
+              raw = text.encode('utf-8')
+              normalized = ' '.join(text.split())
+              base.update({
+                  'status': 'PASS',
+                  'language_code': getattr(chosen, 'language_code', None),
+                  'is_generated': getattr(chosen, 'is_generated', None),
+                  'characters': len(text),
+                  'words': len(text.split()),
+                  'sha256': hashlib.sha256(raw).hexdigest(),
+                  'bounded_excerpt': normalized[:80],
+                  'bounded_excerpt_characters': min(80, len(normalized)),
+              })
+          except Exception as e:
+              base.update({
+                  'status': 'BLOCKED',
+                  'error_type': type(e).__name__,
+                  'error': str(e)[:2000],
+              })
+          (out / 'CAPTION_PROBE.json').write_text(json.dumps(base, indent=2, ensure_ascii=False) + '\n')
+          print(json.dumps({k: base.get(k) for k in ('status','video_id','runner_os','language_code','characters','words','sha256','error_type')}, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: caption-probe-${{ matrix.os }}
+          path: evidence/CAPTION_PROBE.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce probe
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x = json.loads(Path('evidence/CAPTION_PROBE.json').read_text())
+          if x.get('status') != 'PASS':
+              raise SystemExit('caption route blocked on this runner')
+          PY
