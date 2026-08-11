@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import json
 from pathlib import Path
 
@@ -93,7 +92,7 @@ def main() -> int:
     rc3_cert = load("releases/1.0.0-rc3-ga-campaign/RELEASE_CERTIFICATE.json")
     if rc3_cert.get("decision") != "REVIEW":
         raise SystemExit("RC3 historical certificate must remain REVIEW")
-    missing_evidence = set((((rc3_cert.get("evaluation") or {}).get("reasons") or {}).get("missing_evidence") or []))
+    missing_evidence = set(((rc3_cert.get("evaluation") or {}).get("reasons") or {}).get("missing_evidence") or [])
     expected_missing = {"ANDROID_VALIDATION", "ENDURANCE_VALIDATION", "DEVICE_SYNC_VALIDATION"}
     if not expected_missing.issubset(missing_evidence):
         raise SystemExit(f"RC3 missing-evidence record drifted: {sorted(missing_evidence)}")
