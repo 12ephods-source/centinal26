@@ -1,0 +1,37 @@
+name: automation-gates
+
+on:
+  push:
+    branches: ["main", "agent/**"]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  vertical-slice:
+    runs-on: ubuntu-latest
+    env:
+      CENTINAL26_HOME: ${{ runner.temp }}/centinal26-automation-gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - name: Run full test suite
+        run: pytest -q
+      - name: Exercise automated vertical slice and recovery gate
+        run: bash scripts/host-automation-gate.sh | tee automation-gate-status.json
+      - name: Preserve host evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: centinal26-host-automation-evidence
+          path: |
+            ${{ runner.temp }}/centinal26-automation-gate
+            automation-gate-status.json
+          if-no-files-found: error
