@@ -1,0 +1,41 @@
+name: Initialize Automation OS Labels
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure Automation OS labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          labels=(
+            automation-os-job
+            automation-os-claimed
+            automation-os-awaiting-reboot
+            automation-os-completed
+            automation-os-failed
+            automation-os-rejected
+            automation-os-ga-pass
+          )
+          for label in "${labels[@]}"; do
+            code="$(curl -sS -o /tmp/out -w '%{http_code}' \
+              -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GH_REPO}/labels" \
+              -d "$(jq -n --arg name "$label" '{name:$name,color:"0969da"}')")"
+            if [ "$code" != "201" ] && [ "$code" != "422" ]; then
+              cat /tmp/out
+              exit 1
+            fi
+          done
