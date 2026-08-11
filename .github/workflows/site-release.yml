@@ -1,0 +1,73 @@
+name: site-release
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'site/**'
+      - 'deploy/termux/serve-site.sh'
+      - 'scripts/package_site.py'
+      - '.github/workflows/site-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate site
+        run: python tests/validate_site.py
+      - name: Compile packaging and local-server code
+        run: python -m py_compile site/serve.py scripts/package_site.py
+      - name: Build distribution bundle
+        run: python scripts/package_site.py
+      - name: Verify package checksums
+        run: cd dist && sha256sum -c SHA256SUMS
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          short_sha="${GITHUB_SHA:0:12}"
+          tag="website-${short_sha}"
+          {
+            echo '# Automation OS website distribution'
+            echo
+            echo "Canonical source commit: \`${GITHUB_SHA}\`"
+            echo
+            echo 'This GitHub Release distributes the validated static website only.'
+            echo 'It is not an Automation OS GA/product release, device-validation certificate, or promotion decision.'
+            echo
+            echo 'Assets include the portable website ZIP, its file manifest, SHA-256 checksums, and the Termux launcher.'
+          } > dist/release-notes.md
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${short_sha}" >> "$GITHUB_OUTPUT"
+      - name: Publish immutable website release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          assets=(
+            dist/automation-os-site.zip
+            dist/site-manifest.json
+            dist/SHA256SUMS
+            deploy/termux/serve-site.sh
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$TAG" "${assets[@]}" \
+              --target "$GITHUB_SHA" \
+              --title "Automation OS website ${SHORT_SHA}" \
+              --notes-file dist/release-notes.md \
+              --latest=false
+          fi
