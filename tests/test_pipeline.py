@@ -193,3 +193,34 @@ def test_evolution_gate_can_open_after_recovery_and_independent_verification(tmp
         engine.run_once(recovery_test=(i == 2))
     status = engine.store.evolution_status(3)
     assert status["ready"]
+
+
+def test_state_divergence_is_detected_and_closes_evolution_gate(tmp_path, monkeypatch):
+    engine = runtime(tmp_path)
+    original_get_state = engine.store.get_state
+    reads = {"count": 0}
+
+    def divergent_readback(key):
+        reads["count"] += 1
+        if reads["count"] == 1:
+            return original_get_state(key)
+        return {"corrupt": True}
+
+    monkeypatch.setattr(engine.store, "get_state", divergent_readback)
+    job_id = engine.submit(
+        Intent("system.echo", {"x": 1}),
+        grant("system.echo"),
+        idempotency_key="divergence",
+    )
+    engine.run_once()
+    row = engine.store.db.execute(
+        "SELECT state,evidence_path FROM jobs WHERE id=?", (job_id,)
+    ).fetchone()
+    assert row["state"] == "state_diverged"
+    evidence_path = engine.evidence.root.parent / row["evidence_path"]
+    if not evidence_path.exists():
+        evidence_path = engine.evidence.root / job_id / "0001-state-divergence.json"
+    assert engine.evidence.verify(evidence_path)
+    status = engine.store.evolution_status(1)
+    assert not status["ready"]
+    assert not status["zero_state_divergence"]
