@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/release.schema.json",
+  "title": "AutomationReleaseManifest",
+  "type": "object",
+  "required": ["version", "status", "validation_level", "artifacts", "created_at"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "status": {"enum": ["CANONICAL", "COMPATIBLE_MODULE", "EXPERIMENTAL", "SUPERSEDED", "REJECTED"]},
+    "validation_level": {"enum": ["UNVALIDATED", "STATIC_VALIDATED", "HOST_VALIDATED", "DEVICE_VALIDATED", "ENDURANCE_VALIDATED", "RELEASE_VALIDATED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "target": {"type": "string"},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "role": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gates": {"type": "object"},
+    "notes": {"type": "string"}
+  },
+  "additionalProperties": false
+}
