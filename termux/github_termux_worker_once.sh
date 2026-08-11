@@ -53,8 +53,12 @@ set_labels "$num" automation-os-job automation-os-claimed
 comment_issue "$num" "CLAIMED by ${AUTOMATION_DEVICE_ID:-termux-device}. Using validation-integrity-patched RC9."
 
 ART="${AUTOMATION_OS_PATCHED_RC9_PATH:-$HOME/storage/downloads/$PATCHED_ARTIFACT_NAME}"
+if [ ! -f "$ART" ] && [ -n "${AUTOMATION_OS_PATCHED_RC9_URL:-}" ]; then
+  mkdir -p "$(dirname "$ART")"
+  curl --fail-with-body -L "$AUTOMATION_OS_PATCHED_RC9_URL" -o "$ART"
+fi
 if [ ! -f "$ART" ]; then
-  comment_issue "$num" "BLOCKED: patched RC9 artifact not found at $ART. Expected SHA-256 $PATCHED_ARTIFACT_SHA256."
+  comment_issue "$num" "BLOCKED: patched RC9 artifact not found at $ART. Expected SHA-256 $PATCHED_ARTIFACT_SHA256. Set AUTOMATION_OS_PATCHED_RC9_URL for an authenticated/direct download source or place the file locally."
   set_labels "$num" automation-os-job automation-os-failed
   exit 4
 fi
