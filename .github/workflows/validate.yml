@@ -19,7 +19,8 @@ jobs:
         run: python tests/validate_repository.py
       - name: Compile Python
         run: python -m compileall -q tests releases/1.0.0-rc4-converged
-      - name: Validate release-controller shell syntax
+      - name: Validate release-controller and recovery shell syntax
         run: |
           bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh
           bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER_SUCCESSOR.sh
+          bash -n deploy/termux/recover-rc4-parent-inputs.sh
