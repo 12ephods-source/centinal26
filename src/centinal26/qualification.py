@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from .core import AuditLog, Engine, Grant, JobStore
+from .core import AuditLog, Engine, Grant, JobStore, Verification
 
 EVIDENCE_FILES = {"audit.jsonl", "qualification.json", "queue.sqlite3"}
 
@@ -26,6 +26,16 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(65536), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _verify_qualification_echo(
+    data: dict[str, Any], output: dict[str, Any]
+) -> Verification:
+    expected = {"received": data}
+    return Verification(
+        passed=output == expected,
+        evidence={"expected": expected, "observed": output},
+    )
 
 
 def platform_identity() -> dict[str, Any]:
@@ -49,7 +59,11 @@ def run_qualification(output_dir: Path) -> dict[str, Any]:
     audit = AuditLog(output_dir / "audit.jsonl")
     store = JobStore(output_dir / "queue.sqlite3")
     runtime = Engine(store, audit)
-    runtime.register("qualification.echo", lambda data: {"received": data})
+    runtime.register(
+        "qualification.echo",
+        lambda data: {"received": data},
+        _verify_qualification_echo,
+    )
     grant = Grant(
         grant_id=str(uuid.uuid4()),
         capability="qualification.echo",

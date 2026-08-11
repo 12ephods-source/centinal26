@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from .core import AuditLog, Engine, Grant, JobStore
+from .core import AuditLog, Engine, Grant, JobStore, Verification
 from .qualification import assess_bundle, run_qualification, verify_bundle
 
 
@@ -19,10 +19,17 @@ def echo(data: dict) -> dict:
     return {"echo": data}
 
 
+def verify_echo(data: dict, output: dict) -> Verification:
+    return Verification(
+        passed=output == {"echo": data},
+        evidence={"method": "exact_echo_match"},
+    )
+
+
 def engine() -> Engine:
     home = state_home()
     runtime = Engine(JobStore(home / "queue.sqlite3"), AuditLog(home / "audit.jsonl"))
-    runtime.register("system.echo", echo)
+    runtime.register("system.echo", echo, verify_echo)
     return runtime
 
 
