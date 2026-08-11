@@ -19,5 +19,21 @@
     "result_ref": {"type": ["string", "null"]},
     "error": {"type": ["string", "null"]}
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {"enum": ["queued", "claimed", "running", "verifying"]}
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["authorization_ref"],
+        "properties": {
+          "authorization_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }
