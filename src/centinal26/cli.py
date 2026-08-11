@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .core import AuditLog, Engine, Grant, JobStore
@@ -41,7 +41,7 @@ def main() -> None:
         grant = Grant(
             grant_id=str(uuid.uuid4()),
             capability="system.echo",
-            expires_at=(datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+            expires_at=(datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
         )
         job_id = runtime.submit("system.echo", {"message": "Centinal26 online"}, grant)
         runtime.run_once()
