@@ -1,0 +1,91 @@
+{
+  "actor": "Robert Frost",
+  "app": "Automation Canonical Platform",
+  "certificate_hash": "2b8850844ab7a98ea14acfda469d529d2b5c868e7a8492589b6c964104a6eaca",
+  "created_at": "2026-08-07T12:22:22+00:00",
+  "decision": "REVIEW",
+  "evaluation": {
+    "decision": "REVIEW",
+    "evaluated_at": "2026-08-07T12:22:22+00:00",
+    "evidence_set_sha256": "5a8daab9c5d62b6a9abc37d64a99e1097c3a6bf2d1a762dab39b64a3ad06ed36",
+    "latest_recovery_drill_id": "RDR-3725fc7d6469",
+    "local_integrity": {
+      "audit_chain": true,
+      "certificate_chain": true,
+      "database_integrity": true,
+      "details": {
+        "audit_checked": 26,
+        "certificates_checked": 0,
+        "foreign_key_errors": 0,
+        "integrity": "ok",
+        "snapshots_checked": 1
+      },
+      "foreign_keys": true,
+      "snapshot_chain": true
+    },
+    "policy": {
+      "allow_review_evidence_for_pass": false,
+      "fail_on_any_failed_evidence": true,
+      "max_evidence_age_days": 45,
+      "max_recovery_drill_age_days": 45,
+      "require_audit_chain": true,
+      "require_certificate_chain": true,
+      "require_database_integrity": true,
+      "require_foreign_key_integrity": true,
+      "require_recovery_drill": true,
+      "require_signed_device_evidence": true,
+      "require_snapshot_chains": true,
+      "required_evidence": [
+        "HOST_VALIDATION",
+        "DISTRIBUTION_VALIDATION",
+        "ANDROID_VALIDATION",
+        "ENDURANCE_VALIDATION",
+        "DEVICE_SYNC_VALIDATION"
+      ]
+    },
+    "policy_sha256": "46b8c22371656e3ed445b6834f0520cb10227976b7ab37b15fe135c931fe618d",
+    "project_id": "PRJ-20c5c0ab3635",
+    "project_name": "Automation",
+    "reasons": {
+      "failed_evidence": [],
+      "local_integrity_failures": [],
+      "missing_evidence": [
+        "ANDROID_VALIDATION",
+        "ENDURANCE_VALIDATION",
+        "DEVICE_SYNC_VALIDATION"
+      ],
+      "recovery_issue": null,
+      "review_evidence": [],
+      "stale_evidence": [],
+      "unattested_device_evidence": []
+    },
+    "release_version": "1.0.0-rc3-ga-campaign",
+    "selected_evidence": [
+      {
+        "id": "EVD-97bc8a1897cf",
+        "sha256": "cd96f9f3069e80b79fe70252c457210cba9034cbe10fb6c474a52c8bbfee03e2",
+        "status": "PASS",
+        "type": "DISTRIBUTION_VALIDATION"
+      },
+      {
+        "id": "EVD-669336bfdef2",
+        "sha256": "a526a65c272bce57bc45292949218fb255261b1b5c565e12c4b5aa6655d7d49d",
+        "status": "PASS",
+        "type": "HOST_VALIDATION"
+      }
+    ]
+  },
+  "evidence_set_sha256": "5a8daab9c5d62b6a9abc37d64a99e1097c3a6bf2d1a762dab39b64a3ad06ed36",
+  "file_sha256": "dab60b45ba94c08e851637370824bdbc19ae8369ed6751f53a01fd9246a3e63f",
+  "format": "automation-release-certificate-v1",
+  "id": "CRT-83da5cb52529",
+  "notes": "Termux GA evidence gate",
+  "path": "/tmp/acp-rc3-final-fresh/app/artifacts/release-certifications/automation/1.0.0-rc3-ga-campaign/CRT-83da5cb52529.json",
+  "platform_version": "1.0.0-rc3-ga-campaign",
+  "policy_sha256": "46b8c22371656e3ed445b6834f0520cb10227976b7ab37b15fe135c931fe618d",
+  "previous_certificate_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "project_id": "PRJ-20c5c0ab3635",
+  "project_name": "Automation",
+  "release_version": "1.0.0-rc3-ga-campaign",
+  "schema_version": 9
+}
