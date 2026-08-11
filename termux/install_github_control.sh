@@ -22,16 +22,15 @@ TOKEN="$(gh auth token --hostname github.com)"
 rm -rf "$ROOT"
 git clone "https://github.com/${REPO}.git" "$ROOT"
 cd "$ROOT"
-
-git fetch origin agent/integrity-pinned-github-control
-git checkout agent/integrity-pinned-github-control
+git checkout main
+git pull --ff-only origin main
 
 mkdir -p "$STATE"
 chmod 700 "$CFGDIR" "$STATE"
 cat > "$CFGDIR/config" <<EOF
 GITHUB_REPO="$REPO"
 GITHUB_TOKEN="$TOKEN"
-GITHUB_REF="agent/integrity-pinned-github-control"
+GITHUB_REF="main"
 AUTOMATION_DEVICE_ID="android-$(uname -m)-$(date +%s)"
 EOF
 chmod 600 "$CFGDIR/config"
@@ -51,5 +50,16 @@ bash "${HOME}/automation-os-github-control-repo/termux/report_after_reboot.sh" >
 EOF
 chmod 700 "$HOME/.termux/boot/automation-os-github-report.sh"
 
-echo "GitHub control worker installed from $REPO."
-echo "Place AUTOMATION_OS_1.0.0_RC9_VALIDATION_INTEGRITY_PATCH.zip in ~/storage/downloads/ before dispatching the physical-GA workflow."
+echo "GitHub control worker installed from $REPO main."
+echo "Expected physical artifact: ~/storage/downloads/AUTOMATION_OS_1.0.0_RC9_VALIDATION_INTEGRITY_PATCH.zip"
+echo "Attempting immediate claim of the queued Automation OS device job..."
+set +e
+bash "$ROOT/termux/github_termux_worker_once.sh"
+rc=$?
+set -e
+
+echo "Immediate worker return code: $rc"
+if [ -f "$HOME/.automation_os_ga/state.json" ]; then
+  jq '.' "$HOME/.automation_os_ga/state.json" || true
+fi
+exit "$rc"
