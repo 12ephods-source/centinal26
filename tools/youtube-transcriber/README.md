@@ -20,11 +20,10 @@ The device runner installs pinned GitHub-sourced dependencies, builds `whisper.c
 1. yt-dlp metadata and creator/automatic captions.
 2. `youtube-transcript-api` direct caption fallback.
 3. TeamPiped public subtitle fallback (`/streams/{videoId}`).
-4. Optional Invidious caption fallback when an API-enabled instance exists.
-5. Audio download + FFmpeg 16-kHz mono PCM conversion + `whisper.cpp`.
-6. For non-English speech, `whisper.cpp` translation to English.
-7. yt-dlp uses Node.js for current YouTube EJS challenges and retries with `web_safari` client when useful.
-8. On the Termux device, if the complete normal run fails, `device_run.sh` installs the pinned BgUtils PO-token provider from GitHub tag `1.3.1`, compiles its Node provider, and retries once.
+4. Audio download + FFmpeg 16-kHz mono PCM conversion + `whisper.cpp`.
+5. For non-English speech, `whisper.cpp` translation to English.
+6. yt-dlp uses Node.js for current YouTube EJS challenges and retries with `web_safari` client when useful.
+7. On the Termux device, if the complete normal run fails, `device_run.sh` installs the pinned BgUtils PO-token provider from GitHub tag `1.3.1`, compiles its Node provider, and retries once.
 
 ## GitHub role
 
@@ -68,7 +67,7 @@ After setup:
 
 ## Evidence state of this package
 
-Host validation covers Python compilation, shell syntax, 12 unit tests, caption/Piped/Invidious fallback logic, and the seven-file output contract. Authenticated GitHub Actions was also used for real-network testing of `tr9AqDYxFI4`; those cloud runners were blocked by YouTube before captions/audio could be acquired. The actual target is therefore **not** labeled as transcribed until the Android/Termux device run completes.
+Host validation covers Python compilation, shell syntax, 10 unit tests, caption/Piped fallback logic, and the seven-file output contract. Authenticated GitHub Actions was also used for real-network testing of `tr9AqDYxFI4`; those cloud runners were blocked by YouTube before captions/audio could be acquired. The actual target is therefore **not** labeled as transcribed until the Android/Termux device run completes.
 
 ## Cloud-runner evidence (2026-08-11)
 
