@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1-bootstrap",
+  "status": "EXPERIMENTAL",
+  "validation_level": "STATIC_VALIDATED",
+  "created_at": "2026-08-11T05:34:00-06:00",
+  "target": "repository-bootstrap",
+  "artifacts": [],
+  "gates": {
+    "repository_structure": true,
+    "canonical_invariant_encoded": true,
+    "schemas_present": true,
+    "ci_present": true,
+    "legacy_artifacts_imported": false,
+    "android_device_validated": false,
+    "endurance_validated": false
+  },
+  "notes": "Bootstrap manifest only. Existing Automation artifacts remain external until imported with provenance, classification, and hashes."
+}
