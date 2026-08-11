@@ -27,6 +27,12 @@ class Grant:
         ) > datetime.now(UTC)
 
 
+@dataclass(frozen=True)
+class Verification:
+    passed: bool
+    evidence: dict[str, Any]
+
+
 class AuditLog:
     def __init__(self, path: Path):
         self.path = path
@@ -110,16 +116,26 @@ class JobStore:
 
 
 Capability = Callable[[dict[str, Any]], dict[str, Any]]
+Verifier = Callable[[dict[str, Any], dict[str, Any]], Verification]
+
+
+@dataclass(frozen=True)
+class RegisteredCapability:
+    execute: Capability
+    verify: Verifier
 
 
 class Engine:
     def __init__(self, store: JobStore, audit: AuditLog):
         self.store = store
         self.audit = audit
-        self.capabilities: dict[str, Capability] = {}
+        self.capabilities: dict[str, RegisteredCapability] = {}
 
-    def register(self, name: str, function: Capability) -> None:
-        self.capabilities[name] = function
+    def register(self, name: str, function: Capability, verifier: Verifier) -> None:
+        self.capabilities[name] = RegisteredCapability(
+            execute=function,
+            verify=verifier,
+        )
 
     def submit(self, capability: str, data: dict[str, Any], grant: Grant) -> str:
         if not grant.permits(capability):
@@ -135,22 +151,85 @@ class Engine:
         row = self.store.next_job()
         if row is None:
             return None
+
         job_id = row["id"]
         grant = Grant(**json.loads(row["grant"]))
-        capability = row["capability"]
-        if not grant.permits(capability):
+        capability_name = row["capability"]
+        data = json.loads(row["input"])
+
+        if not grant.permits(capability_name):
             result = {"error": "authorization expired or mismatched"}
             self.store.transition(job_id, "rejected", result)
             self.audit.append("job_rejected", {"job_id": job_id, **result})
             return job_id
-        self.audit.append("job_started", {"job_id": job_id, "capability": capability})
+
+        registered = self.capabilities.get(capability_name)
+        if registered is None:
+            result = {"error": "capability is no longer registered"}
+            self.store.transition(job_id, "rejected", result)
+            self.audit.append("job_rejected", {"job_id": job_id, **result})
+            return job_id
+
+        self.audit.append(
+            "job_started",
+            {"job_id": job_id, "capability": capability_name},
+        )
+
         try:
-            output = self.capabilities[capability](json.loads(row["input"]))
-            result = {"ok": True, "output": output}
-            state = "verified"
+            output = registered.execute(data)
         except Exception as error:  # noqa: BLE001 - capability boundary records failures
-            result = {"ok": False, "error": type(error).__name__, "message": str(error)}
-            state = "failed"
-        self.store.transition(job_id, state, result)
-        self.audit.append(f"job_{state}", {"job_id": job_id, **result})
+            result = {
+                "ok": False,
+                "error": type(error).__name__,
+                "message": str(error),
+            }
+            self.store.transition(job_id, "failed", result)
+            self.audit.append("job_failed", {"job_id": job_id, **result})
+            return job_id
+
+        executed = {"ok": True, "output": output}
+        self.store.transition(job_id, "executed", executed)
+        self.audit.append("job_executed", {"job_id": job_id, **executed})
+
+        try:
+            verification = registered.verify(data, output)
+        except Exception as error:  # noqa: BLE001 - verifier boundary records failures
+            result = {
+                "ok": False,
+                "output": output,
+                "verification": {
+                    "passed": False,
+                    "error": type(error).__name__,
+                    "message": str(error),
+                },
+            }
+            self.store.transition(job_id, "verification_failed", result)
+            self.audit.append("job_verification_failed", {"job_id": job_id, **result})
+            return job_id
+
+        if not isinstance(verification, Verification):
+            result = {
+                "ok": False,
+                "output": output,
+                "verification": {
+                    "passed": False,
+                    "error": "InvalidVerificationResult",
+                    "message": "verifier must return Verification",
+                },
+            }
+            self.store.transition(job_id, "verification_failed", result)
+            self.audit.append("job_verification_failed", {"job_id": job_id, **result})
+            return job_id
+
+        result = {
+            "ok": verification.passed,
+            "output": output,
+            "verification": asdict(verification),
+        }
+        if verification.passed:
+            self.store.transition(job_id, "verified", result)
+            self.audit.append("job_verified", {"job_id": job_id, **result})
+        else:
+            self.store.transition(job_id, "verification_failed", result)
+            self.audit.append("job_verification_failed", {"job_id": job_id, **result})
         return job_id
