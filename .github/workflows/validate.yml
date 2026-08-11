@@ -15,7 +15,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate repository invariant and schemas
+      - name: Validate repository invariant, provenance and release gates
         run: python tests/validate_repository.py
       - name: Compile Python
         run: python -m compileall -q tests
+      - name: Validate imported shell syntax
+        run: bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh
