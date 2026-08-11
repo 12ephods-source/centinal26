@@ -101,7 +101,7 @@ def verify_embedded_manifest(root: Path) -> dict[str, Any]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     files = manifest.get("files")
     if not isinstance(files, list):
-        raise ValueError("embedded MANIFEST.json has no files list")
+        raise TypeError("embedded MANIFEST.json has no files list")
     errors: list[str] = []
     for item in files:
         if not isinstance(item, dict) or not isinstance(item.get("path"), str):
@@ -163,7 +163,7 @@ def candidate_manifest(root: Path) -> dict[str, Any]:
         raise ValueError("candidate release/schema mismatch")
     files = data.get("files")
     if not isinstance(files, list):
-        raise ValueError("candidate manifest files list missing")
+        raise TypeError("candidate manifest files list missing")
     errors: list[str] = []
     for item in files:
         path = root / str(item.get("path", ""))
