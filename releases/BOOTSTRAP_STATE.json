@@ -1,17 +1,19 @@
 {
-  "version": "0.0.3-rc4-successors",
+  "version": "0.0.4-rc4-parent-recovery",
   "status": "EXPERIMENTAL",
   "validation_level": "STATIC_VALIDATED",
   "created_at": "2026-08-11T05:34:00-06:00",
-  "updated_at": "2026-08-11T05:55:00-06:00",
-  "target": "rc4-convergence-successor-tooling",
+  "updated_at": "2026-08-11T06:15:00-06:00",
+  "target": "rc4-exact-parent-recovery",
   "current_release_target": "1.0.0-rc4-converged",
   "current_release_status": "REVIEW",
   "artifacts": [
     "provenance/ARTIFACT_REGISTRY.json",
     "releases/1.0.0-rc3-ga-campaign",
+    "releases/1.0.0-rc4-converged/PARENT_INPUTS.json",
     "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh",
-    "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER_SUCCESSOR.sh"
+    "releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER_SUCCESSOR.sh",
+    "deploy/termux/recover-rc4-parent-inputs.sh"
   ],
   "gates": {
     "repository_structure": true,
@@ -22,6 +24,9 @@
     "provenance_registry_present": true,
     "rc4_target_registered": true,
     "rc4_companion_successors_present": true,
+    "rc4_exact_parent_identities_located": true,
+    "rc4_exact_parent_bytes_transported": false,
+    "rc4_parent_payloads_verified_in_execution_environment": false,
     "rc4_semantic_branch_convergence_reviewed": false,
     "rc4_candidate_constructed": false,
     "rc4_host_qualified": false,
@@ -32,5 +37,5 @@
     "native_candidate_certified": false,
     "explicit_human_promotion": false
   },
-  "notes": "RC4 successor companion tooling is implemented as RECONSTRUCTED_SUCCESSOR rather than represented as unrecovered originals. No semantic merge review, real candidate construction against the exact parents, host qualification of that real candidate, physical device evidence, native certification, or promotion is claimed."
+  "notes": "Both exact RC3 parent identities and File Library references are now located and pinned. Their full bytes are not mounted in the GitHub execution environment, so transport and payload verification remain open. No semantic merge review, candidate construction, host qualification, physical evidence, native certification, or promotion is claimed."
 }
