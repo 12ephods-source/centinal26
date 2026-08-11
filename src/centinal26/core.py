@@ -4,14 +4,15 @@ import hashlib
 import json
 import sqlite3
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @dataclass(frozen=True)
@@ -23,7 +24,7 @@ class Grant:
     def permits(self, capability: str) -> bool:
         return self.capability == capability and datetime.fromisoformat(
             self.expires_at
-        ) > datetime.now(timezone.utc)
+        ) > datetime.now(UTC)
 
 
 class AuditLog:
@@ -147,7 +148,7 @@ class Engine:
             output = self.capabilities[capability](json.loads(row["input"]))
             result = {"ok": True, "output": output}
             state = "verified"
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - capability boundary records failures
             result = {"ok": False, "error": type(error).__name__, "message": str(error)}
             state = "failed"
         self.store.transition(job_id, state, result)
