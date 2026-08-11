@@ -200,6 +200,7 @@ class RuntimeStore:
         evidence: bool,
         recovery: bool,
         independent: bool,
+        state_diverged: bool = False,
     ) -> None:
         self.db.execute(
             "INSERT INTO run_history VALUES(?,?,?,?,?,?,?)",
@@ -207,7 +208,7 @@ class RuntimeStore:
                 str(uuid.uuid4()),
                 int(verified),
                 int(evidence),
-                0,
+                int(state_diverged),
                 int(recovery),
                 int(independent),
                 now_iso(),
@@ -530,6 +531,42 @@ class AutomatedEngine:
                 current = self.store.get_state(spec.name) or {}
                 updated = spec.reducer(current, output)
                 state_version = self.store.set_state(spec.name, updated)
+                observed = self.store.get_state(spec.name)
+                if observed != updated:
+                    result = {
+                        "ok": False,
+                        "verified": True,
+                        "error": "state_diverged",
+                        "expected_state": updated,
+                        "observed_state": observed,
+                    }
+                    divergence_path = self.evidence.write(
+                        job_id,
+                        attempt,
+                        "state-divergence",
+                        {
+                            "output_evidence": str(evidence_path),
+                            "state_divergence": result,
+                        },
+                    )
+                    self.store.finish(
+                        job_id,
+                        "state_diverged",
+                        result,
+                        str(divergence_path),
+                    )
+                    self.audit.append(
+                        "job_state_diverged",
+                        {"job_id": job_id, **result},
+                    )
+                    self.store.record(
+                        False,
+                        self.evidence.verify(divergence_path),
+                        recovery_test,
+                        spec.verifier_independent,
+                        state_diverged=True,
+                    )
+                    return job_id
             except Exception as error:  # noqa: BLE001 - do not replay side effects after verify
                 result = {
                     "ok": False,
