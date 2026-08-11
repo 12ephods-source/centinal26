@@ -1,0 +1,9 @@
+output/
+*.log
+.env
+__pycache__/
+*.pyc
+DEVICE_VALIDATION_REPORT.json
+.github-run-id
+
+github-output/
