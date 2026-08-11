@@ -6,11 +6,13 @@ on:
     paths:
       - 'site/**'
       - 'deploy/termux/serve-site.sh'
+      - 'scripts/package_site.py'
       - '.github/workflows/site-artifact.yml'
   pull_request:
     paths:
       - 'site/**'
       - 'deploy/termux/serve-site.sh'
+      - 'scripts/package_site.py'
       - '.github/workflows/site-artifact.yml'
   workflow_dispatch:
 
@@ -27,31 +29,12 @@ jobs:
           python-version: '3.13'
       - name: Validate site
         run: python tests/validate_site.py
-      - name: Compile local server
-        run: python -m py_compile site/serve.py
+      - name: Compile packaging and local-server code
+        run: python -m py_compile site/serve.py scripts/package_site.py
       - name: Build portable bundle
-        run: |
-          mkdir -p dist
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib
-          import json
-          import zipfile
-
-          root = Path('site')
-          out = Path('dist/automation-os-site.zip')
-          files = sorted(p for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts)
-          manifest = []
-          for p in files:
-              digest = hashlib.sha256(p.read_bytes()).hexdigest()
-              manifest.append({'path': p.as_posix(), 'sha256': digest, 'size': p.stat().st_size})
-          Path('dist/site-manifest.json').write_text(json.dumps({'files': manifest}, indent=2) + '\n')
-          with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED) as z:
-              for p in files:
-                  z.write(p, p.as_posix())
-              z.write('dist/site-manifest.json', 'site-manifest.json')
-          print(out)
-          PY
+        run: python scripts/package_site.py
+      - name: Verify package checksums
+        run: cd dist && sha256sum -c SHA256SUMS
       - name: Upload portable website
         uses: actions/upload-artifact@v4
         with:
@@ -59,5 +42,6 @@ jobs:
           path: |
             dist/automation-os-site.zip
             dist/site-manifest.json
+            dist/SHA256SUMS
           if-no-files-found: error
           retention-days: 30
