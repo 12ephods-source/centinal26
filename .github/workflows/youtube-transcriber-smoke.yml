@@ -1,0 +1,171 @@
+name: YouTube transcriber real-video smoke
+
+on:
+  push:
+    branches:
+      - agent/youtube-transcriber-v1.3.0
+    paths:
+      - .github/workflows/youtube-transcriber-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  transcribe-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VIDEO_ID: tr9AqDYxFI4
+      TARGET_URL: https://youtu.be/tr9AqDYxFI4?si=MFmYG-GJh1iEMz8c
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg curl
+          python -m pip install --upgrade pip
+          python -m pip install 'git+https://github.com/jdepoix/youtube-transcript-api.git@v1.2.4'
+          mkdir -p "$HOME/.local/bin" work evidence
+          curl -fL --retry 3 \
+            https://github.com/yt-dlp/yt-dlp/releases/download/2026.07.04/yt-dlp_linux \
+            -o "$HOME/.local/bin/yt-dlp"
+          chmod +x "$HOME/.local/bin/yt-dlp"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Try caption API
+        id: captions
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from youtube_transcript_api import YouTubeTranscriptApi
+
+          vid = os.environ['VIDEO_ID']
+          out = Path('work')
+          out.mkdir(exist_ok=True)
+          api = YouTubeTranscriptApi()
+          transcripts = api.list(vid)
+          chosen = next(iter(transcripts))
+          fetched = chosen.fetch()
+          text = '\n'.join(str(item.text).strip() for item in fetched if str(item.text).strip())
+          if not text.strip():
+              raise RuntimeError('caption API returned an empty transcript')
+          (out / 'transcript.txt').write_text(text + '\n', encoding='utf-8')
+          (out / 'source.json').write_text(json.dumps({
+              'method': 'youtube-transcript-api',
+              'language_code': getattr(chosen, 'language_code', None),
+              'is_generated': getattr(chosen, 'is_generated', None),
+          }, indent=2) + '\n', encoding='utf-8')
+          print(f'caption transcript acquired: {len(text)} chars')
+          PY
+
+      - name: Download and normalize audio fallback
+        id: audio
+        if: steps.captions.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.local/bin:$PATH"
+          set +e
+          yt-dlp --js-runtimes node --no-playlist -f 'bestaudio/best' -x --audio-format wav -o 'work/source.%(ext)s' "$TARGET_URL"
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            yt-dlp --js-runtimes node --extractor-args 'youtube:player_client=web_safari' --no-playlist -f 'bestaudio/best' -x --audio-format wav -o 'work/source.%(ext)s' "$TARGET_URL"
+            rc=$?
+          fi
+          set -e
+          test "$rc" -eq 0
+          src="$(find work -maxdepth 1 -type f -name 'source*.wav' | head -n1)"
+          test -n "$src"
+          ffmpeg -hide_banner -loglevel error -y -i "$src" -ar 16000 -ac 1 -c:a pcm_s16le work/normalized.wav
+          test -s work/normalized.wav
+
+      - name: Whisper fallback
+        id: whisper
+        if: steps.captions.outcome == 'failure' && steps.audio.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/whisper-bin /tmp/whisper-model
+          curl -fL --retry 3 \
+            https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.2/whisper-bin-ubuntu-x64.tar.gz \
+            -o /tmp/whisper.tar.gz
+          tar -xzf /tmp/whisper.tar.gz -C /tmp/whisper-bin
+          cli="$(find /tmp/whisper-bin -type f -name whisper-cli -perm -111 | head -n1)"
+          test -n "$cli"
+          curl -fL --retry 3 \
+            https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin \
+            -o /tmp/whisper-model/ggml-base.bin
+          "$cli" -m /tmp/whisper-model/ggml-base.bin -f work/normalized.wav -l auto -otxt -of work/whisper
+          test -s work/whisper.txt
+          mv work/whisper.txt work/transcript.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          Path('work/source.json').write_text(json.dumps({
+              'method': 'whisper.cpp',
+              'model': 'ggml-base.bin',
+              'whisper_cpp': 'v1.9.2'
+          }, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Generate non-verbatim validation evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s work/transcript.txt
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          p = Path('work/transcript.txt')
+          raw = p.read_bytes()
+          text = raw.decode('utf-8', errors='replace')
+          source_path = Path('work/source.json')
+          source = json.loads(source_path.read_text()) if source_path.exists() else {'method': 'unknown'}
+          normalized = ' '.join(text.split())
+          evidence = {
+              'status': 'PASS',
+              'video_id': os.environ['VIDEO_ID'],
+              'target_url': os.environ['TARGET_URL'],
+              'source': source,
+              'transcript_bytes': len(raw),
+              'transcript_characters': len(text),
+              'transcript_words': len(text.split()),
+              'transcript_sha256': hashlib.sha256(raw).hexdigest(),
+              'nonempty': bool(text.strip()),
+              'bounded_excerpt': normalized[:80],
+              'bounded_excerpt_characters': min(80, len(normalized)),
+              'copyright_note': 'Full transcript intentionally not uploaded by the smoke gate.'
+          }
+          out = Path('evidence')
+          out.mkdir(exist_ok=True)
+          (out / 'REAL_VIDEO_VALIDATION.json').write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print(json.dumps({k: evidence[k] for k in ('status','video_id','transcript_bytes','transcript_words','transcript_sha256')}, indent=2))
+          PY
+          rm -f work/transcript.txt work/normalized.wav work/source*.wav
+
+      - name: Upload validation evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-transcriber-real-video-validation
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 7
