@@ -4,18 +4,21 @@ import argparse
 import json
 import py_compile
 import subprocess
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from rc4_successor_common import candidate_digest, candidate_manifest, write_json
+from rc4_successor_common import candidate_digest, candidate_manifest, sha256_file, write_json
 
 PROVENANCE_CLASS = "RECONSTRUCTED_SUCCESSOR"
 
 
 def qualify(candidate_root: Path, output_report: Path) -> dict[str, Any]:
-    manifest = candidate_manifest(candidate_root)
+    candidate_manifest(candidate_root)
     digest = candidate_digest(candidate_root)
+    manifest_path = candidate_root / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     errors: list[dict[str, str]] = []
     checks: list[dict[str, object]] = []
 
@@ -28,7 +31,9 @@ def qualify(candidate_root: Path, output_report: Path) -> dict[str, Any]:
                 json.loads(path.read_text(encoding="utf-8"))
                 checks.append({"path": rel, "check": "json-parse", "status": "PASS"})
             elif suffix == ".py":
-                py_compile.compile(str(path), doraise=True)
+                with tempfile.TemporaryDirectory(prefix="rc4-pycompile-") as temp_dir:
+                    cfile = str(Path(temp_dir) / f"{path.name}c")
+                    py_compile.compile(str(path), cfile=cfile, doraise=True)
                 checks.append({"path": rel, "check": "python-compile", "status": "PASS"})
             elif suffix == ".sh":
                 proc = subprocess.run(
@@ -41,7 +46,13 @@ def qualify(candidate_root: Path, output_report: Path) -> dict[str, Any]:
                 if proc.returncode != 0:
                     raise ValueError(proc.stderr.strip() or f"bash -n returned {proc.returncode}")
                 checks.append({"path": rel, "check": "bash-syntax", "status": "PASS"})
-        except (OSError, ValueError, json.JSONDecodeError, py_compile.PyCompileError, subprocess.SubprocessError) as exc:
+        except (
+            OSError,
+            ValueError,
+            json.JSONDecodeError,
+            py_compile.PyCompileError,
+            subprocess.SubprocessError,
+        ) as exc:
             errors.append({"path": rel, "error": str(exc)})
             checks.append({"path": rel, "check": "static-host-check", "status": "FAIL"})
 
@@ -51,7 +62,7 @@ def qualify(candidate_root: Path, output_report: Path) -> dict[str, Any]:
         "generated_at": datetime.now(UTC).isoformat(),
         "status": "PASS" if not errors else "FAIL",
         "candidate_tree_root_sha256": digest,
-        "candidate_manifest_sha256": manifest.get("candidate_tree_root_sha256"),
+        "candidate_manifest_sha256": sha256_file(manifest_path),
         "physical_android_validated": False,
         "scope": "static host qualification only",
         "checks": checks,
