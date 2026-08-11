@@ -1,0 +1,27 @@
+{
+  "checks": [
+    "exact final RC3 installer upgraded RC2",
+    "knowledge preserved 5->5",
+    "snapshot preserved 1->1",
+    "Ed25519 keypair preserved 1->1",
+    "RC3-only GA wrapper installed then removed on rollback"
+  ],
+  "evidence_type": "UPGRADE_ROLLBACK_VALIDATION",
+  "generated_at": "2026-08-07T12:23:13+00:00",
+  "overall": "PASS",
+  "release_version": "1.0.0-rc3-ga-campaign",
+  "rollback": {
+    "ga_wrapper": false,
+    "keypairs": 1,
+    "knowledge": 5,
+    "snapshots": 1,
+    "version": "automation-platform 1.0.0-rc2-ga-evidence"
+  },
+  "upgrade": {
+    "ga_wrapper": true,
+    "keypairs": 1,
+    "knowledge": 5,
+    "snapshots": 1,
+    "version": "automation-platform 1.0.0-rc3-ga-campaign"
+  }
+}
