@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/goal.schema.json",
+  "title": "Centinal26 Controlled Evolution Goal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "goal_id",
+    "objective",
+    "include_paths",
+    "goal_tests",
+    "allowed_change_prefixes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "centinal26-goal-v1"
+    },
+    "goal_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "include_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "goal_tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^tests/"
+      }
+    },
+    "allowed_change_prefixes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additional_protected_prefixes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "max_cycles": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 6
+    },
+    "candidates_per_cycle": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8,
+      "default": 3
+    },
+    "max_agent_turns": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 24
+    },
+    "max_context_bytes": {
+      "type": "integer",
+      "minimum": 10000,
+      "maximum": 1000000,
+      "default": 180000
+    },
+    "max_patch_bytes": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 500000,
+      "default": 120000
+    }
+  }
+}

@@ -18,9 +18,13 @@ jobs:
       - name: Validate repository invariant, provenance and release gates
         run: python tests/validate_repository.py
       - name: Compile Python
-        run: python -m compileall -q tests releases/1.0.0-rc4-converged
-      - name: Validate release-controller and recovery shell syntax
+        run: >-
+          python -m compileall -q
+          src tests scripts releases/1.0.0-rc4-converged
+      - name: Validate shell syntax
         run: |
           bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER.sh
           bash -n releases/1.0.0-rc4-converged/RC4_RELEASE_CONTROLLER_SUCCESSOR.sh
           bash -n deploy/termux/recover-rc4-parent-inputs.sh
+          bash -n termux/github_termux_worker_once.sh
+          bash -n scripts/run-controlled-evolution.sh
