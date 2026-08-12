@@ -14,6 +14,7 @@ CYCLE_SCHEMA = "centinal26-evolution-cycle-v1"
 DEFAULT_PROTECTED_PREFIXES = (
     ".github/",
     ".git/",
+    "goals/",
     "tests/",
     "schemas/",
     "provenance/",
@@ -38,7 +39,12 @@ def canonical_sha256(value: Any) -> str:
 def safe_relative_path(value: str) -> str:
     normalized = value.replace("\\", "/")
     path = PurePosixPath(normalized)
-    if not normalized or normalized.startswith("/") or path.is_absolute() or ".." in path.parts:
+    if (
+        not normalized
+        or normalized.startswith("/")
+        or path.is_absolute()
+        or ".." in path.parts
+    ):
         raise ValueError(f"unsafe repository path: {value!r}")
     return path.as_posix()
 
@@ -82,7 +88,9 @@ class GoalSpec:
         include_paths = paths("include_paths")
         goal_tests = paths("goal_tests")
         allowed = paths("allowed_change_prefixes")
-        protected = tuple(DEFAULT_PROTECTED_PREFIXES) + paths("additional_protected_prefixes")
+        protected = tuple(DEFAULT_PROTECTED_PREFIXES) + paths(
+            "additional_protected_prefixes"
+        )
         if not include_paths:
             raise ValueError("include_paths may not be empty")
         if not goal_tests:
@@ -132,6 +140,9 @@ class GoalSpec:
     def load(cls, path: Path) -> "GoalSpec":
         return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
+    def digest(self) -> str:
+        return canonical_sha256(asdict(self))
+
     def permits_changed_path(self, path: str) -> tuple[bool, str]:
         normalized = safe_relative_path(path)
         for prefix in self.protected_prefixes:
@@ -165,6 +176,7 @@ class CandidateEvidence:
 @dataclass
 class EvolutionState:
     goal_id: str
+    goal_sha256: str
     generation: int
     active_commit: str
     active_branch: str
@@ -177,14 +189,20 @@ class EvolutionState:
         cls,
         path: Path,
         goal_id: str,
+        goal_sha256: str,
         base_commit: str,
     ) -> "EvolutionState":
         if path.exists():
             value = json.loads(path.read_text(encoding="utf-8"))
             if value.get("schema") != STATE_SCHEMA or value.get("goal_id") != goal_id:
                 raise ValueError("evolution state schema/goal mismatch")
+            if value.get("goal_sha256") != goal_sha256:
+                raise ValueError(
+                    "goal/evaluator digest changed; start a new goal_id instead of mutating fitness"
+                )
             return cls(
                 goal_id=value["goal_id"],
+                goal_sha256=value["goal_sha256"],
                 generation=int(value["generation"]),
                 active_commit=value["active_commit"],
                 active_branch=value["active_branch"],
@@ -194,6 +212,7 @@ class EvolutionState:
             )
         return cls(
             goal_id=goal_id,
+            goal_sha256=goal_sha256,
             generation=0,
             active_commit=base_commit,
             active_branch=f"evolution/{goal_id}/g0000",
@@ -206,8 +225,10 @@ class EvolutionState:
 @dataclass(frozen=True)
 class CycleEvidence:
     goal_id: str
+    goal_sha256: str
     generation: int
     parent_commit: str
+    baseline_score: float
     candidates: tuple[CandidateEvidence, ...]
     decision: str
     selected_candidate: str | None
@@ -217,8 +238,10 @@ class CycleEvidence:
         value = {
             "schema": CYCLE_SCHEMA,
             "goal_id": self.goal_id,
+            "goal_sha256": self.goal_sha256,
             "generation": self.generation,
             "parent_commit": self.parent_commit,
+            "baseline_score": self.baseline_score,
             "candidates": [asdict(item) for item in self.candidates],
             "decision": self.decision,
             "selected_candidate": self.selected_candidate,
@@ -236,6 +259,7 @@ def select_candidate(
         item
         for item in candidates
         if item.validation_passed
+        and item.security_decision == "ALLOW_STATIC_ONLY"
         and not item.rejection_reasons
         and item.commit is not None
         and item.score > baseline_score
