@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 import zipfile
 from pathlib import Path
 
@@ -9,6 +10,7 @@ SCRIPT = ROOT / "scripts" / "audit_untrusted_candidate.py"
 SPEC = importlib.util.spec_from_file_location("candidate_audit", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 AUDIT = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = AUDIT
 SPEC.loader.exec_module(AUDIT)
 
 
