@@ -18,11 +18,15 @@ DEFAULT_PROTECTED_PREFIXES = (
     "schemas/",
     "provenance/",
     "releases/",
+    "security/",
     "termux/",
+    "SECURITY.md",
+    "pyproject.toml",
     "src/centinal26/core.py",
     "src/centinal26/evolution.py",
     "scripts/audit_untrusted_candidate.py",
     "scripts/controlled_evolution_loop.py",
+    "scripts/run-controlled-evolution.sh",
 )
 
 
@@ -88,7 +92,10 @@ class GoalSpec:
         if any(not item.startswith("tests/") for item in goal_tests):
             raise ValueError("goal_tests must live under tests/")
         for test_path in goal_tests:
-            if not any(test_path == prefix.rstrip("/") or test_path.startswith(prefix) for prefix in protected):
+            if not any(
+                test_path == prefix.rstrip("/") or test_path.startswith(prefix)
+                for prefix in protected
+            ):
                 raise ValueError("goal tests must be protected from candidate edits")
 
         max_cycles = int(value.get("max_cycles", 6))
@@ -132,7 +139,8 @@ class GoalSpec:
             if normalized == clean or normalized.startswith(clean + "/"):
                 return False, f"protected:{prefix}"
         if not any(
-            normalized == prefix.rstrip("/") or normalized.startswith(prefix.rstrip("/") + "/")
+            normalized == prefix.rstrip("/")
+            or normalized.startswith(prefix.rstrip("/") + "/")
             for prefix in self.allowed_change_prefixes
         ):
             return False, "outside_allowed_change_prefixes"
@@ -165,7 +173,12 @@ class EvolutionState:
     cycles: list[str] = field(default_factory=list)
 
     @classmethod
-    def load_or_create(cls, path: Path, goal_id: str, base_commit: str) -> "EvolutionState":
+    def load_or_create(
+        cls,
+        path: Path,
+        goal_id: str,
+        base_commit: str,
+    ) -> "EvolutionState":
         if path.exists():
             value = json.loads(path.read_text(encoding="utf-8"))
             if value.get("schema") != STATE_SCHEMA or value.get("goal_id") != goal_id:
@@ -215,7 +228,10 @@ class CycleEvidence:
         return value
 
 
-def select_candidate(candidates: list[CandidateEvidence], baseline_score: float) -> CandidateEvidence | None:
+def select_candidate(
+    candidates: list[CandidateEvidence],
+    baseline_score: float,
+) -> CandidateEvidence | None:
     eligible = [
         item
         for item in candidates
@@ -226,4 +242,7 @@ def select_candidate(candidates: list[CandidateEvidence], baseline_score: float)
     ]
     if not eligible:
         return None
-    return max(eligible, key=lambda item: (item.score, -len(item.changed_paths), item.candidate_id))
+    return max(
+        eligible,
+        key=lambda item: (item.score, -len(item.changed_paths), item.candidate_id),
+    )
