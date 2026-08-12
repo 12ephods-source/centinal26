@@ -5,9 +5,12 @@ CONFIG="${HOME}/.automation_os_github/config"
 STATE="${HOME}/.automation_os_github/state"
 PATCHED_ARTIFACT_NAME="AUTOMATION_OS_1.0.0_RC9_VALIDATION_INTEGRITY_PATCH.zip"
 PATCHED_ARTIFACT_SHA256="8568085fcc44d46a31512ca58c3af863392fcc09cd65fa0e38e46754e0a6b018"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+AUDITOR="$REPO_ROOT/scripts/audit_untrusted_candidate.py"
 
 mkdir -p "$(dirname "$CONFIG")" "$STATE"
 [ -f "$CONFIG" ] || { echo "Missing $CONFIG"; exit 2; }
+[ -f "$AUDITOR" ] || { echo "Missing adversarial audit gate: $AUDITOR"; exit 2; }
 # shellcheck disable=SC1090
 source "$CONFIG"
 
@@ -50,7 +53,7 @@ if [ "$schema" != "automation.github_job/v2" ] || [ "$command_name" != "automati
 fi
 
 set_labels "$num" automation-os-job automation-os-claimed
-comment_issue "$num" "CLAIMED by ${AUTOMATION_DEVICE_ID:-termux-device}. Using validation-integrity-patched RC9."
+comment_issue "$num" "CLAIMED by ${AUTOMATION_DEVICE_ID:-termux-device}. Artifact pin verification is necessary but not sufficient; adversarial behavior audit runs before extraction/execution."
 
 ART="${AUTOMATION_OS_PATCHED_RC9_PATH:-$HOME/storage/downloads/$PATCHED_ARTIFACT_NAME}"
 if [ ! -f "$ART" ] && [ -n "${AUTOMATION_OS_PATCHED_RC9_URL:-}" ]; then
@@ -70,6 +73,25 @@ if [ "$actual" != "$PATCHED_ARTIFACT_SHA256" ]; then
   exit 5
 fi
 
+# A SHA-256 pin authenticates expected bytes; it does not establish that those bytes are benign.
+# The audit gate is deliberately separate and fail-closed. High/critical behavior cannot be
+# auto-overridden by a remote job or by the artifact itself.
+audit_report="$STATE/artifact-audit-${num}-${actual:0:12}.json"
+set +e
+python "$AUDITOR" "$ART" --expected-sha256 "$PATCHED_ARTIFACT_SHA256" --output "$audit_report" >/dev/null
+audit_rc=$?
+set -e
+if [ "$audit_rc" -ne 0 ]; then
+  audit_reason="$(jq -r '.reason // "UNKNOWN"' "$audit_report" 2>/dev/null || echo UNKNOWN)"
+  critical_count="$(jq '[.findings[]? | select(.severity == "critical")] | length' "$audit_report" 2>/dev/null || echo '?')"
+  high_count="$(jq '[.findings[]? | select(.severity == "high")] | length' "$audit_report" 2>/dev/null || echo '?')"
+  comment_issue "$num" "SECURITY BLOCK: pinned artifact failed independent adversarial audit. reason=$audit_reason critical=$critical_count high=$high_count report=$audit_report. Hash equality is not treated as proof of benign behavior. No artifact code was executed."
+  set_labels "$num" automation-os-job automation-os-rejected automation-os-security-review
+  exit 23
+fi
+
+# Preserve the exact approved audit result before any extraction.
+cp "$audit_report" "$STATE/last-approved-artifact-audit.json"
 echo "$num" > "$STATE/active_issue"
 WORK="$HOME/automation-os-github-control"
 rm -rf "$WORK/deploy"
