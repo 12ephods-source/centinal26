@@ -26,6 +26,7 @@ def test_reviewed_artifact_registry_is_explicit_and_empty_by_default() -> None:
 
 def test_security_policy_states_pin_is_not_benignness() -> None:
     policy = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    policy_flat = " ".join(policy.split())
     required = (
         "Pinning is identity, not benignness",
         "A malicious or compromised artifact can be perfectly",
@@ -34,4 +35,4 @@ def test_security_policy_states_pin_is_not_benignness() -> None:
         "Static analysis reduces risk but is not a proof",
     )
     for marker in required:
-        assert marker in policy
+        assert marker in policy_flat
