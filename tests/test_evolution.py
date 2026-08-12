@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from centinal26.evolution import CandidateEvidence, GoalSpec, select_candidate
+from pathlib import Path
+
+import pytest
+
+from centinal26.evolution import (
+    CandidateEvidence,
+    EvolutionState,
+    GoalSpec,
+    select_candidate,
+)
 
 
 def goal() -> GoalSpec:
@@ -23,6 +32,7 @@ def candidate(
     score: float,
     *,
     passed: bool = True,
+    security: str = "ALLOW_STATIC_ONLY",
     commit: str | None = "abc123",
     reasons: tuple[str, ...] = (),
 ) -> CandidateEvidence:
@@ -32,7 +42,7 @@ def candidate(
         base_commit="base123",
         patch_sha256="1" * 64,
         changed_paths=("src/centinal26/example.py",),
-        security_decision="ALLOW_STATIC_ONLY",
+        security_decision=security,
         validation_passed=passed,
         validation_results=(),
         score=score,
@@ -53,6 +63,7 @@ def test_security_and_termux_control_are_immutable_by_default() -> None:
     for path in (
         "SECURITY.md",
         "security/reviewed_artifacts.json",
+        "goals/demo.json",
         "pyproject.toml",
         "scripts/audit_untrusted_candidate.py",
         "scripts/controlled_evolution_loop.py",
@@ -80,6 +91,14 @@ def test_candidate_requires_measured_improvement() -> None:
     assert selected.candidate_id == "better"
 
 
+def test_security_denial_cannot_promote_even_with_perfect_score() -> None:
+    selected = select_candidate(
+        [candidate("unsafe", 1.0, security="DENY")],
+        baseline_score=0.20,
+    )
+    assert selected is None
+
+
 def test_invalid_or_uncommitted_candidate_cannot_promote() -> None:
     selected = select_candidate(
         [
@@ -101,9 +120,40 @@ def test_goal_test_must_live_under_tests() -> None:
         "goal_tests": ["src/fake_test.py"],
         "allowed_change_prefixes": ["src/"],
     }
-    try:
+    with pytest.raises(ValueError, match="goal_tests must live under tests"):
         GoalSpec.from_dict(value)
-    except ValueError as exc:
-        assert "goal_tests must live under tests/" in str(exc)
-    else:
-        raise AssertionError("goal spec accepted an unprotected evaluator")
+
+
+def test_evolution_state_rejects_goal_digest_drift(tmp_path: Path) -> None:
+    spec = goal()
+    state_path = tmp_path / "state.json"
+    state = EvolutionState.load_or_create(
+        state_path,
+        spec.goal_id,
+        spec.digest(),
+        "base123",
+    )
+    state_path.write_text(
+        __import__("json").dumps(state.to_dict()),
+        encoding="utf-8",
+    )
+
+    changed = GoalSpec.from_dict(
+        {
+            "schema": "centinal26-goal-v1",
+            "goal_id": "demo-goal",
+            "objective": "A different objective must not inherit the old lineage.",
+            "include_paths": ["src/centinal26"],
+            "goal_tests": ["tests/test_core.py"],
+            "allowed_change_prefixes": ["src/centinal26/"],
+            "max_cycles": 3,
+            "candidates_per_cycle": 2,
+        }
+    )
+    with pytest.raises(ValueError, match="goal/evaluator digest changed"):
+        EvolutionState.load_or_create(
+            state_path,
+            changed.goal_id,
+            changed.digest(),
+            "base123",
+        )
