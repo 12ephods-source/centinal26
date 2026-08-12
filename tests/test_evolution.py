@@ -51,10 +51,15 @@ def test_goal_tests_are_immutable_by_default() -> None:
 def test_security_and_termux_control_are_immutable_by_default() -> None:
     spec = goal()
     for path in (
+        "SECURITY.md",
+        "security/reviewed_artifacts.json",
+        "pyproject.toml",
         "scripts/audit_untrusted_candidate.py",
         "scripts/controlled_evolution_loop.py",
+        "scripts/run-controlled-evolution.sh",
         "termux/github_termux_worker_once.sh",
         "src/centinal26/core.py",
+        "src/centinal26/evolution.py",
     ):
         allowed, _ = spec.permits_changed_path(path)
         assert allowed is False
