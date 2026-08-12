@@ -20,4 +20,10 @@ if ! command -v goose >/dev/null 2>&1; then
   exit 3
 fi
 
-exec python "$ROOT/scripts/controlled_evolution_loop.py" --repo "$ROOT" "$@"
+set +e
+python "$ROOT/scripts/controlled_evolution_loop.py" --repo "$ROOT" "$@"
+rc=$?
+set -e
+
+git -C "$ROOT" worktree prune || true
+exit "$rc"
