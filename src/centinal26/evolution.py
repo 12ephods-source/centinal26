@@ -71,7 +71,7 @@ class GoalSpec:
     max_patch_bytes: int = 120_000
 
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> "GoalSpec":
+    def from_dict(cls, value: dict[str, Any]) -> GoalSpec:
         if value.get("schema") != GOAL_SCHEMA:
             raise ValueError(f"goal schema must be {GOAL_SCHEMA}")
         objective = value.get("objective")
@@ -137,7 +137,7 @@ class GoalSpec:
         )
 
     @classmethod
-    def load(cls, path: Path) -> "GoalSpec":
+    def load(cls, path: Path) -> GoalSpec:
         return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
     def digest(self) -> str:
@@ -191,7 +191,7 @@ class EvolutionState:
         goal_id: str,
         goal_sha256: str,
         base_commit: str,
-    ) -> "EvolutionState":
+    ) -> EvolutionState:
         if path.exists():
             value = json.loads(path.read_text(encoding="utf-8"))
             if value.get("schema") != STATE_SCHEMA or value.get("goal_id") != goal_id:
