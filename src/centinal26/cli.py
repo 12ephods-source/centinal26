@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .core import AuditLog, Engine, Grant, JobStore, Verification
+from .future import register_future_capabilities
 from .qualification import assess_bundle, run_qualification, verify_bundle
 
 
@@ -30,6 +31,7 @@ def engine() -> Engine:
     home = state_home()
     runtime = Engine(JobStore(home / "queue.sqlite3"), AuditLog(home / "audit.jsonl"))
     runtime.register("system.echo", echo, verify_echo)
+    register_future_capabilities(runtime)
     return runtime
 
 
@@ -80,11 +82,16 @@ def main() -> None:
     elif args.command == "run-once":
         print(json.dumps({"job_id": runtime.run_once()}))
     elif args.command == "status":
-        print(json.dumps({
-            "jobs": runtime.store.counts(),
-            "audit_valid": runtime.audit.verify(),
-            "home": str(state_home()),
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "jobs": runtime.store.counts(),
+                    "audit_valid": runtime.audit.verify(),
+                    "home": str(state_home()),
+                },
+                sort_keys=True,
+            )
+        )
 
 
 if __name__ == "__main__":
