@@ -1,5 +1,21 @@
 """Frost CORE Ω future-capability runtime primitives."""
 
+from .evolution_governor import (
+    AdaptiveEvolutionGovernor,
+    CandidateEvidence,
+    EvolutionDecision,
+    EvolutionDisposition,
+    EvolutionEnvelope,
+    GateDisposition,
+    GateResult,
+    MaturityInputs,
+    MetaPolicy,
+    NicheEvidence,
+    RiskClass,
+    maturity_score,
+    mutation_budget,
+    uncertainty_score,
+)
 from .future_capabilities import (
     AttentionAction,
     AttentionDecision,
@@ -19,10 +35,12 @@ from .future_capabilities import (
 from .strategic import BranchForecast, BranchOption, StrategicBranchForecaster
 
 __all__ = [
+    "AdaptiveEvolutionGovernor",
     "AttentionAction",
     "AttentionDecision",
     "BranchForecast",
     "BranchOption",
+    "CandidateEvidence",
     "CapabilityActivation",
     "CapabilityRegistry",
     "CapabilityStatus",
@@ -31,9 +49,21 @@ __all__ = [
     "DelegatedCognitionRouter",
     "EvidenceClass",
     "EvidenceItem",
+    "EvolutionDecision",
+    "EvolutionDisposition",
+    "EvolutionEnvelope",
+    "GateDisposition",
+    "GateResult",
     "IntelligenceAwareness",
+    "MaturityInputs",
+    "MetaPolicy",
+    "NicheEvidence",
     "PredictiveAttentionManager",
+    "RiskClass",
     "Signal",
     "StrategicBranchForecaster",
     "default_registry",
+    "maturity_score",
+    "mutation_budget",
+    "uncertainty_score",
 ]
