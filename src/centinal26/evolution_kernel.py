@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from enum import StrEnum
-from typing import Mapping
 
 KERNEL_SCHEMA = "centinal26-evolution-kernel-v1"
 KERNEL_VERSION = "1.0.0-draft"
 
 
 def _canonical_sha256(value: object) -> str:
-    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -26,12 +30,7 @@ def weighted_score(
     components: Mapping[str, float],
     weights: Mapping[str, float],
 ) -> float:
-    """Compute a deterministic normalized weighted score.
-
-    The caller supplies both evidence components and policy weights. This keeps the
-    evidence-to-score mapping explicit and hashable instead of embedding hidden
-    calibration choices in code.
-    """
+    """Compute a deterministic normalized weighted score."""
     if not weights:
         raise ValueError("weights may not be empty")
     missing = sorted(set(weights) - set(components))
@@ -139,7 +138,10 @@ def compute_envelope(
     if generation < 0:
         raise ValueError("generation must be non-negative")
     maturity = weighted_score(maturity_components, policy.maturity_weights)
-    uncertainty = weighted_score(uncertainty_components, policy.uncertainty_weights)
+    uncertainty = weighted_score(
+        uncertainty_components,
+        policy.uncertainty_weights,
+    )
     span = policy.mutation_ceiling - policy.mutation_floor
     mutation = policy.mutation_floor + (
         span
@@ -147,7 +149,10 @@ def compute_envelope(
         * uncertainty
         * policy.mutation_sensitivity
     )
-    mutation = min(policy.mutation_ceiling, max(policy.mutation_floor, mutation))
+    mutation = min(
+        policy.mutation_ceiling,
+        max(policy.mutation_floor, mutation),
+    )
     return EvolutionEnvelope(
         capability_id=capability_id,
         generation=generation,
@@ -207,7 +212,9 @@ class GovernorResult:
     reasons: tuple[str, ...]
 
 
-def compatible_with_protected_metrics(evidence: CandidateGovernanceEvidence) -> bool:
+def compatible_with_protected_metrics(
+    evidence: CandidateGovernanceEvidence,
+) -> bool:
     if not evidence.hard_valid:
         return False
     for metric, regression in evidence.protected_regressions.items():
@@ -234,11 +241,7 @@ def govern_candidate(
     evidence: CandidateGovernanceEvidence,
     policy: EvolutionKernelPolicy,
 ) -> GovernorResult:
-    """Apply the four-way constitutional governor.
-
-    Positive fitness never compensates for failed hard validity or protected-metric
-    incompatibility. Polymorphism/speciation require persistent niche evidence.
-    """
+    """Apply the four-way constitutional governor."""
     compatible = compatible_with_protected_metrics(evidence)
     persistent = persistent_niche(evidence.persistence, policy)
     reasons: list[str] = []
@@ -288,5 +291,6 @@ def assert_unique_active_envelope(
     ]
     if len(active) > 1:
         raise ValueError(
-            f"multiple active envelopes for {capability_id} generation {generation}"
+            "multiple active envelopes for "
+            f"{capability_id} generation {generation}"
         )
