@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
-from typing import Any
 
 TOTAL_CYCLES = 100
 SCHEMA = "wordbook-evolution-v1"
