@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from math import exp
-from typing import Iterable
 
 
 class EvidenceClass(StrEnum):
