@@ -12,9 +12,12 @@ from .evolution_governor import (
     MetaPolicy,
     NicheEvidence,
     RiskClass,
+    UncertaintyInputs,
     maturity_score,
     mutation_budget,
+    select_active_envelope,
     uncertainty_score,
+    weighted_fit,
 )
 from .future_capabilities import (
     AttentionAction,
@@ -62,8 +65,11 @@ __all__ = [
     "RiskClass",
     "Signal",
     "StrategicBranchForecaster",
+    "UncertaintyInputs",
     "default_registry",
     "maturity_score",
     "mutation_budget",
+    "select_active_envelope",
     "uncertainty_score",
+    "weighted_fit",
 ]
