@@ -16,10 +16,13 @@ from .future_capabilities import (
     Signal,
     default_registry,
 )
+from .strategic import BranchForecast, BranchOption, StrategicBranchForecaster
 
 __all__ = [
     "AttentionAction",
     "AttentionDecision",
+    "BranchForecast",
+    "BranchOption",
     "CapabilityActivation",
     "CapabilityRegistry",
     "CapabilityStatus",
@@ -31,5 +34,6 @@ __all__ = [
     "IntelligenceAwareness",
     "PredictiveAttentionManager",
     "Signal",
+    "StrategicBranchForecaster",
     "default_registry",
 ]
