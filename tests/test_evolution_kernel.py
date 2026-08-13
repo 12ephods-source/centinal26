@@ -5,12 +5,16 @@ import pytest
 from centinal26.evolution_kernel import (
     CandidateGovernanceEvidence,
     EvolutionDecision,
+    EvolutionEnvelope,
     EvolutionKernelPolicy,
     PersistenceEvidence,
     assert_unique_active_envelope,
     compute_envelope,
     govern_candidate,
 )
+
+POLICY_HASH = "87a0074a844ee9a65bedc8f5d43c08767dec88964655936fa75e230ee43b5e9f"
+EVIDENCE_HASH = "a793e41012759884a47487f0451438db036a23b21797453356ca74b826d0c888"
 
 
 def policy() -> EvolutionKernelPolicy:
@@ -44,7 +48,7 @@ def policy() -> EvolutionKernelPolicy:
     )
 
 
-def live_seed_envelope():
+def live_seed_envelope() -> EvolutionEnvelope:
     return compute_envelope(
         capability_id="APB-CAP-0004",
         generation=0,
@@ -64,8 +68,8 @@ def live_seed_envelope():
         },
         policy=policy(),
         source_meta_policy="meta-automation-v1",
-        source_policy_hash="87a0074a844ee9a65bedc8f5d43c08767dec88964655936fa75e230ee43b5e9f",
-        source_evidence_hash="a793e41012759884a47487f0451438db036a23b21797453356ca74b826d0c888",
+        source_policy_hash=POLICY_HASH,
+        source_evidence_hash=EVIDENCE_HASH,
     )
 
 
@@ -161,8 +165,16 @@ def test_protected_metric_regression_blocks_promotion() -> None:
 def test_active_envelope_lineage_is_singleton() -> None:
     assert_unique_active_envelope(
         [
-            {"capability_id": "APB-CAP-0004", "generation": 0, "status": "active"},
-            {"capability_id": "APB-CAP-0004", "generation": 0, "status": "superseded"},
+            {
+                "capability_id": "APB-CAP-0004",
+                "generation": 0,
+                "status": "active",
+            },
+            {
+                "capability_id": "APB-CAP-0004",
+                "generation": 0,
+                "status": "superseded",
+            },
         ],
         capability_id="APB-CAP-0004",
         generation=0,
@@ -173,8 +185,16 @@ def test_duplicate_active_envelope_is_rejected() -> None:
     with pytest.raises(ValueError, match="multiple active envelopes"):
         assert_unique_active_envelope(
             [
-                {"capability_id": "APB-CAP-0004", "generation": 0, "status": "active"},
-                {"capability_id": "APB-CAP-0004", "generation": 0, "status": "active"},
+                {
+                    "capability_id": "APB-CAP-0004",
+                    "generation": 0,
+                    "status": "active",
+                },
+                {
+                    "capability_id": "APB-CAP-0004",
+                    "generation": 0,
+                    "status": "active",
+                },
             ],
             capability_id="APB-CAP-0004",
             generation=0,
