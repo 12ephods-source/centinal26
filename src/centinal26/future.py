@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict
-from typing import Any, Callable
+from typing import Any
 
 from frost_core import (
     BranchOption,
@@ -25,7 +26,7 @@ Executor = Callable[[dict[str, Any]], dict[str, Any]]
 def intelligence_awareness(data: dict[str, Any]) -> dict[str, Any]:
     raw_evidence = data.get("evidence")
     if not isinstance(raw_evidence, list):
-        raise ValueError("evidence must be a list")
+        raise TypeError("evidence must be a list")
     evidence = [
         EvidenceItem(
             proposition=str(item["proposition"]),
@@ -42,7 +43,7 @@ def intelligence_awareness(data: dict[str, Any]) -> dict[str, Any]:
 def predictive_attention(data: dict[str, Any]) -> dict[str, Any]:
     raw = data.get("signal")
     if not isinstance(raw, dict):
-        raise ValueError("signal must be an object")
+        raise TypeError("signal must be an object")
     decision = PredictiveAttentionManager().decide(
         Signal(
             signal_id=str(raw["signal_id"]),
@@ -64,7 +65,7 @@ def predictive_attention(data: dict[str, Any]) -> dict[str, Any]:
 def delegated_cognition(data: dict[str, Any]) -> dict[str, Any]:
     raw = data.get("task")
     if not isinstance(raw, dict):
-        raise ValueError("task must be an object")
+        raise TypeError("task must be an object")
     task = CognitionTask(
         task_id=str(raw["task_id"]),
         risk=float(raw["risk"]),
@@ -79,8 +80,10 @@ def delegated_cognition(data: dict[str, Any]) -> dict[str, Any]:
 
 def strategic_forecast(data: dict[str, Any]) -> dict[str, Any]:
     raw_options = data.get("options")
-    if not isinstance(raw_options, list) or not raw_options:
-        raise ValueError("options must be a non-empty list")
+    if not isinstance(raw_options, list):
+        raise TypeError("options must be a list")
+    if not raw_options:
+        raise ValueError("options must not be empty")
     options = [
         BranchOption(
             branch_id=str(item["branch_id"]),
