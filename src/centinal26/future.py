@@ -16,8 +16,8 @@ from frost_core import (
     StrategicBranchForecaster,
     default_registry,
 )
-from .core import Engine, Verification
 
+from .core import Engine, Verification
 
 Executor = Callable[[dict[str, Any]], dict[str, Any]]
 
