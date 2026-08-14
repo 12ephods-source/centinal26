@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
-from frost_core.condition_watch import ConditionWatchLedger
 
+from frost_core.condition_watch import ConditionWatchLedger
 
 TERMINAL = {"PASS", "FAIL", "CANCELLED"}
 
