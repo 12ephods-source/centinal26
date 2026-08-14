@@ -4,9 +4,9 @@ import hashlib
 import json
 import sqlite3
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Iterable, Mapping
 from typing import Any
 
 

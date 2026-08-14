@@ -6,9 +6,9 @@ import json
 import sqlite3
 import time
 import uuid
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 TERMINAL_STATES = {"PASS", "REVIEW", "FAIL", "ERROR"}
