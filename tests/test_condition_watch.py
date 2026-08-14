@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor
-
 from frost_core.condition_watch import ConditionWatchLedger
 
 
