@@ -1,7 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 
-import pytest
-
 from frost_core.condition_watch import ConditionWatchLedger
 
 
@@ -53,9 +51,15 @@ def test_concurrent_terminal_observations_emit_exactly_once(tmp_path):
 
 def test_invalid_inputs_fail_closed(tmp_path):
     ledger = ConditionWatchLedger(tmp_path / "watch.sqlite3")
-    with pytest.raises(ValueError):
-        ledger.observe("", "PASS", terminal_states=TERMINAL)
-    with pytest.raises(ValueError):
-        ledger.observe("target", "", terminal_states=TERMINAL)
-    with pytest.raises(ValueError):
-        ledger.observe("target", "PASS", terminal_states=())
+
+    invalid_calls = (
+        lambda: ledger.observe("", "PASS", terminal_states=TERMINAL),
+        lambda: ledger.observe("target", "", terminal_states=TERMINAL),
+        lambda: ledger.observe("target", "PASS", terminal_states=()),
+    )
+    for call in invalid_calls:
+        try:
+            call()
+        except ValueError:
+            continue
+        raise AssertionError("invalid condition-watch input did not fail closed")
