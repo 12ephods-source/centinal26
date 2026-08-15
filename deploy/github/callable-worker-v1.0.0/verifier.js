@@ -8,6 +8,7 @@ const {spawnSync} = require('child_process');
 const PROTOCOL = 'frost-call/1.0';
 const VERIFICATION_SCHEMA = 'frost-independent-verification/1.0';
 const MAX_FILE_BYTES = 1024 * 1024;
+const RFC3339_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const WORKER_REPO_PATH = 'deploy/github/callable-worker-v1.0.0/worker.js';
 const WORKFLOW_REPO_PATH = '.github/workflows/callable-fabric-worker.yml';
 const FABRIC_REPO_PATH = 'deploy/vercel/callable-fabric-v1.1.0/lib/fabric.js';
@@ -88,6 +89,46 @@ function verifyEnvelope(result) {
     sha256(Buffer.from(canonical(body), 'utf8')) === expected,
     'envelope hash mismatch',
   );
+}
+
+function verifyRequestExpiry(request, result, checks) {
+  const expiresAt = request?.context?.expires_at;
+  if (expiresAt === undefined || expiresAt === null) {
+    requireCondition(result.request_expiry === undefined, 'unexpected request_expiry metadata');
+    checks.push('request_expiry:NOT_REQUESTED');
+    return;
+  }
+
+  const validFormat = typeof expiresAt === 'string' && RFC3339_INSTANT.test(expiresAt);
+  const expiresAtMs = validFormat ? Date.parse(expiresAt) : Number.NaN;
+  if (!validFormat || !Number.isFinite(expiresAtMs)) {
+    requireCondition(result.error?.type === 'InvalidExpiry', 'invalid expiry was not rejected');
+    requireCondition(result.request_expiry?.status === 'INVALID', 'invalid expiry status missing');
+    requireCondition(result.request_expiry?.expires_at === expiresAt, 'invalid expiry value mismatch');
+    checks.push('request_expiry:INVALID_REJECTED');
+    return;
+  }
+
+  requireCondition(result.request_expiry, 'request expiry evidence missing');
+  requireCondition(result.request_expiry.expires_at === expiresAt, 'request expiry value mismatch');
+  requireCondition(
+    typeof result.request_expiry.observed_at === 'string',
+    'request expiry observed_at missing',
+  );
+  const observedAtMs = Date.parse(result.request_expiry.observed_at);
+  requireCondition(Number.isFinite(observedAtMs), 'request expiry observed_at invalid');
+
+  if (result.error?.type === 'StaleRequest') {
+    requireCondition(result.request_expiry.status === 'EXPIRED', 'stale request status must be EXPIRED');
+    requireCondition(observedAtMs >= expiresAtMs, 'stale request observed before expiry');
+    requireCondition(result.ok === false, 'stale request cannot be successful');
+    checks.push('request_expiry:EXPIRED_VERIFIED');
+    return;
+  }
+
+  requireCondition(result.request_expiry.status === 'FRESH', 'non-stale request status must be FRESH');
+  requireCondition(observedAtMs < expiresAtMs, 'fresh request observed at or after expiry');
+  checks.push('request_expiry:FRESH_VERIFIED');
 }
 
 function verifySourceAttestation(result, checks) {
@@ -205,6 +246,7 @@ function verifyPaths(requestPath, resultPath, verificationPath) {
 
   verifyEnvelope(result);
   checks.push('envelope_hash:VERIFIED');
+  verifyRequestExpiry(identity.request, result, checks);
   verifySemanticResponse(result, checks);
   const source = verifySourceAttestation(result, checks);
 

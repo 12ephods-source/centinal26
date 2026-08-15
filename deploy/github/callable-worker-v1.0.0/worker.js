@@ -19,6 +19,7 @@ const {
 const PROTOCOL = 'frost-call/1.0';
 const MAX_REQUEST_BYTES = 64 * 1024;
 const MAX_IDEMPOTENCY_KEY_BYTES = 256;
+const RFC3339_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const FABRIC_SOURCE_PATH = require.resolve('../../vercel/callable-fabric-v1.1.0/lib/fabric');
 const WORKFLOW_SOURCE_PATH = path.resolve(
   __dirname,
@@ -87,6 +88,47 @@ function requestIdentity(request) {
   return {request_sha256, idempotency_key};
 }
 
+function requestExpiry(request, provider = {}) {
+  const expiresAt = request?.context?.expires_at;
+  if (expiresAt === undefined || expiresAt === null) return null;
+  if (typeof expiresAt !== 'string' || !RFC3339_INSTANT.test(expiresAt)) {
+    const error = new Error('context.expires_at must be an RFC3339 timestamp with timezone');
+    error.name = 'InvalidExpiry';
+    error.request_expiry = {
+      status: 'INVALID',
+      expires_at: expiresAt ?? null,
+    };
+    throw error;
+  }
+
+  const expiresAtMs = Date.parse(expiresAt);
+  if (!Number.isFinite(expiresAtMs)) {
+    const error = new Error('context.expires_at is not a valid timestamp');
+    error.name = 'InvalidExpiry';
+    error.request_expiry = {status: 'INVALID', expires_at: expiresAt};
+    throw error;
+  }
+
+  const suppliedNow = provider.now_ms;
+  const nowMs = suppliedNow === undefined || suppliedNow === null
+    ? Date.now()
+    : Number(suppliedNow);
+  if (!Number.isFinite(nowMs)) throw new Error('provider now_ms must be finite');
+
+  const expiry = {
+    status: nowMs >= expiresAtMs ? 'EXPIRED' : 'FRESH',
+    expires_at: expiresAt,
+    observed_at: new Date(nowMs).toISOString(),
+  };
+  if (expiry.status === 'EXPIRED') {
+    const error = new Error(`request expired at ${expiresAt}`);
+    error.name = 'StaleRequest';
+    error.request_expiry = expiry;
+    throw error;
+  }
+  return expiry;
+}
+
 function handleMcp(message = {}) {
   const id = message.id ?? null;
   if (message.method === 'initialize') {
@@ -127,6 +169,9 @@ function processRequest(request, provider = {}) {
   if (request.protocol !== PROTOCOL) throw new Error(`protocol must be ${PROTOCOL}`);
 
   const identity = requestIdentity(request);
+  const expiry = Object.prototype.hasOwnProperty.call(provider, 'request_expiry')
+    ? provider.request_expiry
+    : requestExpiry(request, provider);
   const kind = request.kind || 'invoke';
   let response;
   if (kind === 'invoke') {
@@ -157,6 +202,7 @@ function processRequest(request, provider = {}) {
     idempotency_key: identity.idempotency_key,
     response,
   };
+  if (expiry) body.request_expiry = expiry;
   return {...body, envelope_hash: envelopeHash(body)};
 }
 
@@ -182,6 +228,7 @@ function errorEnvelope(raw, request, error, provider = {}, extra = {}) {
     error: {type: error.name || 'Error', message: String(error.message || error)},
     ...extra,
   };
+  if (error.request_expiry) body.request_expiry = error.request_expiry;
   return {...body, envelope_hash: envelopeHash(body)};
 }
 
@@ -213,6 +260,7 @@ function processFile(inputPath, outputPath, provider = {}) {
   let output;
   let reused = false;
   let reconciledFrom = null;
+  let validatedExpiry = null;
 
   try {
     request = JSON.parse(raw);
@@ -232,10 +280,13 @@ function processFile(inputPath, outputPath, provider = {}) {
         existing_result_file: path.basename(prior.path),
       });
     } else {
-      output = processRequest(request, provider);
+      validatedExpiry = requestExpiry(request, provider);
+      output = processRequest(request, {...provider, request_expiry: validatedExpiry});
     }
   } catch (error) {
-    output = errorEnvelope(raw, request, error, provider);
+    const extra = {};
+    if (!error.request_expiry && validatedExpiry) extra.request_expiry = validatedExpiry;
+    output = errorEnvelope(raw, request, error, provider, extra);
   }
 
   fs.mkdirSync(path.dirname(outputPath), {recursive: true});
@@ -270,6 +321,7 @@ module.exports = {
   processRequest,
   processFile,
   requestIdentity,
+  requestExpiry,
   sourceAttestation,
   handleMcp,
   envelopeHash,
