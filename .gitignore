@@ -9,3 +9,10 @@ build/
 *.sqlite3
 audit.jsonl
 .env
+
+# Terraform local/private state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
