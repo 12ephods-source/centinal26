@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frost.invalid/schemas/frost-effect-1.0.schema.json",
+  "title": "Frost consequential effect request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "request_id", "capability", "idempotency_key", "payload"],
+  "properties": {
+    "schema": {"const": "frost-effect/1.0"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "capability": {"type": "string", "minLength": 1, "maxLength": 256},
+    "idempotency_key": {"type": "string", "minLength": 1, "maxLength": 512},
+    "payload": {"type": "object"},
+    "actor": {"type": "string", "minLength": 1, "maxLength": 256},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"}
+  }
+}

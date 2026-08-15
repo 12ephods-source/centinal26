@@ -1,0 +1,6 @@
+# Optional remote-state configuration. Copy this file to backend.tf only after
+# a separate R2 state bucket exists. Do not use the bucket managed by this
+# configuration as its own backend: that creates a bootstrap dependency cycle.
+terraform {
+  backend "s3" {}
+}
