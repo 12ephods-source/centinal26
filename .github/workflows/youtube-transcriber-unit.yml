@@ -1,0 +1,39 @@
+name: YouTube transcriber unit validation
+
+on:
+  push:
+    branches:
+      - agent/youtube-transcriber-v1.4.0
+    paths:
+      - tools/youtube-transcriber/**
+      - .github/workflows/youtube-transcriber-unit.yml
+  pull_request:
+    paths:
+      - tools/youtube-transcriber/**
+      - .github/workflows/youtube-transcriber-unit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate package
+        shell: bash
+        working-directory: tools/youtube-transcriber
+        run: |
+          set -euo pipefail
+          python transcribe.py --help >/dev/null
+          python -m py_compile transcribe.py tests/test_transcriber.py
+          python -m unittest -v tests.test_transcriber
+          python -m json.tool HOST_VALIDATION_REPORT.json >/dev/null
+          bash -n setup.sh run.sh device_run.sh test.sh
+          sha256sum -c SHA256SUMS
+          test "$(cat VERSION)" = "1.4.0"
+          echo 'YOUTUBE TRANSCRIBER CI PASS'
