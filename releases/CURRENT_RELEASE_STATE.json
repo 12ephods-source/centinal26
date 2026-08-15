@@ -1,0 +1,57 @@
+{
+  "schema": "centinal26.current_release_state/v1",
+  "release_target": "1.0.0",
+  "runtime_package": "centinal26",
+  "current_state": "HOST_VALIDATED_AWAITING_PHYSICAL",
+  "current_release_line": "centinal26-event-kernel",
+  "physical_job": {
+    "repository": "12ephods-source/centinal26",
+    "issue": 64,
+    "schema": "automation.github_job/v2",
+    "command": "automation_project_finalize_v1",
+    "expected_branch": "main",
+    "minimum_merge_commit": "ISSUE_64_CANONICAL"
+  },
+  "required_physical_gates": {
+    "real_android_termux": true,
+    "node_v2_or_newer": true,
+    "local_work_claim_complete": true,
+    "expired_lease_recovery": true,
+    "heartbeat_advancement": true,
+    "event_chain_valid": true,
+    "unsupported_command_denied": true,
+    "real_reboot_boot_id_change": true,
+    "termux_boot_return": true,
+    "post_reboot_work_complete": true,
+    "endurance_samples_minimum": 61,
+    "endurance_seconds_minimum": 3500,
+    "watchdog_recovery_drill": true,
+    "device_sync": true,
+    "independent_verification": true
+  },
+  "automatic_promotion": {
+    "authorized": true,
+    "basis": "User explicitly directed the Automation project to be finished automatically while preserving evidence and safety boundaries.",
+    "conditions": [
+      "physical issue #64 closes with independently verified project_final evidence",
+      "current main passes CI, validate, automation-gates, federation-gates, and Mature Product Qualification",
+      "no authority boundary is widened",
+      "release metadata matches the verified current main commit"
+    ]
+  },
+  "historical_rc4": {
+    "role": "HISTORICAL_PROVENANCE_RECOVERY",
+    "blocks_current_ga": false,
+    "exact_parent_identities_known": true,
+    "recovery_tool_preserved": "deploy/termux/recover-rc4-parent-inputs.sh",
+    "policy": "Attempt recovery during physical finalization when exact artifacts are device-readable; preserve PASS or missing-artifact evidence without changing the current GA decision."
+  },
+  "github_pages": {
+    "role": "OPTIONAL_OPERATOR_UI",
+    "blocks_current_ga": false,
+    "source_present": true,
+    "deployment_state": "OWNER_ENABLEMENT_REQUIRED",
+    "local_fallback": "deploy/termux/serve-site.sh"
+  },
+  "release_rule": "No host, GitHub Actions, ChatGPT/session, reconstructed, or synthetic evidence may substitute for physical Android/Termux gates."
+}
