@@ -28,39 +28,50 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Execute pending immutable semantic requests
+      - name: Execute and independently verify immutable semantic requests
         id: worker
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
-          mkdir -p runtime/results
+          mkdir -p runtime/results runtime/verifications
           processed=0
+          verified=0
           pending_before=0
           for req in runtime/requests/*.json; do
             base="$(basename "$req")"
             out="runtime/results/$base"
+            verification="runtime/verifications/$base"
+
             if [[ -e "$out" ]]; then
+              if [[ ! -e "$verification" ]]; then
+                node deploy/github/callable-worker-v1.0.0/verifier.js "$req" "$out" "$verification"
+                verified=$((verified + 1))
+              fi
               continue
             fi
+
             pending_before=$((pending_before + 1))
             node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"
+            node deploy/github/callable-worker-v1.0.0/verifier.js "$req" "$out" "$verification"
             processed=$((processed + 1))
+            verified=$((verified + 1))
           done
           echo "processed=$processed" >> "$GITHUB_OUTPUT"
+          echo "verified=$verified" >> "$GITHUB_OUTPUT"
           echo "pending_before=$pending_before" >> "$GITHUB_OUTPUT"
-      - name: Commit immutable results with bounded reconciliation retry
-        if: steps.worker.outputs.processed != '0'
+      - name: Commit immutable results and independent verifications
+        if: steps.worker.outputs.processed != '0' || steps.worker.outputs.verified != '0'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "frost-callable-fabric[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add runtime/results
+          git add runtime/results runtime/verifications
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Record callable fabric result"
+          git commit -m "Record callable fabric result and verification"
 
           for attempt in 1 2 3; do
             git fetch origin callable-runtime
@@ -82,5 +93,6 @@ jobs:
         shell: bash
         run: |
           printf 'processed=%s\n' "${{ steps.worker.outputs.processed || '0' }}"
+          printf 'verified=%s\n' "${{ steps.worker.outputs.verified || '0' }}"
           printf 'pending_before=%s\n' "${{ steps.worker.outputs.pending_before || '0' }}"
           printf 'trigger=%s\n' "${{ github.event_name }}"
