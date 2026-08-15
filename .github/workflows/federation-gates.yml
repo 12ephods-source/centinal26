@@ -1,0 +1,27 @@
+name: federation-gates
+
+on:
+  push:
+    branches: ["main", "agent/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-federation-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - run: python scripts/host-federation-gate.py --iterations 1000 --output HOST_FEDERATION_GATE.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frost-host-federation-gate
+          path: HOST_FEDERATION_GATE.json
+          retention-days: 30
