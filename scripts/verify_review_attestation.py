@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Verify a signed reviewed-risk attestation without third-party dependencies.
 
 The authority file is trusted local state provisioned outside the repository review registry.
@@ -40,7 +39,7 @@ def _parse_time(value: object, field: str) -> datetime:
     if not isinstance(value, str) or not value:
         raise VerificationError(f"{field} must be a non-empty RFC3339 string")
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value)
     except ValueError as exc:
         raise VerificationError(f"invalid {field}") from exc
     if parsed.tzinfo is None:
