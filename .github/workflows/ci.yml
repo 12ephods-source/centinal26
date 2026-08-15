@@ -43,5 +43,7 @@ jobs:
         working-directory: deploy/github/callable-worker-v1.0.0
       - run: node effect-doctor.js
         working-directory: deploy/github/callable-worker-v1.0.0
+      - run: node effect-provider-doctor.js
+        working-directory: deploy/github/callable-worker-v1.0.0
       - run: node queue-doctor.js
         working-directory: deploy/github/callable-worker-v1.0.0
