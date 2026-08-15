@@ -33,12 +33,11 @@ jobs:
           pip install -e ".[dev]"
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bubblewrap
-      - name: Verify sandbox backend
-        run: |
-          bwrap --version
-          sudo bwrap --die-with-parent --new-session --unshare-user --unshare-pid --unshare-net --unshare-ipc --unshare-uts --clearenv --ro-bind /usr /usr --proc /proc --dev /dev -- /usr/bin/true
+      - name: Verify sandbox backend is installed
+        run: bwrap --version
       - name: Run executable isolation contract
         # GitHub-hosted runners restrict unprivileged network namespace setup.
-        # sudo is used only to establish the Bubblewrap namespaces; the test
-        # payload still executes inside the fail-closed isolated boundary.
+        # sudo is used only to establish Bubblewrap's namespace boundary; the
+        # actual payload executes inside the evaluator's cleared, read-only,
+        # network-isolated sandbox and is still subject to its resource limits.
         run: sudo --preserve-env=CENTINAL26_HARD_SANDBOX_REQUIRED "$(which python)" -m pytest -q tests/test_hard_sandbox.py
