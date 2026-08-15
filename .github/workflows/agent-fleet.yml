@@ -1,0 +1,67 @@
+name: Frost Agent Fleet Qualification
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,37 * * * *"
+  push:
+    branches: ["main"]
+    paths:
+      - "scripts/agent_fleet_qualify.py"
+      - ".github/workflows/agent-fleet.yml"
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: frost-agent-fleet-qualification
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Qualify all agent branches without executing agent code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FROST_AGENT_BASE: main
+          FROST_AGENT_FLEET_OUT: artifacts/agent-fleet
+        run: python scripts/agent_fleet_qualify.py
+
+      - name: Publish dashboard into job summary
+        if: always()
+        run: cat artifacts/agent-fleet/agent_fleet.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Update one durable GitHub issue dashboard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Agent Fleet Qualification Dashboard"
+          issue="$(gh issue list --repo "$REPOSITORY" --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)"
+
+          if [[ -z "$issue" ]]; then
+            gh issue create --repo "$REPOSITORY" --title "$title" \
+              --body-file artifacts/agent-fleet/agent_fleet.md
+          else
+            gh issue edit "$issue" --repo "$REPOSITORY" \
+              --body-file artifacts/agent-fleet/agent_fleet.md
+          fi
+
+      - name: Retain machine-readable fleet evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: frost-agent-fleet-qualification
+          path: artifacts/agent-fleet/
+          if-no-files-found: error
+          retention-days: 30
