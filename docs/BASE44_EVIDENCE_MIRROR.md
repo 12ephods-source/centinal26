@@ -8,12 +8,13 @@ A consequential consumer MUST fail closed unless all of the following are true:
 
 1. The Centinal26 event chain verifies end-to-end.
 2. A trusted canonical reference supplies the exact canonical event ID and event hash. Those values MUST NOT be trusted merely because the Base44 mirror row contains them.
-3. The canonical event is an authority-bearing `DECISION_RECORDED` or `VERIFICATION_PASSED` event.
-4. The canonical event contains `payload.mirror_binding` with the exact mirror entity kind, stable mirror ID, canonical SHA-256 of the complete mirror record, and the exact authority scope being requested.
-5. The current mirror row still hashes to the committed digest.
-6. The requested authority scope exactly matches the canonical binding.
+3. The canonical event is `DECISION_RECORDED` and contains a versioned `payload.authority_grant` with `outcome="ALLOW"`, the exact mirror kind/ID, and the exact authority scope requested.
+4. If a legacy/top-level `payload.decision` field is present, it must also be exactly `"allow"`; `deny`, abstain, unknown, or malformed outcomes fail closed.
+5. The canonical event contains `payload.mirror_binding` with the exact mirror entity kind, stable mirror ID, canonical SHA-256 of the complete mirror record, and the exact authority scope being requested.
+6. The current mirror row still hashes to the committed digest.
+7. The requested authority scope exactly matches both the explicit authority grant and the canonical mirror binding.
 
-`centinal26.mirror_evidence.verify_mirror_evidence()` implements this boundary. A mutable mirror row can coordinate handoffs and status displays, but it cannot create or upgrade authority by itself.
+`centinal26.mirror_evidence.verify_mirror_evidence()` implements this boundary. A mutable mirror row can coordinate handoffs and status displays, but it cannot create or upgrade authority by itself. Event type alone is never treated as an affirmative authorization. In particular, a generic `VERIFICATION_PASSED` event does not authorize mirror evidence without a separately defined future authority-grant schema.
 
 ## Current production-path audit
 
@@ -30,6 +31,9 @@ The verifier rejects, at minimum:
 - a missing canonical event;
 - an event-hash mismatch;
 - a non-authority event type;
+- a missing or malformed explicit authority grant;
+- any non-affirmative top-level decision when that compatibility field is present;
+- authority-grant schema, outcome, mirror identity, or scope disagreement;
 - a missing mirror binding;
 - an admin-edited or stale mirror record whose SHA-256 no longer matches;
 - mirror-kind or mirror-ID disagreement;
