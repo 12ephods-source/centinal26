@@ -214,7 +214,9 @@ class DockerEvaluator:
             raise SandboxUnavailable("docker is unavailable")
         return self.docker
 
-    def _run_docker_control(self, arguments: list[str], timeout: float = 10.0) -> subprocess.CompletedProcess[bytes]:
+    def _run_docker_control(
+        self, arguments: list[str], timeout: float = 10.0
+    ) -> subprocess.CompletedProcess[bytes]:
         docker = self._require_docker()
         return subprocess.run(
             [str(docker), *arguments],
@@ -321,14 +323,18 @@ class DockerEvaluator:
         limits = SandboxLimits(cpu_seconds=2, wall_seconds=3, memory_bytes=128 * 1024 * 1024)
         container_name = f"centinal26-probe-{uuid.uuid4().hex[:16]}"
         command = self._base_command(probe_root, limits, container_name) + ["/usr/bin/true"]
-        result = subprocess.run(
-            command,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            env={},
-            check=False,
-            timeout=5,
-        )
+        try:
+            result = subprocess.run(
+                command,
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                env={},
+                check=False,
+                timeout=15,
+            )
+        except subprocess.TimeoutExpired as error:
+            self._force_remove(container_name)
+            raise SandboxUnavailable("docker isolation probe timed out") from error
         if result.returncode != 0:
             self._force_remove(container_name)
             detail = result.stderr.decode("utf-8", errors="replace")[:400]
