@@ -24,6 +24,8 @@ def test_gate_does_not_remote_reboot_or_enable_arbitrary_shell():
             "termux/intelligence_controller_supervisor.sh",
             "termux/intelligence_controller_github_worker_once.sh",
             "termux/intelligence_controller_report_after_reboot.sh",
+            "termux/automation_project_finalizer.sh",
+            "termux/intelligence_node_endurance.sh",
         )
     )
     forbidden = ("sudo reboot", "termux-reboot", 'eval "$', 'bash -c "$command')
@@ -33,7 +35,8 @@ def test_gate_does_not_remote_reboot_or_enable_arbitrary_shell():
 
 def test_github_worker_is_command_allowlisted():
     worker = text("termux/intelligence_controller_github_worker_once.sh")
-    assert "intelligence_controller_physical_gate_v1" in worker
+    assert "automation_project_finalize_v1" in worker
+    assert "DENIED_UNSUPPORTED_COMMAND" in worker
     assert "automation.github_job/v2" in worker
     assert "issues?state=open" in worker
 
