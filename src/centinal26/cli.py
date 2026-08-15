@@ -7,6 +7,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from .advance import advance_until_idle, build_advance_engine
 from .core import AuditLog, Engine, Grant, JobStore, Verification
 from .event_state import EventStore, rebuild_state, state_summary
 from .future import register_future_capabilities
@@ -103,6 +104,10 @@ def main() -> None:
     ingest.add_argument("paths", nargs="+", type=Path)
     ingest.add_argument("--recursive", action="store_true")
     ingest.add_argument("--max-bytes", type=int, default=DEFAULT_MAX_BYTES)
+    advance = sub.add_parser("advance")
+    advance.add_argument("--until-idle", action="store_true")
+    advance.add_argument("--authorize", action="store_true")
+    advance.add_argument("--max-tasks", type=int, default=100)
 
     sub.add_parser("auto-demo")
     sub.add_parser("auto-run-once")
@@ -141,6 +146,29 @@ def main() -> None:
             print(
                 json.dumps(
                     {"results": results, "state": state_summary(store)},
+                    sort_keys=True,
+                )
+            )
+        finally:
+            store.close()
+        return
+
+    if args.command == "advance":
+        if args.max_tasks < 1:
+            parser.error("--max-tasks must be positive")
+        store = event_store()
+        try:
+            runtime = build_advance_engine(state_home())
+            budget = args.max_tasks if args.until_idle else 1
+            report = advance_until_idle(
+                store,
+                runtime,
+                authorize=args.authorize,
+                max_tasks=budget,
+            )
+            print(
+                json.dumps(
+                    {"advance": report.as_dict(), "state": state_summary(store)},
                     sort_keys=True,
                 )
             )
