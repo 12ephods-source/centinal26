@@ -1,0 +1,135 @@
+name: Frost Effect Provider
+
+on:
+  push:
+    branches: ["callable-runtime"]
+    paths:
+      - "runtime/effect-requests/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "37 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frost-effect-provider-callable-runtime
+  cancel-in-progress: false
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: callable-runtime
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Reconcile bounded frost-effect requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          git config user.name "frost-effect-provider[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          provider="deploy/github/callable-worker-v1.0.0/effect-provider.js"
+          verifier="deploy/github/callable-worker-v1.0.0/effect-provider-verifier.js"
+          checked_out_sha="$(git rev-parse HEAD)"
+          export FROST_EFFECT_CHECKED_OUT_SHA="$checked_out_sha"
+
+          commit_and_push() {
+            local message="$1"
+            shift
+            git add -- "$@"
+            if git diff --cached --quiet; then
+              return 0
+            fi
+            git commit -m "$message"
+            for attempt in 1 2 3; do
+              git fetch origin callable-runtime
+              if ! git rebase origin/callable-runtime; then
+                git rebase --abort || true
+                echo "frost-effect reconciliation rebase failed" >&2
+                exit 1
+              fi
+              if git push origin HEAD:callable-runtime; then
+                return 0
+              fi
+              sleep $((attempt * 2))
+            done
+            echo "frost-effect reconciliation push failed after 3 attempts" >&2
+            exit 1
+          }
+
+          processed=0
+          denied=0
+          verified=0
+          reused=0
+
+          requests=(runtime/effect-requests/*.json)
+          for req in "${requests[@]}"; do
+            [[ -f "$req" ]] || continue
+            base="$(basename "$req")"
+            intent="runtime/effect-intents/$base"
+            result="runtime/effect-results/$base"
+            verification="runtime/effect-verifications/$base"
+
+            if [[ -f "$verification" ]]; then
+              continue
+            fi
+
+            mkdir -p runtime/effect-intents runtime/effect-results runtime/effect-verifications runtime/effect-markers
+            prepare_out="$RUNNER_TEMP/prepare-$base.json"
+            node "$provider" prepare "$req" "$intent" "$result" > "$prepare_out"
+            approved="$(node -e 'const x=require(process.argv[1]); process.stdout.write(String(x.approved))' "$prepare_out")"
+
+            if [[ "$approved" != "true" ]]; then
+              commit_and_push "Record denied frost-effect request $base" "$result"
+              node "$verifier" denied "$req" "$result" "$verification"
+              commit_and_push "Verify denied frost-effect request $base" "$verification"
+              denied=$((denied + 1))
+              processed=$((processed + 1))
+              continue
+            fi
+
+            commit_and_push "Persist frost-effect execution intent $base" "$intent"
+            marker_path="$(node -e 'const x=require(process.argv[1]); process.stdout.write(x.marker_path)' "$intent")"
+
+            execute_out="$RUNNER_TEMP/execute-$base.json"
+            node "$provider" execute "$req" "$intent" "$marker_path" > "$execute_out"
+            if [[ "$(node -e 'const x=require(process.argv[1]); process.stdout.write(String(x.reused))' "$execute_out")" == "true" ]]; then
+              reused=$((reused + 1))
+            fi
+            commit_and_push "Execute bounded frost-effect marker $base" "$marker_path"
+
+            effect_commit="$(git log -1 --format=%H -- "$marker_path")"
+            if [[ ! "$effect_commit" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "could not resolve immutable effect commit for $marker_path" >&2
+              exit 1
+            fi
+
+            node "$provider" record "$req" "$intent" "$marker_path" "$effect_commit" "$result"
+            commit_and_push "Record frost-effect provider receipt $base" "$result"
+
+            git fetch origin callable-runtime
+            git cat-file -e "origin/callable-runtime:$result"
+            remote_marker="$RUNNER_TEMP/remote-marker-$base.json"
+            git show "$effect_commit:$marker_path" > "$remote_marker"
+            node "$verifier" executed \
+              "$req" "$intent" "$result" "$remote_marker" "$effect_commit" "$verification"
+            commit_and_push "Verify frost-effect postcondition $base" "$verification"
+
+            verified=$((verified + 1))
+            processed=$((processed + 1))
+          done
+
+          printf 'processed=%s\n' "$processed"
+          printf 'verified=%s\n' "$verified"
+          printf 'denied=%s\n' "$denied"
+          printf 'reused=%s\n' "$reused"
+          printf 'checked_out_sha=%s\n' "$checked_out_sha"
