@@ -1,0 +1,13 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "service_id": "frost.callable.fabric",
+  "operation": "frost.diagnostics.sha256",
+  "arguments": {"text": "Frost Callable Fabric connected worker"},
+  "context": {
+    "caller": "chatgpt-github-connected-worker",
+    "role": "operator",
+    "approved": false,
+    "request_id": "20260814T185500-sha256-001"
+  }
+}
