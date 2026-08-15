@@ -4,14 +4,16 @@ set -euo pipefail
 CONFIG="${HOME}/.automation_os_github/config"
 GATE_ROOT="${AUTOMATION_INTELLIGENCE_GATE_ROOT:-$HOME/.automation_intelligence_gate}"
 REPO_ROOT="${CENTINAL26_REPO_ROOT:-$HOME/automation-intelligence-control-repo}"
-GATE="$REPO_ROOT/termux/intelligence_controller_physical_gate.sh"
+FINALIZER="$REPO_ROOT/termux/automation_project_finalizer.sh"
 [ -f "$CONFIG" ] || exit 2
 # shellcheck disable=SC1090
 source "$CONFIG"
 num="$(cat "$GATE_ROOT/active_issue" 2>/dev/null || true)"
 [ -n "$num" ] || exit 0
-[ -f "$GATE_ROOT/pre_reboot.json" ] || exit 0
-[ -f "$GATE_ROOT/post_reboot.json" ] && exit 0
+[ -f "$GATE_ROOT/project_pre_reboot.json" ] || exit 0
+[ -f "$GATE_ROOT/project_final.json" ] && {
+  [ "$(jq -r '.phase // empty' "$GATE_ROOT/project_final.json")" = "READY_FOR_GA_PROMOTION" ] && exit 0
+}
 
 api() {
   curl --fail-with-body -sS \
@@ -31,14 +33,15 @@ comment_issue() {
 }
 
 set +e
-CENTINAL26_REPO_ROOT="$REPO_ROOT" "$GATE" --post-reboot > "$GATE_ROOT/post_reboot_stdout.json" 2> "$GATE_ROOT/post_reboot_stderr.log"
+CENTINAL26_REPO_ROOT="$REPO_ROOT" "$FINALIZER" --post-reboot > "$GATE_ROOT/project_post_stdout.json" 2> "$GATE_ROOT/project_post_stderr.log"
 rc=$?
 set -e
-if [ "$rc" -eq 0 ] && [ -f "$GATE_ROOT/post_reboot.json" ]; then
-  report_sha="$(sha256sum "$GATE_ROOT/post_reboot.json" | awk '{print $1}')"
-  comment_issue "PHYSICAL VALIDATION PASS: reboot changed, Termux:Boot returned the controller, heartbeat is fresh, event chain is valid, and a post-reboot controller job completed. report_sha256=$report_sha"
+if [ "$rc" -eq 0 ] && [ -f "$GATE_ROOT/project_final.json" ] && [ "$(jq -r '.phase // empty' "$GATE_ROOT/project_final.json")" = "READY_FOR_GA_PROMOTION" ]; then
+  report_sha="$(sha256sum "$GATE_ROOT/project_final.json" | awk '{print $1}')"
+  endurance_sha="$(sha256sum "$GATE_ROOT/endurance_report.json" | awk '{print $1}')"
+  comment_issue "PHYSICAL FINALIZATION PASS: real reboot/Termux:Boot return, controller continuity, post-reboot work, 61-sample >=3500-second endurance, fail-closed unsupported-command rejection, watchdog recovery drill, event-chain validity, device-sync evidence, and independent verification passed. project_final_sha256=$report_sha endurance_sha256=$endurance_sha. Current release is READY_FOR_GA_PROMOTION; historical RC4 recovery is not a modern GA blocker."
   api -X PATCH "https://api.github.com/repos/${GITHUB_REPO}/issues/${num}" -d '{"state":"closed","state_reason":"completed"}' >/dev/null
   exit 0
 fi
-comment_issue "POST-REBOOT FAIL/BLOCKED: rc=$rc. No physical promotion performed; inspect ~/.automation_intelligence_gate/."
+comment_issue "POST-REBOOT FINALIZATION FAIL/BLOCKED: rc=$rc. No GA promotion performed; inspect ~/.automation_intelligence_gate/."
 exit "$rc"
