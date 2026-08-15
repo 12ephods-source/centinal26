@@ -1,12 +1,13 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-CONFIG="${HOME}/.automation_os_github/config"
+CONFIG="${HOME}/.automation_os_github/config.json"
 GATE_ROOT="${AUTOMATION_INTELLIGENCE_GATE_ROOT:-$HOME/.automation_intelligence_gate}"
 REPO_ROOT="${CENTINAL26_REPO_ROOT:-$HOME/automation-intelligence-control-repo}"
 FINALIZER="$REPO_ROOT/termux/automation_project_finalizer.sh"
 CLAIM_MARKER="$GATE_ROOT/claimed_issue_boot"
 ALLOWED_COMMAND="automation_project_finalize_v1"
+RUNTIME_CONFIG="$REPO_ROOT/termux/github_runtime_config.sh"
 mkdir -p "$GATE_ROOT"
 
 if [ "${1:-}" = "--validate-command" ]; then
@@ -19,9 +20,10 @@ if [ "${1:-}" = "--validate-command" ]; then
   exit 65
 fi
 
-[ -f "$CONFIG" ] || { echo "Missing $CONFIG"; exit 2; }
+[ -f "$RUNTIME_CONFIG" ] || { echo "Missing runtime config helper: $RUNTIME_CONFIG"; exit 2; }
 # shellcheck disable=SC1090
-source "$CONFIG"
+source "$RUNTIME_CONFIG"
+github_runtime_load_config "$CONFIG"
 
 boot_id() {
   if [ -r /proc/sys/kernel/random/boot_id ]; then
