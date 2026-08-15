@@ -334,7 +334,11 @@ function errorEnvelope(raw, request, error, provider = {}, extra = {}) {
     ...extra,
   };
   if (error.request_expiry) body.request_expiry = error.request_expiry;
-  if (error.provider_effect_policy) body.provider_effect_policy = error.provider_effect_policy;
+  if (error.provider_effect_policy) {
+    body.provider_effect_policy = error.provider_effect_policy;
+  } else if (request && body.provider_effect_policy === undefined) {
+    body.provider_effect_policy = providerEffectDecision(request);
+  }
   return {...body, envelope_hash: envelopeHash(body)};
 }
 
