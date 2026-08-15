@@ -42,6 +42,16 @@ jobs:
           checked_out_sha="$(git rev-parse HEAD)"
           export FROST_EFFECT_CHECKED_OUT_SHA="$checked_out_sha"
 
+          json_field() {
+            node -e '
+              const fs = require("fs");
+              const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+              const field = value[process.argv[2]];
+              if (field === undefined) process.exit(2);
+              process.stdout.write(typeof field === "string" ? field : JSON.stringify(field));
+            ' "$1" "$2"
+          }
+
           commit_and_push() {
             local message="$1"
             shift
@@ -70,6 +80,7 @@ jobs:
           denied=0
           verified=0
           reused=0
+          resumed=0
 
           requests=(runtime/effect-requests/*.json)
           for req in "${requests[@]}"; do
@@ -84,25 +95,49 @@ jobs:
             fi
 
             mkdir -p runtime/effect-intents runtime/effect-results runtime/effect-verifications runtime/effect-markers
-            prepare_out="$RUNNER_TEMP/prepare-$base.json"
-            node "$provider" prepare "$req" "$intent" "$result" > "$prepare_out"
-            approved="$(node -e 'const x=require(process.argv[1]); process.stdout.write(String(x.approved))' "$prepare_out")"
 
-            if [[ "$approved" != "true" ]]; then
-              commit_and_push "Record denied frost-effect request $base" "$result"
+            # Resume durable terminal denial without recomputing authorization.
+            if [[ -f "$result" && ! -f "$intent" ]]; then
+              state="$(json_field "$result" state)"
+              if [[ "$state" != "DENIED" ]]; then
+                echo "result exists without intent and is not DENIED: $base" >&2
+                exit 1
+              fi
               node "$verifier" denied "$req" "$result" "$verification"
               commit_and_push "Verify denied frost-effect request $base" "$verification"
               denied=$((denied + 1))
               processed=$((processed + 1))
+              resumed=$((resumed + 1))
               continue
             fi
 
-            commit_and_push "Persist frost-effect execution intent $base" "$intent"
-            marker_path="$(node -e 'const x=require(process.argv[1]); process.stdout.write(x.marker_path)' "$intent")"
+            # An existing immutable intent is the durable authorization boundary.
+            # Never recompute or replace it merely because the reconciler source changed.
+            if [[ -f "$intent" ]]; then
+              approved=true
+              resumed=$((resumed + 1))
+            else
+              prepare_out="$RUNNER_TEMP/prepare-$base.json"
+              node "$provider" prepare "$req" "$intent" "$result" > "$prepare_out"
+              approved="$(json_field "$prepare_out" approved)"
+
+              if [[ "$approved" != "true" ]]; then
+                commit_and_push "Record denied frost-effect request $base" "$result"
+                node "$verifier" denied "$req" "$result" "$verification"
+                commit_and_push "Verify denied frost-effect request $base" "$verification"
+                denied=$((denied + 1))
+                processed=$((processed + 1))
+                continue
+              fi
+
+              commit_and_push "Persist frost-effect execution intent $base" "$intent"
+            fi
+
+            marker_path="$(json_field "$intent" marker_path)"
 
             execute_out="$RUNNER_TEMP/execute-$base.json"
             node "$provider" execute "$req" "$intent" "$marker_path" > "$execute_out"
-            if [[ "$(node -e 'const x=require(process.argv[1]); process.stdout.write(String(x.reused))' "$execute_out")" == "true" ]]; then
+            if [[ "$(json_field "$execute_out" reused)" == "true" ]]; then
               reused=$((reused + 1))
             fi
             commit_and_push "Execute bounded frost-effect marker $base" "$marker_path"
@@ -132,4 +167,5 @@ jobs:
           printf 'verified=%s\n' "$verified"
           printf 'denied=%s\n' "$denied"
           printf 'reused=%s\n' "$reused"
+          printf 'resumed=%s\n' "$resumed"
           printf 'checked_out_sha=%s\n' "$checked_out_sha"
