@@ -134,8 +134,13 @@ def default_federation_catalog() -> FederationCatalog:
         AdapterDescriptor(
             "github-actions",
             AdapterKind.EXECUTION_PROVIDER,
-            ("frost.call",),
+            ("frost.call", "github.runtime.qualification_marker.put"),
             status=AdapterStatus.CONNECTED_VALIDATED,
+            notes=(
+                "github.runtime.qualification_marker.put is connected-validated through frost-effect/1.0",
+                "no caller-supplied repository path, shell command, or network target is authorized",
+                "generic Capability Factory PROMOTED is not asserted by this catalog status",
+            ),
         ),
         AdapterDescriptor(
             "termux-local",
