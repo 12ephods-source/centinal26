@@ -8,7 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Mapping
+from typing import Any
 
 from centinal26.evolution import CandidateEvidence, canonical_sha256
 from centinal26.evolution_sandbox import evaluate_in_hard_sandbox
@@ -47,7 +47,7 @@ def _load_legacy() -> ModuleType:
 
 def _proposal_environment(
     candidate_id: str,
-    environ: Mapping[str, str] | None = None,
+    environ: dict[str, str] | None = None,
 ) -> dict[str, str]:
     source = os.environ if environ is None else environ
     provider = source.get("GOOSE_PROVIDER", "").strip().lower()
