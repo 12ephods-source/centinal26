@@ -1,0 +1,61 @@
+{
+  "schema": "frost-provider-connected-validation/1.0",
+  "provider": "github-actions",
+  "adapter_status": "CONNECTED_VALIDATED",
+  "capability": "github.runtime.qualification_marker.put",
+  "protocol": "frost-effect/1.0",
+  "authority": {
+    "guardian_policy": "github-actions-qualification-marker/v1",
+    "caller_supplied_path": false,
+    "shell": false,
+    "network_target_selection": false,
+    "arbitrary_github_write": false
+  },
+  "implementation": {
+    "provider_source_sha256": "70eedf7378654eda56b014313c786c659e08af3d4777a2175f44b88957e1c1d2",
+    "repaired_workflow_source_sha256": "c75dd1a7c3ec75947d40fb7ba27ed24efe20dd023066fd430459688e787890cc",
+    "provider_merge_commit": "d4030ae23daeb1c1d942c15f89a573c75480b1b8",
+    "resume_fix_merge_commit": "d003efd36b2d40bc7f9c51824f22eb344b998637"
+  },
+  "recovery_evidence": {
+    "initial_failed_run_id": 31867656186,
+    "persisted_request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
+    "persisted_intent_hash": "0d3bbf6a2226ca02cdb8b658caa757401b5ba782f88d326892a8dc20ab09c9be",
+    "resumed_without_reauthorization": true
+  },
+  "approved_effect": {
+    "workflow_run_id": 31867886683,
+    "provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
+    "effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
+    "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
+    "result_sha256": "89cd03c6e27f1cac6e769086c5e1e8a0304e6aab9407ae9137a628332f48336d",
+    "verification_hash": "f402d02f8343213c37b9aca3089d251ae60d636026b1844b2196a6bf4d6fb390",
+    "verification_decision": "POSTCONDITION_VERIFIED",
+    "independent": true
+  },
+  "exact_replay": {
+    "workflow_run_id": 31867931324,
+    "same_request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
+    "same_provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
+    "same_effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
+    "same_marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
+    "result_sha256": "dbbcaee68884ea736cd54f296e703c8b0f9014d3941b5a67e7875e60a2159de4",
+    "verification_hash": "e0c427a58ab109c991eb0800100c3fdfff2c74f50d4fb54f9e318b49231c433a",
+    "verification_decision": "POSTCONDITION_VERIFIED"
+  },
+  "guardian_denial": {
+    "workflow_run_id": 31867886683,
+    "capability": "github.runtime.unapproved.put",
+    "result_sha256": "7e8b204894be37e2a146d6a60fb3e0b7c6d2f8268502ab993ba5d5aa8de83eea",
+    "verification_hash": "807913b686127e7924230d3d38be497546de76229d92bf16278457927da8289a",
+    "verification_decision": "DENIAL_VERIFIED",
+    "provider_execution_absent": true,
+    "intent_absent": true
+  },
+  "limitations": {
+    "generic_capability_factory_promoted": false,
+    "reason": "generic Capability Factory currently requires the HTTP-specific health_200 gate; this queue-backed provider is recorded at the transport-appropriate CONNECTED_VALIDATED federation maturity instead of fabricating that gate",
+    "physical_android_validated": false,
+    "termux_status": "HOST_VALIDATED"
+  }
+}
