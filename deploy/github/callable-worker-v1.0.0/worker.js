@@ -17,9 +17,21 @@ const {
 } = require('../../vercel/callable-fabric-v1.1.0/lib/fabric');
 
 const PROTOCOL = 'frost-call/1.0';
+const REQUIRED_SIDE_EFFECT_PROTOCOL = 'frost-effect/1.0';
 const MAX_REQUEST_BYTES = 64 * 1024;
 const MAX_IDEMPOTENCY_KEY_BYTES = 256;
 const RFC3339_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+const APPROVED_SEMANTIC_CORE_FILE_SHA256 = '6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8';
+const APPROVED_READ_ONLY_OPERATIONS = new Set([
+  'system.health',
+  'system.capabilities',
+  'frost.diagnostics.echo',
+  'frost.diagnostics.sha256',
+  'frost.diagnostics.canonicalize',
+]);
+const EFFECT_FREE_NEGATIVE_CONTROLS = new Set([
+  'frost.diagnostics.dangerous_demo_policy_test',
+]);
 const FABRIC_SOURCE_PATH = require.resolve('../../vercel/callable-fabric-v1.1.0/lib/fabric');
 const WORKFLOW_SOURCE_PATH = path.resolve(
   __dirname,
@@ -129,6 +141,93 @@ function requestExpiry(request, provider = {}) {
   return expiry;
 }
 
+function mcpToolName(name) {
+  return name.replace(/[^A-Za-z0-9_-]/g, '_');
+}
+
+function semanticOperation(request) {
+  const kind = request?.kind || 'invoke';
+  if (kind === 'invoke') return typeof request.operation === 'string' ? request.operation : null;
+  if (kind !== 'mcp') return null;
+  if (request.message?.method !== 'tools/call') return null;
+  const tool = request.message?.params?.name;
+  if (typeof tool !== 'string') return null;
+  const approved = [...APPROVED_READ_ONLY_OPERATIONS, ...EFFECT_FREE_NEGATIVE_CONTROLS];
+  return approved.find((operation) => mcpToolName(operation) === tool) || tool;
+}
+
+function providerEffectDecision(request, options = {}) {
+  const semanticCoreFileSha256 = options.semantic_core_file_sha256
+    || fileSha256(FABRIC_SOURCE_PATH);
+  if (semanticCoreFileSha256 !== APPROVED_SEMANTIC_CORE_FILE_SHA256) {
+    return {
+      allowed: false,
+      status: 'SEMANTIC_CORE_POLICY_DRIFT',
+      semantic_core_file_sha256: semanticCoreFileSha256,
+      approved_semantic_core_file_sha256: APPROVED_SEMANTIC_CORE_FILE_SHA256,
+      required_protocol: REQUIRED_SIDE_EFFECT_PROTOCOL,
+    };
+  }
+
+  const kind = request?.kind || 'invoke';
+  if (kind === 'mcp') {
+    const method = request.message?.method;
+    if (method === 'initialize' || method === 'tools/list') {
+      return {
+        allowed: true,
+        status: 'CONTROL_PLANE_READ_ONLY',
+        operation: null,
+        semantic_core_file_sha256: semanticCoreFileSha256,
+      };
+    }
+    if (method !== 'tools/call') {
+      return {
+        allowed: true,
+        status: 'CONTROL_PLANE_NONEXECUTING',
+        operation: null,
+        semantic_core_file_sha256: semanticCoreFileSha256,
+      };
+    }
+  }
+
+  const operation = semanticOperation(request);
+  if (operation && APPROVED_READ_ONLY_OPERATIONS.has(operation)) {
+    return {
+      allowed: true,
+      status: 'READ_ONLY',
+      operation,
+      semantic_core_file_sha256: semanticCoreFileSha256,
+    };
+  }
+  if (operation && EFFECT_FREE_NEGATIVE_CONTROLS.has(operation)) {
+    return {
+      allowed: true,
+      status: 'EFFECT_FREE_NEGATIVE_CONTROL',
+      operation,
+      semantic_core_file_sha256: semanticCoreFileSha256,
+    };
+  }
+  return {
+    allowed: false,
+    status: 'SIDE_EFFECT_PROTOCOL_REQUIRED',
+    operation,
+    semantic_core_file_sha256: semanticCoreFileSha256,
+    required_protocol: REQUIRED_SIDE_EFFECT_PROTOCOL,
+  };
+}
+
+function effectPolicyError(decision) {
+  const drift = decision.status === 'SEMANTIC_CORE_POLICY_DRIFT';
+  const error = new Error(
+    drift
+      ? 'semantic core bytes are not approved by the provider effect policy'
+      : `operation requires unavailable ${REQUIRED_SIDE_EFFECT_PROTOCOL}`,
+  );
+  error.name = drift ? 'SemanticCorePolicyDrift' : 'SideEffectProtocolRequired';
+  error.provider_effect_policy = decision;
+  return error;
+}
+
 function handleMcp(message = {}) {
   const id = message.id ?? null;
   if (message.method === 'initialize') {
@@ -172,6 +271,11 @@ function processRequest(request, provider = {}) {
   const expiry = Object.prototype.hasOwnProperty.call(provider, 'request_expiry')
     ? provider.request_expiry
     : requestExpiry(request, provider);
+  const effectPolicy = Object.prototype.hasOwnProperty.call(provider, 'provider_effect_policy')
+    ? provider.provider_effect_policy
+    : providerEffectDecision(request);
+  if (!effectPolicy.allowed) throw effectPolicyError(effectPolicy);
+
   const kind = request.kind || 'invoke';
   let response;
   if (kind === 'invoke') {
@@ -198,6 +302,7 @@ function processRequest(request, provider = {}) {
     source_identity_sha256: SOURCE_IDENTITY_SHA256,
     deployment_adapter_sha256: ADAPTER_SPEC_SHA256,
     source_attestation: sourceAttestation(provider),
+    provider_effect_policy: effectPolicy,
     request_sha256: identity.request_sha256,
     idempotency_key: identity.idempotency_key,
     response,
@@ -229,6 +334,11 @@ function errorEnvelope(raw, request, error, provider = {}, extra = {}) {
     ...extra,
   };
   if (error.request_expiry) body.request_expiry = error.request_expiry;
+  if (error.provider_effect_policy) {
+    body.provider_effect_policy = error.provider_effect_policy;
+  } else if (request && body.provider_effect_policy === undefined) {
+    body.provider_effect_policy = providerEffectDecision(request);
+  }
   return {...body, envelope_hash: envelopeHash(body)};
 }
 
@@ -261,6 +371,7 @@ function processFile(inputPath, outputPath, provider = {}) {
   let reused = false;
   let reconciledFrom = null;
   let validatedExpiry = null;
+  let validatedEffectPolicy = null;
 
   try {
     request = JSON.parse(raw);
@@ -281,11 +392,20 @@ function processFile(inputPath, outputPath, provider = {}) {
       });
     } else {
       validatedExpiry = requestExpiry(request, provider);
-      output = processRequest(request, {...provider, request_expiry: validatedExpiry});
+      validatedEffectPolicy = providerEffectDecision(request);
+      if (!validatedEffectPolicy.allowed) throw effectPolicyError(validatedEffectPolicy);
+      output = processRequest(request, {
+        ...provider,
+        request_expiry: validatedExpiry,
+        provider_effect_policy: validatedEffectPolicy,
+      });
     }
   } catch (error) {
     const extra = {};
     if (!error.request_expiry && validatedExpiry) extra.request_expiry = validatedExpiry;
+    if (!error.provider_effect_policy && validatedEffectPolicy) {
+      extra.provider_effect_policy = validatedEffectPolicy;
+    }
     output = errorEnvelope(raw, request, error, provider, extra);
   }
 
@@ -316,12 +436,15 @@ function main(argv) {
 if (require.main === module) main(process.argv.slice(2));
 module.exports = {
   PROTOCOL,
+  REQUIRED_SIDE_EFFECT_PROTOCOL,
+  APPROVED_SEMANTIC_CORE_FILE_SHA256,
   MAX_REQUEST_BYTES,
   MAX_IDEMPOTENCY_KEY_BYTES,
   processRequest,
   processFile,
   requestIdentity,
   requestExpiry,
+  providerEffectDecision,
   sourceAttestation,
   handleMcp,
   envelopeHash,
