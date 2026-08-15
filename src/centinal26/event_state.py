@@ -4,10 +4,11 @@ import hashlib
 import json
 import sqlite3
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 GENESIS_HASH = "0" * 64
 EVENT_SCHEMA_VERSION = 1
