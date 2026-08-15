@@ -10,12 +10,58 @@ const {
   requestIdentity,
   verifyEnvelope,
 } = require('./worker');
-const {verifyReceipt} = require('../../vercel/callable-fabric-v1.1.0/lib/fabric');
+const {
+  canonical,
+  sha256,
+  verifyReceipt,
+} = require('../../vercel/callable-fabric-v1.1.0/lib/fabric');
+
+const WORKER_PATH = path.join(__dirname, 'worker.js');
+const FABRIC_PATH = require.resolve('../../vercel/callable-fabric-v1.1.0/lib/fabric');
+const WORKFLOW_PATH = path.resolve(
+  __dirname,
+  '../../../.github/workflows/callable-fabric-worker.yml',
+);
 
 function run(request) {
-  const result = processRequest(request, {run_id: 'doctor', sha: 'doctor'});
+  const result = processRequest(request, {
+    run_id: 'doctor',
+    sha: 'doctor-sha',
+    ref: 'refs/heads/doctor',
+  });
   assert.strictEqual(verifyEnvelope(result), true);
   return result;
+}
+
+function assertSourceAttestation(result) {
+  const att = result.source_attestation;
+  assert.strictEqual(att.schema, 'frost-source-attestation/1.0');
+  assert.strictEqual(att.semantic_core.canonical_git_sha, result.canonical_git_sha);
+  assert.strictEqual(
+    att.semantic_core.source_identity_sha256,
+    result.source_identity_sha256,
+  );
+  assert.strictEqual(
+    att.semantic_core.deployment_adapter_sha256,
+    result.deployment_adapter_sha256,
+  );
+
+  const semanticCoreFileSha256 = sha256(fs.readFileSync(FABRIC_PATH));
+  const workerSourceSha256 = sha256(fs.readFileSync(WORKER_PATH));
+  const workflowSourceSha256 = sha256(fs.readFileSync(WORKFLOW_PATH));
+  assert.strictEqual(att.semantic_core.file_sha256, semanticCoreFileSha256);
+  assert.strictEqual(att.provider_runtime.worker_source_sha256, workerSourceSha256);
+  assert.strictEqual(att.provider_runtime.workflow_source_sha256, workflowSourceSha256);
+  assert.strictEqual(att.provider_runtime.checked_out_sha, 'doctor-sha');
+  assert.strictEqual(att.provider_runtime.checked_out_ref, 'refs/heads/doctor');
+
+  const expectedIdentity = sha256(Buffer.from(canonical({
+    provider: 'github-actions',
+    semantic_core_file_sha256: semanticCoreFileSha256,
+    worker_source_sha256: workerSourceSha256,
+    workflow_source_sha256: workflowSourceSha256,
+  }), 'utf8'));
+  assert.strictEqual(att.provider_code_identity_sha256, expectedIdentity);
 }
 
 const invokeRequest = {
@@ -32,6 +78,7 @@ assert.strictEqual(invoke.response.ok, true);
 assert.strictEqual(invoke.response.result.sha256, 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
 assert.strictEqual(verifyReceipt(invoke.response.receipt), true);
 assert.strictEqual(invoke.idempotency_key, 'doctor-sha256');
+assertSourceAttestation(invoke);
 
 const fallbackIdentity = requestIdentity({
   protocol: 'frost-call/1.0',
@@ -78,6 +125,7 @@ const denied = run({
 assert.strictEqual(denied.response.ok, false);
 assert.strictEqual(denied.response.error.type, 'DENIED');
 assert.strictEqual(verifyReceipt(denied.response.receipt), true);
+assertSourceAttestation(denied);
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'frost-callable-doctor-'));
 try {
@@ -100,13 +148,17 @@ try {
     JSON.stringify({...invokeRequest, arguments: {text: 'different'}}),
   );
 
-  const first = processFile(firstPath, firstResult, {run_id: 'doctor-file-1', sha: 'doctor'});
+  const first = processFile(firstPath, firstResult, {
+    run_id: 'doctor-file-1',
+    sha: 'doctor-file-sha-1',
+    ref: 'refs/heads/doctor',
+  });
   assert.strictEqual(first.reused, false);
 
   const duplicate = processFile(
     duplicatePath,
     duplicateResult,
-    {run_id: 'doctor-file-2', sha: 'doctor'},
+    {run_id: 'doctor-file-2', sha: 'doctor-file-sha-2', ref: 'refs/heads/doctor'},
   );
   assert.strictEqual(duplicate.reused, true);
   assert.strictEqual(fs.readFileSync(duplicateResult, 'utf8'), fs.readFileSync(firstResult, 'utf8'));
@@ -114,22 +166,24 @@ try {
   const conflict = processFile(
     conflictPath,
     conflictResult,
-    {run_id: 'doctor-file-3', sha: 'doctor'},
+    {run_id: 'doctor-file-3', sha: 'doctor-file-sha-3', ref: 'refs/heads/doctor'},
   );
   assert.strictEqual(conflict.reused, false);
   const conflictEnvelope = JSON.parse(fs.readFileSync(conflictResult, 'utf8'));
   assert.strictEqual(conflictEnvelope.ok, false);
   assert.strictEqual(conflictEnvelope.error.type, 'IdempotencyConflict');
   assert.strictEqual(verifyEnvelope(conflictEnvelope), true);
+  assertSourceAttestation(conflictEnvelope);
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }
 
 console.log(JSON.stringify({
   ok: true,
-  tests: 8,
+  tests: 9,
   provider: 'github-actions',
   semantic_tools_only: true,
   unrestricted_remote_shell: false,
   durable_result_idempotency: true,
+  source_attestation: true,
 }, null, 2));
