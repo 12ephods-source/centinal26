@@ -1,0 +1,12 @@
+{
+  "protocol": "frost-effect/1.0",
+  "request_id": "github-effect-qualification-20260815-a",
+  "capability": "github.runtime.qualification_marker.put",
+  "idempotency_key": "github-effect-qualification-20260815-idempotent-001",
+  "actor": "automation-controller",
+  "payload": {
+    "marker": "github-actions-connected-qualification-v1",
+    "value": "2929cc17a391f3b6af552629a3d572c5d14984de"
+  },
+  "expires_at": "2026-08-16T06:30:00Z"
+}
