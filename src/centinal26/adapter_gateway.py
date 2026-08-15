@@ -206,7 +206,8 @@ class CanonicalAdapterGateway:
                 "FAILED",
                 "VERIFICATION_FAILED",
             }:
-                raise RuntimeError(f"canonicalized adapter task is unexpectedly not ready: {task_id}")
+                message = f"canonicalized adapter task is unexpectedly not ready: {task_id}"
+                raise RuntimeError(message)
 
         return AdapterIngestResult(
             adapter_id=adapter_id,
