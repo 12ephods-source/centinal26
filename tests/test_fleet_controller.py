@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -129,7 +130,7 @@ def test_append_only_event_log_and_metrics(tmp_path):
         metrics = ctl.metrics(persist=True)
         assert metrics["solved"] == 1
         assert metrics["event_chain_valid"] is True
-        with pytest.raises(Exception):
+        with pytest.raises(sqlite3.IntegrityError):
             ctl.db.execute("UPDATE fleet_event_log SET event_type='tampered' WHERE seq=1")
     finally:
         ctl.close()
