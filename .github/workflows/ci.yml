@@ -28,10 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - run: npm test
         working-directory: deploy/vercel/callable-fabric-v1.1.0
       - run: node doctor.js
+        working-directory: deploy/github/callable-worker-v1.0.0
+      - run: node verifier-doctor.js
         working-directory: deploy/github/callable-worker-v1.0.0
