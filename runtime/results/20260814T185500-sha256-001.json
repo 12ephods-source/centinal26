@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31854966390",
+  "provider_sha": "1f21dd2f266168bd03fa22511ebf33d631da6cdf",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "7ca7a90fb9ced9659e5aa4635e06a26edeb4e0614dd426da6f6767d05a4d331b",
+  "response": {
+    "ok": true,
+    "request_id": "20260814T185500-sha256-001",
+    "service_id": "frost.callable.fabric",
+    "operation": "frost.diagnostics.sha256",
+    "result": {
+      "sha256": "afa15de11fdeddd4012e63e1ee950dc30264f7fb45af7b2bc324b4c1029d5027"
+    },
+    "diagnostics": {
+      "elapsed_ms": 1,
+      "version": "1.1.0",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "result_hash": "9a13883468dcbba46e33bb44f030d7f5a587cfede047770ebc06173f7ef6f98b"
+    },
+    "receipt": {
+      "request_id": "20260814T185500-sha256-001",
+      "service_id": "frost.callable.fabric",
+      "operation": "frost.diagnostics.sha256",
+      "caller": "chatgpt-github-connected-worker",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "bb9685e2b0b12ea15710c4ae4ca485755e298028e5af0ad3de5e1df7dda8b9db",
+      "guardian": {
+        "allowed": true,
+        "reason": "authorized"
+      },
+      "event": "INVOCATION_OK",
+      "result_hash": "9a13883468dcbba46e33bb44f030d7f5a587cfede047770ebc06173f7ef6f98b",
+      "elapsed_ms": 1,
+      "timestamp": "2026-08-15T00:53:38.244Z",
+      "record_hash": "865d8fdfa6be432bc03f9f91d6c743644216538f24dfef49c23172bb1c2e8b22"
+    }
+  },
+  "envelope_hash": "05172397f1a23d9968b2a1677c3f120208169fb8fea0ba51f86debcfabd511f8"
+}
