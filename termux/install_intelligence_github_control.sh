@@ -6,6 +6,7 @@ CFGDIR="${HOME}/.automation_os_github"
 CANONICAL_REPO="12ephods-source/centinal26"
 REPO="${AUTOMATION_OS_GITHUB_REPO:-$CANONICAL_REPO}"
 GATE_ROOT="$HOME/.automation_intelligence_gate"
+TOKEN="${GITHUB_TOKEN:-}"
 
 [ "$REPO" = "$CANONICAL_REPO" ] || {
   echo "BLOCKED_NONCANONICAL_REPO $REPO" >&2
@@ -40,7 +41,11 @@ if [ "${#missing_packages[@]}" -gt 0 ]; then
   fi
 fi
 
-if gh auth status --hostname github.com >/dev/null 2>&1; then
+if [ -n "$TOKEN" ]; then
+  # Consume an explicitly supplied bootstrap credential only to establish gh's
+  # credential store. It is never serialized into Centinal26 runtime config.
+  printf '%s\n' "$TOKEN" | gh auth login --hostname github.com --git-protocol https --with-token
+elif gh auth status --hostname github.com >/dev/null 2>&1; then
   echo "GITHUB_AUTH: EXISTING_LOGIN"
 else
   gh auth login --hostname github.com --web --git-protocol https --scopes repo,workflow
@@ -50,6 +55,7 @@ gh auth setup-git --hostname github.com
   echo "BLOCKED_GITHUB_AUTH" >&2
   exit 2
 }
+unset TOKEN
 
 if [ -d "$ROOT/.git" ]; then
   [ -z "$(git -C "$ROOT" status --porcelain)" ] || {
