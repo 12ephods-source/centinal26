@@ -72,8 +72,14 @@ class _RuntimeDockerEvaluator(DockerEvaluator):
     ) -> list[str]:
         command = super()._base_command(candidate_root, limits, container_name)
         image = command.pop()
+        runtime_bin = self.runtime_prefix / "bin"
+        runtime_lib = self.runtime_prefix / "lib"
         command.extend(
             [
+                "--env",
+                f"PATH={runtime_bin}:/usr/bin:/bin",
+                "--env",
+                f"LD_LIBRARY_PATH={runtime_lib}",
                 "--env",
                 "PYTHONPATH=/src/src",
                 "--env",
