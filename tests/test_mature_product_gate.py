@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import importlib.util
 from pathlib import Path
+import importlib.util
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "mature_product_gate.py"
