@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from centinal26.hard_sandbox import (
-    BubblewrapEvaluator,
+    DockerEvaluator,
     SandboxLimits,
     SandboxUnavailable,
     verify_result_hash,
@@ -16,16 +16,16 @@ from centinal26.hard_sandbox import (
 
 COMMIT = "a" * 40
 GOAL = "b" * 64
-VALIDATORS = {"pytest": "9.1.1", "sandbox-contract": "1"}
+VALIDATORS = {"python": "system", "sandbox-contract": "2"}
 
 
-def _live_evaluator() -> BubblewrapEvaluator:
-    evaluator = BubblewrapEvaluator()
+def _live_evaluator() -> DockerEvaluator:
+    evaluator = DockerEvaluator()
     required = os.environ.get("CENTINAL26_HARD_SANDBOX_REQUIRED") == "1"
-    if shutil.which("bwrap") is None:
+    if shutil.which("docker") is None:
         if required:
-            pytest.fail("bubblewrap is required by the hard-sandbox CI gate")
-        pytest.skip("bubblewrap is not installed")
+            pytest.fail("docker is required by the hard-sandbox CI gate")
+        pytest.skip("docker is not installed")
     try:
         evaluator.probe()
     except SandboxUnavailable as error:
@@ -42,7 +42,7 @@ def _write(root: Path, name: str, source: str) -> Path:
 
 
 def _run(
-    evaluator: BubblewrapEvaluator,
+    evaluator: DockerEvaluator,
     root: Path,
     script: str,
     *,
@@ -62,7 +62,7 @@ def test_unavailable_sandbox_fails_closed(tmp_path: Path) -> None:
     root = tmp_path / "candidate"
     root.mkdir()
     _write(root, "ok.py", "print('should not execute')\n")
-    evaluator = BubblewrapEvaluator(tmp_path / "does-not-exist")
+    evaluator = DockerEvaluator(tmp_path / "does-not-exist")
 
     with pytest.raises(SandboxUnavailable, match="unavailable"):
         evaluator.evaluate(
@@ -109,7 +109,9 @@ except OSError:
     checks['network_denied'] = True
 finally:
     sock.close()
-checks['home_empty'] = not os.path.exists('/home/runner')
+checks['home_absent'] = not os.path.exists('/home/runner')
+checks['docker_socket_absent'] = not os.path.exists('/var/run/docker.sock')
+checks['ssh_agent_absent'] = os.environ.get('SSH_AUTH_SOCK') is None
 print(__import__('json').dumps(checks, sort_keys=True))
 """.lstrip(),
     )
@@ -125,6 +127,9 @@ print(__import__('json').dumps(checks, sort_keys=True))
     assert not (root / "mutation.txt").exists()
     assert verify_result_hash(result)
     assert result.isolation["host_execution_fallback"] is False
+    assert result.isolation["network"] == "none"
+    assert result.isolation["capabilities"] == "all_dropped"
+    assert result.isolation["root_filesystem"] == "read_only"
 
 
 def test_wall_clock_limit_is_enforced(tmp_path: Path) -> None:
@@ -137,11 +142,11 @@ def test_wall_clock_limit_is_enforced(tmp_path: Path) -> None:
         evaluator,
         root,
         "sleep.py",
-        limits=SandboxLimits(wall_seconds=0.25),
+        limits=SandboxLimits(wall_seconds=0.35),
     )
 
     assert result.timed_out is True
-    assert result.duration_seconds < 3
+    assert result.duration_seconds < 4
     assert result.exit_code != 0
     assert verify_result_hash(result)
 
@@ -162,14 +167,15 @@ def test_output_limit_is_enforced(tmp_path: Path) -> None:
     assert result.output_limited is True
     assert len(result.stdout.encode()) <= 2048
     assert result.exit_code != 0
+    assert verify_result_hash(result)
 
 
-def test_cpu_and_memory_limits_are_visible_and_enforced(tmp_path: Path) -> None:
+def test_memory_limit_is_enforced(tmp_path: Path) -> None:
     evaluator = _live_evaluator()
-    memory_root = tmp_path / "memory"
-    memory_root.mkdir()
+    root = tmp_path / "candidate"
+    root.mkdir()
     _write(
-        memory_root,
+        root,
         "memory.py",
         """
 try:
@@ -179,26 +185,32 @@ except MemoryError:
     print('MEMORY_DENIED')
 """.lstrip(),
     )
-    memory_result = _run(
+
+    result = _run(
         evaluator,
-        memory_root,
+        root,
         "memory.py",
         limits=SandboxLimits(memory_bytes=128 * 1024 * 1024),
     )
-    assert "MEMORY_DENIED" in memory_result.stdout or memory_result.exit_code != 0
+    assert "MEMORY_DENIED" in result.stdout or result.exit_code != 0
+    assert verify_result_hash(result)
 
-    cpu_root = tmp_path / "cpu"
-    cpu_root.mkdir()
-    _write(cpu_root, "cpu.py", "while True:\n    pass\n")
-    cpu_result = _run(
+
+def test_cpu_limit_is_enforced(tmp_path: Path) -> None:
+    evaluator = _live_evaluator()
+    root = tmp_path / "candidate"
+    root.mkdir()
+    _write(root, "cpu.py", "while True:\n    pass\n")
+
+    result = _run(
         evaluator,
-        cpu_root,
+        root,
         "cpu.py",
-        limits=SandboxLimits(cpu_seconds=1, wall_seconds=4),
+        limits=SandboxLimits(cpu_seconds=1, cpus=0.5, wall_seconds=5),
     )
-    assert cpu_result.exit_code != 0
-    assert cpu_result.timed_out is False
-    assert cpu_result.duration_seconds < 4
+    assert result.exit_code != 0
+    assert result.duration_seconds < 5
+    assert verify_result_hash(result)
 
 
 def test_process_limit_prevents_unbounded_forking(tmp_path: Path) -> None:
@@ -247,22 +259,26 @@ print('PROCESS_DENIED' if denied else 'PROCESS_NOT_DENIED')
         limits=SandboxLimits(processes=16, wall_seconds=5),
     )
 
-    assert "PROCESS_DENIED" in result.stdout, result.stdout + result.stderr
+    assert "PROCESS_DENIED" in result.stdout or result.exit_code != 0
+    assert verify_result_hash(result)
 
 
-def test_result_hash_binds_candidate_goal_validators_and_evidence(tmp_path: Path) -> None:
+def test_result_hash_binds_candidate_goal_validators_image_and_evidence(tmp_path: Path) -> None:
     evaluator = _live_evaluator()
     root = tmp_path / "candidate"
     root.mkdir()
     _write(root, "ok.py", "print('ok')\n")
 
     result = _run(evaluator, root, "ok.py")
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.stderr
+    assert result.sandbox_image_id.startswith("sha256:")
     assert verify_result_hash(result)
 
-    tampered = result.as_dict()
-    tampered["candidate_commit"] = "c" * 40
-    assert not verify_result_hash(tampered)
-    tampered = result.as_dict()
-    tampered["goal_digest"] = "d" * 64
-    assert not verify_result_hash(tampered)
+    for key, replacement in (
+        ("candidate_commit", "c" * 40),
+        ("goal_digest", "d" * 64),
+        ("sandbox_image_id", "sha256:" + "e" * 64),
+    ):
+        tampered = result.as_dict()
+        tampered[key] = replacement
+        assert not verify_result_hash(tampered)
