@@ -5,17 +5,56 @@ ROOT="${CENTINAL26_REPO_ROOT:-$HOME/automation-intelligence-control-repo}"
 CFGDIR="${HOME}/.automation_os_github"
 REPO="${AUTOMATION_OS_GITHUB_REPO:-12ephods-source/centinal26}"
 
-pkg update -y
-pkg install -y gh git curl jq coreutils python procps
+mkdir -p "$CFGDIR" "$HOME/.termux/boot" "$HOME/.automation_intelligence_gate"
+chmod 700 "$CFGDIR" "$HOME/.automation_intelligence_gate"
 
-if gh auth status --hostname github.com >/dev/null 2>&1; then
-  echo "GITHUB_AUTH: EXISTING_LOGIN"
-else
-  gh auth login --hostname github.com --web --git-protocol https --scopes repo,workflow
+# Reuse an already provisioned token/device identity before touching the package manager.
+if [ -f "$CFGDIR/config" ]; then
+  # shellcheck disable=SC1090
+  source "$CFGDIR/config"
 fi
-gh auth setup-git --hostname github.com
-TOKEN="$(gh auth token --hostname github.com)"
-[ -n "$TOKEN" ] || { echo "BLOCKED_GITHUB_AUTH"; exit 2; }
+TOKEN="${GITHUB_TOKEN:-}"
+DEVICE_ID="${AUTOMATION_DEVICE_ID:-android-$(uname -m)-$(date +%s)}"
+
+missing_packages=()
+need_package() {
+  local command_name="$1" package_name="$2"
+  command -v "$command_name" >/dev/null 2>&1 || missing_packages+=("$package_name")
+}
+need_package git git
+need_package curl curl
+need_package jq jq
+need_package sha256sum coreutils
+need_package python python
+need_package pgrep procps
+if [ -z "$TOKEN" ]; then
+  need_package gh gh
+fi
+
+if [ "${#missing_packages[@]}" -gt 0 ]; then
+  command -v pkg >/dev/null 2>&1 || {
+    echo "BLOCKED_TERMUX_PACKAGES: pkg unavailable; missing: ${missing_packages[*]}" >&2
+    exit 3
+  }
+  # Do not run `pkg update` unconditionally. A working existing environment must remain usable
+  # even when a configured mirror/key is temporarily unhealthy. Install only missing commands.
+  if ! pkg install -y "${missing_packages[@]}"; then
+    echo "BLOCKED_TERMUX_PACKAGES: missing commands could not be installed: ${missing_packages[*]}" >&2
+    echo "Existing tools and evidence were left unchanged." >&2
+    exit 3
+  fi
+fi
+
+if [ -z "$TOKEN" ]; then
+  if gh auth status --hostname github.com >/dev/null 2>&1; then
+    echo "GITHUB_AUTH: EXISTING_LOGIN"
+  else
+    gh auth login --hostname github.com --web --git-protocol https --scopes repo,workflow
+  fi
+  gh auth setup-git --hostname github.com
+  TOKEN="$(gh auth token --hostname github.com)"
+fi
+[ -n "$TOKEN" ] || { echo "BLOCKED_GITHUB_AUTH" >&2; exit 2; }
 
 if [ -d "$ROOT/.git" ]; then
   git -C "$ROOT" fetch origin main
@@ -25,14 +64,6 @@ else
   git clone "https://github.com/${REPO}.git" "$ROOT"
 fi
 
-mkdir -p "$CFGDIR" "$HOME/.termux/boot" "$HOME/.automation_intelligence_gate"
-chmod 700 "$CFGDIR" "$HOME/.automation_intelligence_gate"
-if [ -f "$CFGDIR/config" ]; then
-  # Preserve an existing device identifier while refreshing credentials and repository.
-  # shellcheck disable=SC1090
-  source "$CFGDIR/config"
-fi
-DEVICE_ID="${AUTOMATION_DEVICE_ID:-android-$(uname -m)-$(date +%s)}"
 cat > "$CFGDIR/config" <<EOF_CFG
 GITHUB_REPO="$REPO"
 GITHUB_TOKEN="$TOKEN"
@@ -75,7 +106,7 @@ EOF_REPORT
 chmod 700 "$HOME/.termux/boot/centinal26-intelligence-report.sh"
 
 echo "Centinal26 intelligence control installed for device $DEVICE_ID."
-echo "Attempting immediate claim of an open intelligence-controller physical-gate job..."
+echo "Attempting immediate claim of open intelligence-controller physical-gate job..."
 set +e
 CENTINAL26_REPO_ROOT="$ROOT" bash "$ROOT/termux/intelligence_controller_github_worker_once.sh"
 rc=$?
