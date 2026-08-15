@@ -1,0 +1,65 @@
+name: User Claim Verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/centinal26/claim_verifier.py'
+      - 'tests/test_claim_verifier.py'
+      - 'scripts/run_user_claim_verification.py'
+      - 'provenance/user_claims/**'
+      - '.github/workflows/user-claim-verification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/centinal26/claim_verifier.py'
+      - 'scripts/run_user_claim_verification.py'
+      - 'provenance/user_claims/**'
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-user-claims:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install project and test dependency
+        run: python -m pip install -e . pytest
+      - name: Run verifier tests
+        run: python -m pytest -q tests/test_claim_verifier.py
+      - name: Generate claim verification documents
+        run: |
+          python scripts/run_user_claim_verification.py \
+            --claims provenance/user_claims/2026-08-14_claims.json \
+            --evidence provenance/user_claims/2026-08-14_evidence.json \
+            --root . \
+            --outdir build/user_claim_verification
+      - name: Validate generated ledger
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = Path('build/user_claim_verification')
+          report = json.loads((out / 'claim_verification_report.json').read_text())
+          manifest = json.loads((out / 'evidence_manifest.json').read_text())
+          assert report, 'empty claim report'
+          assert manifest['claim_count'] == len(report)
+          assert all(row['record_sha256'] for row in report)
+          assert (out / 'claim_matrix.csv').stat().st_size > 100
+          assert (out / 'unresolved_evidence_requests.md').stat().st_size > 100
+          print('claims:', len(report))
+          print('verdicts:', manifest['verdict_counts'])
+          PY
+      - name: Upload verification package
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-claim-verification
+          path: build/user_claim_verification/
+          if-no-files-found: error
