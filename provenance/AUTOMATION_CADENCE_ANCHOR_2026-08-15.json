@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "record_type": "automation_cadence_provenance_anchor",
+  "created_at": "2026-08-15T00:48:00-06:00",
+  "repository": "12ephods-source/centinal26",
+  "workflow_path": ".github/workflows/callable-fabric-worker.yml",
+  "workflow_blob_sha_after_change": "1a9f6b91f0c9c89ff4a45f9566be3ef3e86ca26e",
+  "cadence": "*/5 * * * *",
+  "direct_contents_api_commit": "6d9ef70a75a5cd9e15592eb4d060099595c254c6",
+  "direct_commit_verification": "unsigned",
+  "verified_parent_commit": "7ce2d378e524e54b6da071049d3919d05a714ca1",
+  "purpose": "Run the existing bounded Frost Callable Fabric Worker every five minutes without creating a duplicate worker or widening execution authority.",
+  "controls_preserved": [
+    "push-triggered request processing",
+    "manual workflow dispatch",
+    "concurrency group with cancel-in-progress disabled",
+    "bounded batch size",
+    "immutable result generation",
+    "independent result verification",
+    "bounded reconciliation retries"
+  ],
+  "provenance_note": "The cadence change was committed through the GitHub contents API, which produced an unsigned commit. This anchor records the exact commit and resulting workflow blob so the canonical tree can subsequently be anchored by a GitHub-verified merge commit.",
+  "authority_note": "Scheduling does not authorize arbitrary execution. Existing capability, verification, evidence, and Android physical-validation boundaries remain unchanged."
+}
