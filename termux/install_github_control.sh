@@ -4,7 +4,14 @@ set -euo pipefail
 ROOT="${HOME}/automation-os-github-control-repo"
 CFGDIR="${HOME}/.automation_os_github"
 STATE="${CFGDIR}/state"
-REPO="${AUTOMATION_OS_GITHUB_REPO:-12ephods-source/centinal26}"
+CANONICAL_REPO="12ephods-source/centinal26"
+REPO="${AUTOMATION_OS_GITHUB_REPO:-$CANONICAL_REPO}"
+DEVICE_ID="android-$(uname -m)-$(date +%s)"
+
+[ "$REPO" = "$CANONICAL_REPO" ] || {
+  echo "BLOCKED_NONCANONICAL_REPO $REPO" >&2
+  exit 64
+}
 
 pkg update -y
 pkg install -y gh git curl jq unzip coreutils python
@@ -16,8 +23,10 @@ else
 fi
 
 gh auth setup-git --hostname github.com
-TOKEN="$(gh auth token --hostname github.com)"
-[ -n "$TOKEN" ] || { echo "BLOCKED_GITHUB_AUTH"; exit 2; }
+[ -n "$(gh auth token --hostname github.com 2>/dev/null || true)" ] || {
+  echo "BLOCKED_GITHUB_AUTH" >&2
+  exit 2
+}
 
 rm -rf "$ROOT"
 git clone "https://github.com/${REPO}.git" "$ROOT"
@@ -27,13 +36,13 @@ git pull --ff-only origin main
 
 mkdir -p "$STATE"
 chmod 700 "$CFGDIR" "$STATE"
-cat > "$CFGDIR/config" <<EOF
-GITHUB_REPO="$REPO"
-GITHUB_TOKEN="$TOKEN"
-GITHUB_REF="main"
-AUTOMATION_DEVICE_ID="android-$(uname -m)-$(date +%s)"
-EOF
-chmod 600 "$CFGDIR/config"
+# Runtime metadata is serialized as JSON data. Authentication remains in gh's
+# credential store and is fetched on demand by the trusted runtime helper.
+# Remove the legacy executable config only after the repository/helper is present.
+# shellcheck disable=SC1091
+source "$ROOT/termux/github_runtime_config.sh"
+github_runtime_write_config "$CFGDIR/config.json" "$REPO" "main" "$DEVICE_ID"
+rm -f "$CFGDIR/config"
 
 mkdir -p "$HOME/.termux/boot"
 cat > "$HOME/.termux/boot/automation-os-github-worker.sh" <<'EOF'
