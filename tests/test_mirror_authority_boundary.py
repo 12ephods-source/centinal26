@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 ENTITY_NAMES = ("AutomationRoleResult", "AutomationVerificationVerdict")
 PRODUCTION_ROOTS = (Path("src"), Path("scripts"), Path("termux"))
 ALLOWED_PATHS = {Path("src/centinal26/mirror_evidence.py")}
