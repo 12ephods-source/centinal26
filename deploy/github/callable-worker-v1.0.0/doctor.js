@@ -1,7 +1,15 @@
 'use strict';
 
 const assert = require('assert');
-const {processRequest, verifyEnvelope} = require('./worker');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const {
+  processRequest,
+  processFile,
+  requestIdentity,
+  verifyEnvelope,
+} = require('./worker');
 const {verifyReceipt} = require('../../vercel/callable-fabric-v1.1.0/lib/fabric');
 
 function run(request) {
@@ -10,17 +18,27 @@ function run(request) {
   return result;
 }
 
-const invoke = run({
+const invokeRequest = {
   protocol: 'frost-call/1.0',
   kind: 'invoke',
+  idempotency_key: 'doctor-sha256',
   service_id: 'frost.callable.fabric',
   operation: 'frost.diagnostics.sha256',
   arguments: {text: 'abc'},
   context: {caller: 'github-worker-doctor', role: 'operator', approved: false, request_id: 'doctor-invoke'},
-});
+};
+const invoke = run(invokeRequest);
 assert.strictEqual(invoke.response.ok, true);
 assert.strictEqual(invoke.response.result.sha256, 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
 assert.strictEqual(verifyReceipt(invoke.response.receipt), true);
+assert.strictEqual(invoke.idempotency_key, 'doctor-sha256');
+
+const fallbackIdentity = requestIdentity({
+  protocol: 'frost-call/1.0',
+  kind: 'mcp',
+  message: {jsonrpc: '2.0', id: 0, method: 'initialize', params: {}},
+});
+assert.strictEqual(fallbackIdentity.idempotency_key, fallbackIdentity.request_sha256);
 
 const mcpInit = run({
   protocol: 'frost-call/1.0',
@@ -61,4 +79,57 @@ assert.strictEqual(denied.response.ok, false);
 assert.strictEqual(denied.response.error.type, 'DENIED');
 assert.strictEqual(verifyReceipt(denied.response.receipt), true);
 
-console.log(JSON.stringify({ok: true, tests: 5, provider: 'github-actions', semantic_tools_only: true, unrestricted_remote_shell: false}, null, 2));
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'frost-callable-doctor-'));
+try {
+  const requests = path.join(temp, 'requests');
+  const results = path.join(temp, 'results');
+  fs.mkdirSync(requests);
+  fs.mkdirSync(results);
+
+  const firstPath = path.join(requests, 'first.json');
+  const duplicatePath = path.join(requests, 'duplicate.json');
+  const conflictPath = path.join(requests, 'conflict.json');
+  const firstResult = path.join(results, 'first.json');
+  const duplicateResult = path.join(results, 'duplicate.json');
+  const conflictResult = path.join(results, 'conflict.json');
+
+  fs.writeFileSync(firstPath, JSON.stringify(invokeRequest));
+  fs.writeFileSync(duplicatePath, JSON.stringify(invokeRequest));
+  fs.writeFileSync(
+    conflictPath,
+    JSON.stringify({...invokeRequest, arguments: {text: 'different'}}),
+  );
+
+  const first = processFile(firstPath, firstResult, {run_id: 'doctor-file-1', sha: 'doctor'});
+  assert.strictEqual(first.reused, false);
+
+  const duplicate = processFile(
+    duplicatePath,
+    duplicateResult,
+    {run_id: 'doctor-file-2', sha: 'doctor'},
+  );
+  assert.strictEqual(duplicate.reused, true);
+  assert.strictEqual(fs.readFileSync(duplicateResult, 'utf8'), fs.readFileSync(firstResult, 'utf8'));
+
+  const conflict = processFile(
+    conflictPath,
+    conflictResult,
+    {run_id: 'doctor-file-3', sha: 'doctor'},
+  );
+  assert.strictEqual(conflict.reused, false);
+  const conflictEnvelope = JSON.parse(fs.readFileSync(conflictResult, 'utf8'));
+  assert.strictEqual(conflictEnvelope.ok, false);
+  assert.strictEqual(conflictEnvelope.error.type, 'IdempotencyConflict');
+  assert.strictEqual(verifyEnvelope(conflictEnvelope), true);
+} finally {
+  fs.rmSync(temp, {recursive: true, force: true});
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  tests: 8,
+  provider: 'github-actions',
+  semantic_tools_only: true,
+  unrestricted_remote_shell: false,
+  durable_result_idempotency: true,
+}, null, 2));
