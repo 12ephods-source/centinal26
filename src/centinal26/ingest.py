@@ -163,6 +163,24 @@ def _extract(content: bytes, suffix: str) -> tuple[list[PendingRecord], list[tup
     return records, dependencies, "text/plain"
 
 
+def _validate_plan(
+    records: list[PendingRecord], dependencies: list[tuple[str, str]], digest: str
+) -> dict[str, str]:
+    seen: set[tuple[str, str]] = set()
+    task_ids: dict[str, str] = {}
+    for record in records:
+        key = (record.kind, record.external_id)
+        if key in seen:
+            raise ValueError(f"duplicate {record.kind} id: {record.external_id}")
+        seen.add(key)
+        if record.kind == "task":
+            task_ids[record.external_id] = _entity_id("task", digest, record.external_id)
+    for task_external, _dependency_external in dependencies:
+        if task_external not in task_ids:
+            raise ValueError(f"dependency references unknown task id: {task_external}")
+    return task_ids
+
+
 def _existing_state(store: EventStore) -> ProjectState:
     if not store.verify_chain():
         raise ValueError("refusing ingestion because the event chain is invalid")
@@ -187,19 +205,7 @@ def ingest_bytes(
 
     suffix = Path(name).suffix
     records, dependencies, media_type = _extract(content, suffix)
-    start_count = store.count()
-    store.append(
-        "SOURCE_INGESTED",
-        {
-            "source_id": source_id,
-            "sha256": digest,
-            "bytes": len(content),
-            "name": name,
-            "path": path,
-            "media_type": media_type,
-        },
-        entity_id=source_id,
-    )
+    task_ids = _validate_plan(records, dependencies, digest)
 
     event_type = {
         "goal": "GOAL_DISCOVERED",
@@ -215,9 +221,22 @@ def ingest_bytes(
         "blocker": "blocker_id",
         "artifact": "artifact_id",
     }
-    task_ids: dict[str, str] = {}
-    counts: dict[str, int] = {}
 
+    start_count = store.count()
+    store.append(
+        "SOURCE_INGESTED",
+        {
+            "source_id": source_id,
+            "sha256": digest,
+            "bytes": len(content),
+            "name": name,
+            "path": path,
+            "media_type": media_type,
+        },
+        entity_id=source_id,
+    )
+
+    counts: dict[str, int] = {}
     for record in records:
         internal_id = _entity_id(record.kind, digest, record.external_id)
         payload = {
@@ -230,14 +249,11 @@ def ingest_bytes(
         if record.kind == "task":
             payload.setdefault("objective", record.text)
             payload.pop("depends_on", None)
-            task_ids[record.external_id] = internal_id
         store.append(event_type[record.kind], payload, entity_id=internal_id)
         counts[record.kind] = counts.get(record.kind, 0) + 1
 
     for task_external, dependency_external in dependencies:
-        task_id = task_ids.get(task_external)
-        if task_id is None:
-            raise ValueError(f"dependency references unknown task id: {task_external}")
+        task_id = task_ids[task_external]
         dependency_id = task_ids.get(dependency_external)
         if dependency_id is None:
             dependency_id = _entity_id("task", digest, dependency_external)
