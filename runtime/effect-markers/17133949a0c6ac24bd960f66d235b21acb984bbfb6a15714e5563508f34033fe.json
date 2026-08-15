@@ -1,0 +1,13 @@
+{
+  "schema": "frost-effect-marker/1.0",
+  "protocol": "frost-effect/1.0",
+  "provider": "github-actions",
+  "capability": "github.runtime.qualification_marker.put",
+  "request_id": "github-effect-qualification-20260815-a",
+  "request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
+  "provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
+  "payload_sha256": "9da2e5ae4cf73dc645f802629c6530519e9aac1363e3cd7929bb2e2d794a1bb1",
+  "marker": "github-actions-connected-qualification-v1",
+  "value": "2929cc17a391f3b6af552629a3d572c5d14984de",
+  "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a"
+}
