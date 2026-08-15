@@ -1,0 +1,26 @@
+{
+  "schema": "frost-effect-result/1.0",
+  "protocol": "frost-effect/1.0",
+  "state": "DENIED",
+  "request_id": "github-effect-independent-denial-20260815-a",
+  "request_sha256": "b02d887f412c89d0d211aa229e828bd572bfbed7eed2dc38c118d76364a2d28b",
+  "capability": "github.runtime.unapproved.put",
+  "guardian": {
+    "schema": "frost-guardian-decision/1.0",
+    "policy": "github-actions-qualification-marker/v1",
+    "approved": false,
+    "capability": "github.runtime.unapproved.put",
+    "provider_actor": "12ephods-source",
+    "reason": "capability_not_allowlisted",
+    "constraints": {}
+  },
+  "provider": "github-actions",
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "provider": "github-actions",
+    "provider_source_sha256": "70eedf7378654eda56b014313c786c659e08af3d4777a2175f44b88957e1c1d2",
+    "workflow_source_sha256": "27f2d6f91211e63ed80806962c9f68dcec3f9a7e68a62d796273543bb788e98f",
+    "checked_out_sha": "33109a09d1da7ee17a1bfec63a37b16ac2aacf1b"
+  },
+  "result_sha256": "ebf8735c603f2ec83b9fdaaba7824bfce7835431a88092fc19c96bd8ba64b501"
+}
