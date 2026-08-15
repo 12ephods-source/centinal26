@@ -129,7 +129,7 @@ class FrostV0Adapter:
             raise ValueError("repository, base_branch, and head_branch are required")
         if base_branch == head_branch:
             raise ValueError("base and head branches must differ")
-        normalized = tuple(sorted(set(path.strip() for path in changed_paths if path.strip())))
+        normalized = tuple(sorted({path.strip() for path in changed_paths if path.strip()}))
         if not normalized:
             raise ValueError("changed_paths must not be empty")
         if any(path.startswith("/") or ".." in path.split("/") for path in normalized):
