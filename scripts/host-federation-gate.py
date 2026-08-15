@@ -10,6 +10,7 @@ from pathlib import Path
 from frost_core.capability_factory import (
     CapabilityCandidate,
     CapabilityFactoryLedger,
+    CapabilityStage,
     GateEvidence,
     REQUIRED_PROMOTION_GATES,
 )
@@ -109,8 +110,6 @@ def run(iterations: int) -> dict[str, object]:
             schema_identity="sha256:host-schema",
         )
         factory.discover(candidate)
-        from frost_core.capability_factory import CapabilityStage
-
         for stage in (
             CapabilityStage.WRAPPED,
             CapabilityStage.BUILDABLE,
