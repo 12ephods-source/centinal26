@@ -1,0 +1,14 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "idempotency_key": "orchestrator-health-20260815T0504Z",
+  "service_id": "frost.callable.fabric",
+  "operation": "system.health",
+  "arguments": {},
+  "context": {
+    "caller": "frost-automation-orchestrator",
+    "role": "operator",
+    "approved": false,
+    "request_id": "orchestrator-health-20260815T0504Z"
+  }
+}
