@@ -84,14 +84,14 @@ def test_locked_validators_execute_inside_hard_sandbox(tmp_path: Path) -> None:
             pytest.fail(str(error))
         pytest.skip(str(error))
 
-    assert passed is True
-    assert score == 1.0
+    assert passed is True, results
+    assert score == 1.0, results
     assert [item["name"] for item in results] == [
         "goal_tests",
         "repository_invariants",
         "compile",
     ]
-    assert all(item["passed"] for item in results)
+    assert all(item["passed"] for item in results), results
     assert all(item["sandbox_backend"] == "docker" for item in results)
     assert all(item["sandbox_image_id"].startswith("sha256:") for item in results)
     assert all(len(item["evidence_sha256"]) == 64 for item in results)
