@@ -1,0 +1,16 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "idempotency_key": "runtime-sync-proof-c8a5ef4931417fda",
+  "service_id": "frost.callable.fabric",
+  "operation": "frost.diagnostics.sha256",
+  "arguments": {
+    "text": "Frost Callable Fabric runtime sync proof 2026-08-15"
+  },
+  "context": {
+    "caller": "automation-os-runtime-sync",
+    "role": "operator",
+    "approved": false,
+    "request_id": "runtime-sync-proof-c8a5ef4931417fda"
+  }
+}
