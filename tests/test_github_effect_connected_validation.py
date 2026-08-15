@@ -1,0 +1,57 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from frost_core.federation import AdapterStatus, default_federation_catalog
+
+
+ROOT = Path(__file__).resolve().parents[1]
+EVIDENCE = ROOT / "provenance" / "github_actions_effect_provider_connected_validation.json"
+
+
+def test_github_effect_capability_is_narrowly_connected_validated() -> None:
+    catalog = default_federation_catalog()
+    github = catalog.get("github-actions")
+
+    assert github.status is AdapterStatus.CONNECTED_VALIDATED
+    assert "github.runtime.qualification_marker.put" in github.operations
+    assert "*" not in github.operations
+    assert not any("shell" == operation or operation.endswith(".shell") for operation in github.operations)
+
+
+def test_connected_validation_evidence_preserves_effect_replay_and_denial() -> None:
+    evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+
+    assert evidence["adapter_status"] == "CONNECTED_VALIDATED"
+    assert evidence["capability"] == "github.runtime.qualification_marker.put"
+    assert evidence["authority"] == {
+        "guardian_policy": "github-actions-qualification-marker/v1",
+        "caller_supplied_path": False,
+        "shell": False,
+        "network_target_selection": False,
+        "arbitrary_github_write": False,
+    }
+
+    approved = evidence["approved_effect"]
+    replay = evidence["exact_replay"]
+    assert approved["verification_decision"] == "POSTCONDITION_VERIFIED"
+    assert replay["verification_decision"] == "POSTCONDITION_VERIFIED"
+    assert replay["same_effect_commit"] == approved["effect_commit"]
+    assert replay["same_marker_sha256"] == approved["marker_sha256"]
+    assert replay["same_provider_idempotency_key"] == approved["provider_idempotency_key"]
+
+    denial = evidence["guardian_denial"]
+    assert denial["verification_decision"] == "DENIAL_VERIFIED"
+    assert denial["provider_execution_absent"] is True
+    assert denial["intent_absent"] is True
+
+
+def test_termux_remains_host_validated_until_physical_evidence_exists() -> None:
+    catalog = default_federation_catalog()
+    termux = catalog.get("termux-local")
+    evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+
+    assert termux.status is AdapterStatus.HOST_VALIDATED
+    assert evidence["limitations"]["physical_android_validated"] is False
+    assert evidence["limitations"]["generic_capability_factory_promoted"] is False
