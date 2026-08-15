@@ -1,0 +1,39 @@
+{
+  "ok": false,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31860716448",
+  "provider_sha": "b788f7bf6402786a5decaa2762c457a637119ee2",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "semantic_core": {
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8"
+    },
+    "provider_runtime": {
+      "provider": "github-actions",
+      "worker_source_sha256": "2e8e444cda78f0de28d4244f75cc7e85b0eba4ebdd0bbc55af2b6115154d3f30",
+      "workflow_source_sha256": "0d7c6d7bc7fea342750adcb7ba459afb4d2df729b612ee81fa832d6554113633",
+      "checked_out_sha": "b788f7bf6402786a5decaa2762c457a637119ee2",
+      "checked_out_ref": "refs/heads/callable-runtime"
+    },
+    "provider_code_identity_sha256": "1d01f01a63327131507b807d82689091cdd22bbd558f1903759338d848135fb3"
+  },
+  "request_sha256": "26cccf0562a9914da38824e54fd339491a10c76d9003afe028f13fcc68637a16",
+  "idempotency_key": "stale-request-proof-2ad318ca5ccd",
+  "error": {
+    "type": "StaleRequest",
+    "message": "request expired at 2026-08-15T02:00:00Z"
+  },
+  "request_expiry": {
+    "status": "EXPIRED",
+    "expires_at": "2026-08-15T02:00:00Z",
+    "observed_at": "2026-08-15T03:01:26.797Z"
+  },
+  "envelope_hash": "c639a8e9d8d5a559f1befb369f9977c998cf6dbf9b0b5da7dd9e31dcd0ded0db"
+}
