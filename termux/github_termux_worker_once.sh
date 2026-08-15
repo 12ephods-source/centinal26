@@ -1,20 +1,22 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-CONFIG="${HOME}/.automation_os_github/config"
+CONFIG="${HOME}/.automation_os_github/config.json"
 STATE="${HOME}/.automation_os_github/state"
 PATCHED_ARTIFACT_NAME="AUTOMATION_OS_1.0.0_RC9_VALIDATION_INTEGRITY_PATCH.zip"
 PATCHED_ARTIFACT_SHA256="8568085fcc44d46a31512ca58c3af863392fcc09cd65fa0e38e46754e0a6b018"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 AUDITOR="$REPO_ROOT/scripts/audit_untrusted_candidate.py"
 REVIEW_REGISTRY="$REPO_ROOT/security/reviewed_artifacts.json"
+RUNTIME_CONFIG="$REPO_ROOT/termux/github_runtime_config.sh"
 
 mkdir -p "$(dirname "$CONFIG")" "$STATE"
-[ -f "$CONFIG" ] || { echo "Missing $CONFIG"; exit 2; }
+[ -f "$RUNTIME_CONFIG" ] || { echo "Missing runtime config helper: $RUNTIME_CONFIG"; exit 2; }
 [ -f "$AUDITOR" ] || { echo "Missing adversarial audit gate: $AUDITOR"; exit 2; }
 [ -f "$REVIEW_REGISTRY" ] || { echo "Missing reviewed-artifact registry: $REVIEW_REGISTRY"; exit 2; }
 # shellcheck disable=SC1090
-source "$CONFIG"
+source "$RUNTIME_CONFIG"
+github_runtime_load_config "$CONFIG"
 
 api() {
   curl --fail-with-body -sS \
