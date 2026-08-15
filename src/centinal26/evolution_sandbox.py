@@ -20,7 +20,7 @@ for root in (Path('src'), Path('scripts')):
         except Exception as error:
             failed.append(f'{path}: {type(error).__name__}: {error}')
 if failed:
-    raise SystemExit('\n'.join(failed))
+    raise SystemExit(chr(10).join(failed))
 """.strip()
 
 
