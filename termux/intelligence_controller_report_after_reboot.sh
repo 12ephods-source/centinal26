@@ -15,6 +15,11 @@ num="$(cat "$GATE_ROOT/active_issue" 2>/dev/null || true)"
 
 api() {
   curl --fail-with-body -sS \
+    --connect-timeout 10 \
+    --max-time 30 \
+    --retry 2 \
+    --retry-delay 2 \
+    --retry-all-errors \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
