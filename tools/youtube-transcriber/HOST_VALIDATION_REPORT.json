@@ -1,0 +1,28 @@
+{
+  "package_version": "1.4.0",
+  "validated_at": "2026-08-11T07:08:00-06:00",
+  "local_validation": {
+    "python_compile": "PASS",
+    "unit_tests": {
+      "status": "PASS",
+      "passed": 10,
+      "failed": 0
+    },
+    "shell_syntax": "PASS"
+  },
+  "real_video_evidence": {
+    "video_id": "tr9AqDYxFI4",
+    "github_smoke_run": 31493936384,
+    "github_caption_matrix_run": 31494192691,
+    "piped_remaining_run": 31494361162,
+    "ubuntu_caption": "BLOCKED_RequestBlocked",
+    "macos_caption": "BLOCKED_RequestBlocked",
+    "windows_caption": "BLOCKED_RequestBlocked",
+    "direct_audio": "BLOCKED_YouTube_bot_check",
+    "piped_current_instances_tested": 15,
+    "piped_result": "BLOCKED_no_target_stream_or_subtitle",
+    "device_termux_run": "PENDING"
+  },
+  "evidence_policy": "Real-video cloud runs never uploaded the full transcript; only bounded validation evidence was retained.",
+  "next_empirical_gate": "Run device_run.sh on Android/Termux using the device network."
+}
