@@ -1,0 +1,7 @@
+{
+  "schema": "centinal26-review-root-checkpoint-v1",
+  "release": "1.0.0",
+  "provisioned": false,
+  "min_root_version": 1,
+  "root_key_fingerprint_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+}
