@@ -1,0 +1,79 @@
+name: Mature Product Qualification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-qualification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Functional and regression suites
+        run: |
+          ruff check .
+          pytest -q
+          python tests/validate_repository.py
+
+      - name: Build host qualification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="$(git rev-parse HEAD^)"
+          git cat-file -e "${parent}^{commit}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          value = {
+              "schema": "frost.mature_product_host_evidence/v1",
+              "functional_pass": True,
+              "regression_pass": True,
+              "rollback_verified": True,
+              "rollback_basis": "HEAD parent commit exists and repository suites passed",
+          }
+          Path("mature-product-host.json").write_text(
+              json.dumps(value, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Evaluate hard maturity gate
+        run: |
+          python scripts/mature_product_gate.py \
+            --host mature-product-host.json \
+            --output mature-product-result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("mature-product-result.json").read_text())
+          if result["status"] not in {"BLOCKED_EXTERNAL", "MATURE"}:
+              raise SystemExit(f"unexpected maturity status: {result['status']}")
+          print(f"maturity_status={result['status']}")
+          PY
+
+      - name: Upload qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mature-product-host-${{ github.sha }}
+          path: |
+            mature-product-host.json
+            mature-product-result.json

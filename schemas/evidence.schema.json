@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/evidence.schema.json",
+  "title": "Centinal26 Execution Evidence",
+  "type": "object",
+  "required": ["job_id", "attempt", "recorded_at", "sha256"],
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

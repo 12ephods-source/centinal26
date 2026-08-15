@@ -1,6 +1,6 @@
 """Frost CORE Ω future-capability runtime primitives."""
 
-from .condition_watch import ConditionWatchLedger, WatchDecision
+from .condition_watch import ConditionWatchLedger, DeliveryClaim, WatchDecision
 from .future_capabilities import (
     AttentionAction,
     AttentionDecision,
@@ -31,6 +31,7 @@ __all__ = [
     "CognitionTask",
     "ConditionWatchLedger",
     "DelegatedCognitionRouter",
+    "DeliveryClaim",
     "EvidenceClass",
     "EvidenceItem",
     "IntelligenceAwareness",

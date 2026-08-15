@@ -1,0 +1,26 @@
+{
+  "schema": "automation.github_job/v2",
+  "request_id": "mature-product-20260814-2022",
+  "command": "automation_os_physical_ga_rc9_integrity",
+  "parameters": {
+    "endurance_iterations": 100,
+    "qualification": "mature_product_v1"
+  },
+  "provenance": {
+    "github_sha": "8328f5752e6b1ad6f91b521f7359649c946ddb5e",
+    "requested_at": "2026-08-14T20:22:00-06:00"
+  },
+  "authorization": {
+    "source": "user_request_fix_it",
+    "decision": "REVIEW_DEVICE_GUARDIAN"
+  },
+  "required_evidence": [
+    "fresh android/termux worker heartbeat",
+    "bounded job completion",
+    "independent verification",
+    "forbidden capability rejection",
+    "pre/post reboot boot_id change",
+    "post-reboot heartbeat",
+    "endurance PASS"
+  ]
+}
