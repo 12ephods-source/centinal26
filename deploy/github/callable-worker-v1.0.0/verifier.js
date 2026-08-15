@@ -194,7 +194,13 @@ function verifyPaths(requestPath, resultPath, verificationPath) {
   requireCondition(result.protocol === PROTOCOL, `result protocol must be ${PROTOCOL}`);
   requireCondition(result.provider === 'github-actions', 'result provider must be github-actions');
   requireCondition(result.request_sha256 === identity.request_sha256, 'request SHA-256 mismatch');
-  requireCondition(result.idempotency_key === identity.idempotency_key, 'idempotency key mismatch');
+  if (result.idempotency_key === null || result.idempotency_key === undefined) {
+    requireCondition(!result.source_attestation, 'attested result is missing idempotency_key');
+    checks.push('idempotency_key:UNAVAILABLE_LEGACY');
+  } else {
+    requireCondition(result.idempotency_key === identity.idempotency_key, 'idempotency key mismatch');
+    checks.push('idempotency_key:VERIFIED');
+  }
   checks.push('request_identity:VERIFIED');
 
   verifyEnvelope(result);
