@@ -86,7 +86,7 @@ def _record_from_item(kind: str, item: Any, index: int) -> PendingRecord:
 
 def _extract_json(data: Any) -> tuple[list[PendingRecord], list[tuple[str, str]]]:
     if not isinstance(data, dict):
-        raise ValueError("structured ingestion requires a top-level JSON object")
+        raise TypeError("structured ingestion requires a top-level JSON object")
 
     records: list[PendingRecord] = []
     dependencies: list[tuple[str, str]] = []
@@ -126,7 +126,7 @@ def _extract_json(data: Any) -> tuple[list[PendingRecord], list[tuple[str, str]]
             task = item.get("task_id") or item.get("task")
             depends_on = item.get("depends_on")
             if not isinstance(task, str) or not isinstance(depends_on, str):
-                raise ValueError("dependency requires task_id/task and depends_on strings")
+                raise TypeError("dependency requires task_id/task and depends_on strings")
             dependencies.append((task, depends_on))
 
     return records, dependencies
