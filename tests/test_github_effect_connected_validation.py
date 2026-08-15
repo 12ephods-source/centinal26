@@ -19,7 +19,7 @@ def test_github_effect_capability_is_narrowly_connected_validated() -> None:
     assert not any("shell" == operation or operation.endswith(".shell") for operation in github.operations)
 
 
-def test_connected_validation_evidence_preserves_effect_replay_and_denial() -> None:
+def test_connected_validation_requires_independent_git_verifier() -> None:
     evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
 
     assert evidence["adapter_status"] == "CONNECTED_VALIDATED"
@@ -32,17 +32,29 @@ def test_connected_validation_evidence_preserves_effect_replay_and_denial() -> N
         "arbitrary_github_write": False,
     }
 
-    approved = evidence["approved_effect"]
-    replay = evidence["exact_replay"]
-    assert approved["verification_decision"] == "POSTCONDITION_VERIFIED"
-    assert replay["verification_decision"] == "POSTCONDITION_VERIFIED"
-    assert replay["same_effect_commit"] == approved["effect_commit"]
-    assert replay["same_marker_sha256"] == approved["marker_sha256"]
-    assert replay["same_provider_idempotency_key"] == approved["provider_idempotency_key"]
+    initial = evidence["initial_effect"]
+    verified = evidence["independent_connected_validation"]
+    assert initial["qualification_basis"] is False
+    assert verified["verifier_id"] == "github-actions-effect-independent-git/v2"
+    assert verified["independent"] is True
+    assert verified["verification_decision"] == "POSTCONDITION_VERIFIED"
+    assert verified["idempotent_replay"] is True
+    assert verified["same_effect_commit_as_initial"] is True
+    assert verified["effect_commit"] == initial["effect_commit"]
+    assert verified["marker_sha256"] == initial["marker_sha256"]
+    assert verified["provider_idempotency_key"] == initial["provider_idempotency_key"]
+    assert all(verified["postconditions"].values())
 
-    denial = evidence["guardian_denial"]
+
+def test_denial_is_verified_against_remote_marker_absence() -> None:
+    evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+    denial = evidence["independent_guardian_denial"]
+
+    assert denial["verifier_id"] == "github-actions-effect-independent-git/v2"
     assert denial["verification_decision"] == "DENIAL_VERIFIED"
+    assert len(denial["remote_ref_sha"]) == 40
     assert denial["provider_execution_absent"] is True
+    assert denial["derived_marker_absent_at_remote_ref"] is True
     assert denial["intent_absent"] is True
 
 
