@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Qualify agent/* branches without executing or merging agent code."""
 
 from __future__ import annotations
@@ -10,7 +9,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 API = "https://api.github.com"
@@ -116,7 +115,7 @@ def main() -> int:
         )
 
     counts = Counter(r["state"] for r in rows)
-    generated = datetime.now(timezone.utc).isoformat()
+    generated = datetime.now(UTC).isoformat()
     result = {
         "schema": "frost-agent-fleet-qualification/1.0",
         "generated_at": generated,
