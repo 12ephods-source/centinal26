@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31855121959",
+  "provider_sha": "1a6e1ff5c7a3efb1689c7c7782cb91f0b1a84d53",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "1b11f522edd0ec6ff11f37dee39d9b576a10969f94c47ae75d0fd99e66c0bf6e",
+  "response": {
+    "ok": true,
+    "request_id": "factory-health-trigger-20260814T1853",
+    "service_id": "frost.callable.fabric",
+    "operation": "system.health",
+    "result": {
+      "ok": true,
+      "service": "frost.callable.fabric",
+      "version": "1.1.0",
+      "canonical_repo": "12ephods-source/centinal26",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "semantic_tools_only": true,
+      "unrestricted_remote_shell": false
+    },
+    "diagnostics": {
+      "elapsed_ms": 1,
+      "version": "1.1.0",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "result_hash": "fd88bf10d149af50adf81b8831c52c770b032173f1d62a2875c7a600ad966cfd"
+    },
+    "receipt": {
+      "request_id": "factory-health-trigger-20260814T1853",
+      "service_id": "frost.callable.fabric",
+      "operation": "system.health",
+      "caller": "callable-factory-sweep",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "0ebc9b04faf47c83d81611c0e3fdf1523235363eea4e94fe50113741fd9b567f",
+      "guardian": {
+        "allowed": true,
+        "reason": "authorized"
+      },
+      "event": "INVOCATION_OK",
+      "result_hash": "fd88bf10d149af50adf81b8831c52c770b032173f1d62a2875c7a600ad966cfd",
+      "elapsed_ms": 1,
+      "timestamp": "2026-08-15T00:56:57.654Z",
+      "record_hash": "38b69358a1fac6b1ee9639900ebb13b7f416c0e167dec58d653702b3ad5db510"
+    }
+  },
+  "envelope_hash": "87ae6048faa80d8644aafb1d2585d83a520e1eb3e6dbc046a6ce9884c95710f1"
+}
