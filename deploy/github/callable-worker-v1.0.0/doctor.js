@@ -182,16 +182,105 @@ try {
     'doctor-file-sha-3',
     'refs/heads/doctor',
   );
+
+  const expiringRequest = {
+    ...invokeRequest,
+    idempotency_key: 'doctor-expiring',
+    arguments: {text: 'expiry-proof'},
+    context: {
+      ...invokeRequest.context,
+      request_id: 'doctor-expiring',
+      expires_at: '2026-08-15T03:00:00Z',
+    },
+  };
+  const expiringPath = path.join(requests, 'expiring.json');
+  const expiringDuplicatePath = path.join(requests, 'expiring-duplicate.json');
+  const expiringResult = path.join(results, 'expiring.json');
+  const expiringDuplicateResult = path.join(results, 'expiring-duplicate.json');
+  fs.writeFileSync(expiringPath, JSON.stringify(expiringRequest));
+  fs.writeFileSync(expiringDuplicatePath, JSON.stringify(expiringRequest));
+
+  const beforeExpiry = processFile(expiringPath, expiringResult, {
+    run_id: 'doctor-expiry-before',
+    sha: 'doctor-expiry-before-sha',
+    ref: 'refs/heads/doctor',
+    now_ms: Date.parse('2026-08-15T02:59:00Z'),
+  });
+  assert.strictEqual(beforeExpiry.ok, true);
+  const beforeEnvelope = JSON.parse(fs.readFileSync(expiringResult, 'utf8'));
+  assert.strictEqual(beforeEnvelope.request_expiry.status, 'FRESH');
+  assert.strictEqual(beforeEnvelope.request_expiry.expires_at, '2026-08-15T03:00:00Z');
+
+  const afterExpiryRetry = processFile(
+    expiringDuplicatePath,
+    expiringDuplicateResult,
+    {
+      run_id: 'doctor-expiry-after',
+      sha: 'doctor-expiry-after-sha',
+      ref: 'refs/heads/doctor',
+      now_ms: Date.parse('2026-08-15T03:01:00Z'),
+    },
+  );
+  assert.strictEqual(afterExpiryRetry.reused, true);
+  assert.strictEqual(
+    fs.readFileSync(expiringDuplicateResult, 'utf8'),
+    fs.readFileSync(expiringResult, 'utf8'),
+  );
+
+  const staleRequest = {
+    ...expiringRequest,
+    idempotency_key: 'doctor-stale',
+    context: {...expiringRequest.context, request_id: 'doctor-stale'},
+  };
+  const stalePath = path.join(requests, 'stale.json');
+  const staleResult = path.join(results, 'stale.json');
+  fs.writeFileSync(stalePath, JSON.stringify(staleRequest));
+  processFile(stalePath, staleResult, {
+    run_id: 'doctor-stale-run',
+    sha: 'doctor-stale-sha',
+    ref: 'refs/heads/doctor',
+    now_ms: Date.parse('2026-08-15T03:01:00Z'),
+  });
+  const staleEnvelope = JSON.parse(fs.readFileSync(staleResult, 'utf8'));
+  assert.strictEqual(staleEnvelope.ok, false);
+  assert.strictEqual(staleEnvelope.error.type, 'StaleRequest');
+  assert.strictEqual(staleEnvelope.request_expiry.status, 'EXPIRED');
+  assert.strictEqual(verifyEnvelope(staleEnvelope), true);
+
+  const invalidExpiryRequest = {
+    ...invokeRequest,
+    idempotency_key: 'doctor-invalid-expiry',
+    context: {
+      ...invokeRequest.context,
+      request_id: 'doctor-invalid-expiry',
+      expires_at: 'tomorrow',
+    },
+  };
+  const invalidPath = path.join(requests, 'invalid-expiry.json');
+  const invalidResult = path.join(results, 'invalid-expiry.json');
+  fs.writeFileSync(invalidPath, JSON.stringify(invalidExpiryRequest));
+  processFile(invalidPath, invalidResult, {
+    run_id: 'doctor-invalid-expiry-run',
+    sha: 'doctor-invalid-expiry-sha',
+    ref: 'refs/heads/doctor',
+    now_ms: Date.parse('2026-08-15T02:59:00Z'),
+  });
+  const invalidEnvelope = JSON.parse(fs.readFileSync(invalidResult, 'utf8'));
+  assert.strictEqual(invalidEnvelope.ok, false);
+  assert.strictEqual(invalidEnvelope.error.type, 'InvalidExpiry');
+  assert.strictEqual(invalidEnvelope.request_expiry.status, 'INVALID');
+  assert.strictEqual(verifyEnvelope(invalidEnvelope), true);
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }
 
 console.log(JSON.stringify({
   ok: true,
-  tests: 9,
+  tests: 13,
   provider: 'github-actions',
   semantic_tools_only: true,
   unrestricted_remote_shell: false,
   durable_result_idempotency: true,
   source_attestation: true,
+  stale_request_gate: true,
 }, null, 2));
