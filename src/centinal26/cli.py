@@ -10,6 +10,7 @@ from pathlib import Path
 from .core import AuditLog, Engine, Grant, JobStore, Verification
 from .event_state import EventStore, rebuild_state, state_summary
 from .future import register_future_capabilities
+from .ingest import DEFAULT_MAX_BYTES, discover_paths, ingest_path
 from .pipeline import (
     AutomatedEngine,
     CapabilitySpec,
@@ -98,6 +99,10 @@ def main() -> None:
     append_event.add_argument("--payload", default="{}")
     sub.add_parser("state-rebuild")
     sub.add_parser("state-status")
+    ingest = sub.add_parser("ingest")
+    ingest.add_argument("paths", nargs="+", type=Path)
+    ingest.add_argument("--recursive", action="store_true")
+    ingest.add_argument("--max-bytes", type=int, default=DEFAULT_MAX_BYTES)
 
     sub.add_parser("auto-demo")
     sub.add_parser("auto-run-once")
@@ -123,6 +128,25 @@ def main() -> None:
             args.output.expanduser().write_text(rendered, encoding="utf-8")
         print(rendered, end="")
         raise SystemExit(0 if report["decision"] != "INVALID" else 1)
+
+    if args.command == "ingest":
+        if args.max_bytes < 1:
+            parser.error("--max-bytes must be positive")
+        paths = discover_paths(args.paths, recursive=args.recursive)
+        store = event_store()
+        try:
+            results = [
+                ingest_path(store, path, max_bytes=args.max_bytes).as_dict() for path in paths
+            ]
+            print(
+                json.dumps(
+                    {"results": results, "state": state_summary(store)},
+                    sort_keys=True,
+                )
+            )
+        finally:
+            store.close()
+        return
 
     if args.command.startswith("state-") or args.command == "event-append":
         store = event_store()
