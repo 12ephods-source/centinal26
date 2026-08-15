@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -8,7 +9,7 @@ from typing import Any
 from centinal26.evolution_sandbox import EvolutionDockerEvaluator
 from centinal26.hard_sandbox import SandboxLimits, SandboxUnavailable
 
-import controlled_evolution_loop as loop
+loop = importlib.import_module("controlled_evolution_loop")
 
 DEFAULT_IMAGE = "centinal26-evolution-validator:local"
 PYTHON_IN_IMAGE = "/usr/local/bin/python"
