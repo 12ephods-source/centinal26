@@ -1,9 +1,9 @@
-from runpy import run_path
+import runpy
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "agent_fleet_qualify.py"
-MODULE = run_path(MODULE_PATH)
+MODULE = runpy.run_path(MODULE_PATH)
 classify = MODULE["classify"]
 
 
