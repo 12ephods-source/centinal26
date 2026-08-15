@@ -4,13 +4,21 @@ on:
   pull_request:
     paths:
       - "src/centinal26/hard_sandbox.py"
+      - "src/centinal26/evolution_sandbox.py"
+      - "scripts/controlled_evolution_hard.py"
+      - "scripts/run-controlled-evolution.sh"
       - "tests/test_hard_sandbox.py"
+      - "tests/test_evolution_sandbox.py"
       - ".github/workflows/hard-sandbox.yml"
   push:
     branches: ["main"]
     paths:
       - "src/centinal26/hard_sandbox.py"
+      - "src/centinal26/evolution_sandbox.py"
+      - "scripts/controlled_evolution_hard.py"
+      - "scripts/run-controlled-evolution.sh"
       - "tests/test_hard_sandbox.py"
+      - "tests/test_evolution_sandbox.py"
       - ".github/workflows/hard-sandbox.yml"
 
 permissions:
@@ -19,7 +27,7 @@ permissions:
 jobs:
   executable-isolation:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       CENTINAL26_HARD_SANDBOX_REQUIRED: "1"
       CENTINAL26_SANDBOX_IMAGE: "centinal26-sandbox-root:local"
@@ -35,7 +43,7 @@ jobs:
       - name: Prepare content-addressed empty sandbox root
         run: |
           docker version
-          printf 'FROM scratch\n' | docker build --tag "$CENTINAL26_SANDBOX_IMAGE" -
+          printf 'FROM scratch\n' | docker build --pull=false --tag "$CENTINAL26_SANDBOX_IMAGE" -
           docker image inspect --format '{{.Id}}' "$CENTINAL26_SANDBOX_IMAGE" | grep '^sha256:'
-      - name: Run executable isolation contract
-        run: pytest -q tests/test_hard_sandbox.py
+      - name: Run executable isolation and controlled-evolution contract
+        run: pytest -q tests/test_hard_sandbox.py tests/test_evolution_sandbox.py
