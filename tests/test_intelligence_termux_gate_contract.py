@@ -44,3 +44,12 @@ def test_installer_creates_separate_controller_worker_and_report_boot_hooks():
     assert "centinal26-intelligence-job.sh" in installer
     assert "centinal26-intelligence-report.sh" in installer
     assert "gh auth login" in installer
+
+
+def test_installer_reuses_existing_environment_before_package_manager():
+    installer = text("termux/install_intelligence_github_control.sh")
+    assert "pkg update -y" not in installer
+    assert 'TOKEN="${GITHUB_TOKEN:-}"' in installer
+    assert "missing_packages=()" in installer
+    assert 'pkg install -y "${missing_packages[@]}"' in installer
+    assert "Existing tools and evidence were left unchanged." in installer
