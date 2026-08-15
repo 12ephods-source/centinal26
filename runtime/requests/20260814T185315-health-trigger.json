@@ -1,0 +1,8 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "service_id": "frost.callable.fabric",
+  "operation": "system.health",
+  "arguments": {},
+  "context": {"caller":"callable-factory-sweep","role":"operator","approved":false,"request_id":"factory-health-trigger-20260814T1853"}
+}
