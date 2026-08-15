@@ -2,6 +2,20 @@
 
 Canonical implementation repository for Robert Frost's Automation project.
 
+Centinal26 is a local-first, evidence-centered automation runtime. It is designed so that increasing autonomy does not weaken authorization, execution bounds, verification, provenance, or release control.
+
+## Status snapshot
+
+Centinal26 currently has three distinct version/state axes. They are intentionally separate:
+
+| Axis | Current value | Meaning |
+|---|---|---|
+| Python runtime package | `centinal26 0.1.0` | Runnable Python 3.11+ implementation in `src/centinal26/` |
+| Recovery/bootstrap control state | `0.0.4-rc4-parent-recovery` | Static-validated recovery/control metadata in `releases/BOOTSTRAP_STATE.json` |
+| Highest recoverable canonical release target | `1.0.0-rc4-converged` | Release-control target; current decision is `REVIEW`, not GA |
+
+Host validation does **not** imply physical Android/Termux validation. The current release-control state does not claim Android-device validation, endurance validation, device-sync validation, recovery-drill validation, native-candidate certification, or explicit human promotion.
+
 ## Core invariant
 
 Every consequential operation follows:
@@ -10,43 +24,122 @@ Every consequential operation follows:
 
 No module may bypass authorization, bounded execution, verification, or audit to gain convenience or autonomy.
 
-## Working baseline
-
-The repository contains a runnable Python 3.11+ core:
-
-- explicit, expiring capability grants
-- registered capability allowlist; no arbitrary shell execution
-- durable SQLite job queue and state transitions
-- append-only SHA-256 hash-linked audit records
-- CLI initialization, demonstration, worker step, and status commands
-- pytest invariant tests and Ruff linting
-- CI across Python 3.11, 3.12, and 3.13
-- Termux installation/bootstrap script
+## Quick start
 
 ```bash
 python -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
+
 centinal26 init
 centinal26 demo
 centinal26 status
 pytest
 ```
 
-Termux:
+State defaults to `~/.local/state/centinal26`; set `CENTINAL26_HOME` to override it.
+
+Termux bootstrap:
 
 ```bash
 bash scripts/install-termux.sh
 ```
 
-State defaults to `~/.local/state/centinal26`; set `CENTINAL26_HOME` to override it.
+## Runnable baseline
 
-## Repository role
+The repository contains a runnable Python 3.11+ core with:
 
-GitHub is the durable engineering source of truth: code, deployment assets,
-tests, schemas, CI, release manifests, provenance, and history. Device-side
-execution remains in Termux/Hermes/local workers; GitHub does not itself
-execute Android commands.
+- explicit, expiring capability grants
+- registered capability allowlists; no arbitrary shell execution
+- structured job input rather than shell source
+- durable SQLite job queues and state transitions
+- append-only SHA-256 hash-linked audit records
+- failed and rejected jobs preserved as evidence
+- verification before successful state advancement
+- CLI initialization, demonstration, worker-step, status, qualification, and evidence commands
+- automated vertical-slice execution with lease recovery and evidence output
+- pytest invariant tests and Ruff linting
+- CI across Python 3.11, 3.12, and 3.13
+- Termux installation/bootstrap assets
+
+Primary CLI commands:
+
+```text
+centinal26 init
+centinal26 demo
+centinal26 run-once
+centinal26 status
+centinal26 qualify --output <path>
+centinal26 verify-evidence <bundle>
+centinal26 assess-evidence <bundle> [--output <path>]
+```
+
+Automated-runtime commands:
+
+```text
+centinal26 auto-demo
+centinal26 auto-run-once
+centinal26 auto-daemon [--poll <seconds>]
+centinal26 auto-selftest
+centinal26 auto-status
+```
+
+`auto-selftest` exercises the automated queue's lease-recovery path before executing the recovered job.
+
+## Repository role and execution boundary
+
+GitHub is the durable engineering source of truth for:
+
+- code
+- deployment assets
+- tests and schemas
+- CI
+- release manifests
+- provenance
+- historical evidence and superseded states
+
+Device-side execution remains in Termux/Hermes/local workers. GitHub does not itself execute Android commands.
+
+Remote queues may request registered, allowlisted capabilities. They must not become unrestricted remote shells.
+
+The intended boundary is:
+
+```text
+remote/local intent
+    ↓
+authorization / capability grant
+    ↓
+durable queue
+    ↓
+registered semantic capability
+    ↓
+bounded worker execution
+    ↓
+independent verification where available
+    ↓
+evidence + hash-linked audit
+    ↓
+state transition / release-control decision
+```
+
+## Security model
+
+Centinal26 treats automation as an authorized state transition, not unrestricted command execution.
+
+The enforced baseline includes:
+
+1. A submitted job names a registered capability.
+2. A grant must match that capability and remain unexpired.
+3. Input is structured JSON; the core does not accept shell source.
+4. State transitions persist in SQLite.
+5. Audit events form a SHA-256 hash chain.
+6. Failed and rejected jobs remain evidence rather than being erased.
+
+A SHA-256 pin proves byte identity, not benign behavior. External executable artifacts therefore require separate identity and behavior gates before execution.
+
+Autonomous agents are proposers, not authority. Controlled evolution must remain bounded by independent policy, validation, evidence, and promotion gates.
+
+See [SECURITY.md](SECURITY.md) for the full trust-boundary model.
 
 ## Current release-control state
 
@@ -56,8 +149,50 @@ execute Android commands.
 - The exact RC4 all-in-one orchestrator and embedded v6 bundle are registered by known identity/hash when bytes are not mounted; they are not reconstructed as originals.
 - FROST Automation OS v1.0 is retained under `candidates/` as a host-validated compatible integration candidate; its physical Android/Termux gate remains open.
 - No host result may be promoted to physical-device validation.
+- Missing exact bytes remain missing exact bytes; reconstruction does not silently become provenance-equivalent to an original artifact.
 
-See `provenance/ARTIFACT_REGISTRY.json` and `releases/BOOTSTRAP_STATE.json` for machine-readable status.
+Machine-readable release/provenance state:
+
+- `provenance/ARTIFACT_REGISTRY.json`
+- `releases/BOOTSTRAP_STATE.json`
+
+## Canonicalization and subsystem status
+
+Every imported or evolved subsystem must be classified as exactly one of:
+
+- `CANONICAL`
+- `COMPATIBLE_MODULE`
+- `EXPERIMENTAL`
+- `SUPERSEDED`
+- `REJECTED`
+
+Existing Automation artifacts become canonical only through explicit provenance, classification, validation, and release-control decisions.
+
+A useful implementation is not automatically a canonical implementation. A host-validated implementation is not automatically device-validated. A known hash is not automatically a safety verdict.
+
+## Validation boundary
+
+Validation claims must identify their execution environment and evidence level.
+
+The repository currently distinguishes at least:
+
+```text
+source/provenance known
+        ↓
+static validation
+        ↓
+host validation
+        ↓
+physical Android/Termux validation
+        ↓
+endurance / sync / recovery evidence
+        ↓
+release certification
+        ↓
+explicit promotion
+```
+
+A higher stage may not be inferred from a lower one.
 
 ## Layout
 
@@ -72,19 +207,18 @@ See `provenance/ARTIFACT_REGISTRY.json` and `releases/BOOTSTRAP_STATE.json` for 
 - `candidates/` — useful integrations not promoted into canonical release lineage
 - `provenance/` — artifact identities, classifications, hashes, and validation boundaries
 
-## Subsystem status taxonomy
+## What this repository does not claim
 
-Every imported or evolved subsystem must be classified as one of
-`CANONICAL`, `COMPATIBLE_MODULE`, `EXPERIMENTAL`, `SUPERSEDED`, or
-`REJECTED`.
+Centinal26 does not claim that:
 
-## Validation boundary
+- GitHub is an Android execution host.
+- A host test proves a physical-device result.
+- A hash proves an artifact is safe.
+- An AI agent's approval is sufficient authorization.
+- A recovered or reconstructed file is byte-identical to a missing original without matching evidence.
+- Remote automation may bypass the registered capability interface and become a general-purpose shell.
+- `REVIEW` is equivalent to GA.
 
-Host validation does not imply physical Android validation. Existing
-Automation artifacts become canonical only through explicit provenance,
-classification, validation, and release-control decisions.
-
-Remote queues may request allowlisted capabilities. They must not become
-unrestricted remote shells. See [SECURITY.md](SECURITY.md).
+Those distinctions are part of the architecture, not documentation caveats.
 
 © 2026 Robert Frost
