@@ -2,8 +2,9 @@
 
 The release checkpoint is expected to live in the verified repository/release state.
 Mutable Termux state may supply signed root metadata and attestations, but neither can
-replace the independently pinned root fingerprint or minimum accepted root version.
-RSA PKCS#1 v1.5 with SHA-256 is used without third-party dependencies.
+replace the independently pinned root fingerprint, minimum accepted root version, or
+cryptographic verification profile. RSA PKCS#1 v1.5 with SHA-256 is used without
+third-party dependencies.
 """
 
 from __future__ import annotations
@@ -22,6 +23,10 @@ HEX64 = re.compile(r"^[0-9a-f]{64}$")
 HEX = re.compile(r"^[0-9a-fA-F]+$")
 SHA256_DIGESTINFO_PREFIX = bytes.fromhex("3031300d060960864801650304020105000420")
 MAX_FUTURE_SKEW = timedelta(minutes=5)
+PROFILE_SCHEMA = "centinal26-rsa-verification-profile-v1"
+PROFILE_VERSION = 1
+MIN_RSA_BITS = 3072
+REQUIRED_RSA_EXPONENT = 65537
 
 
 class VerificationError(ValueError):
@@ -82,7 +87,31 @@ def _canonical_root_metadata(metadata: dict[str, object]) -> bytes:
     return _canonical_json(signed_fields)
 
 
-def _parse_rsa_key(value: object, field: str) -> tuple[str, int, int]:
+def _parse_profile(checkpoint: dict[str, object]) -> dict[str, object]:
+    profile = checkpoint.get("verification_profile")
+    if not isinstance(profile, dict):
+        raise VerificationError("checkpoint verification_profile missing")
+    if profile.get("schema") != PROFILE_SCHEMA or profile.get("version") != PROFILE_VERSION:
+        raise VerificationError("unsupported RSA verification profile")
+    min_rsa_bits = profile.get("min_rsa_bits")
+    required_exponent = profile.get("required_exponent")
+    if (
+        not isinstance(min_rsa_bits, int)
+        or min_rsa_bits < MIN_RSA_BITS
+        or required_exponent != REQUIRED_RSA_EXPONENT
+    ):
+        raise VerificationError("RSA verification profile is weaker than required policy")
+    return {
+        "schema": PROFILE_SCHEMA,
+        "version": PROFILE_VERSION,
+        "min_rsa_bits": min_rsa_bits,
+        "required_exponent": required_exponent,
+    }
+
+
+def _parse_rsa_key(
+    value: object, field: str, profile: dict[str, object]
+) -> tuple[str, int, int]:
     if not isinstance(value, dict):
         raise VerificationError(f"{field} must be an object")
     key_id = value.get("key_id")
@@ -95,13 +124,21 @@ def _parse_rsa_key(value: object, field: str) -> tuple[str, int, int]:
     if not isinstance(exponent, int):
         raise VerificationError(f"{field}.e invalid")
     modulus = int(n_hex, 16)
-    if modulus <= 0 or exponent < 3 or exponent % 2 == 0:
+    min_rsa_bits = profile["min_rsa_bits"]
+    required_exponent = profile["required_exponent"]
+    if not isinstance(min_rsa_bits, int) or not isinstance(required_exponent, int):
+        raise VerificationError("invalid RSA verification profile")
+    if modulus <= 0:
         raise VerificationError(f"{field} contains invalid RSA parameters")
+    if modulus.bit_length() < min_rsa_bits:
+        raise VerificationError(f"{field} RSA modulus below verification profile minimum")
+    if exponent != required_exponent:
+        raise VerificationError(f"{field} RSA exponent violates verification profile")
     return key_id, modulus, exponent
 
 
-def _key_fingerprint(value: object, field: str) -> str:
-    key_id, modulus, exponent = _parse_rsa_key(value, field)
+def _key_fingerprint(value: object, field: str, profile: dict[str, object]) -> str:
+    key_id, modulus, exponent = _parse_rsa_key(value, field, profile)
     canonical = {
         "e": exponent,
         "key_id": key_id,
@@ -140,11 +177,12 @@ def _verify_rsa_pkcs1_v15_sha256(
 
 def _verify_root_metadata(
     checkpoint: dict[str, object], metadata: dict[str, object], *, now: datetime
-) -> tuple[int, dict[str, dict[str, object]], set[str], str]:
+) -> tuple[int, dict[str, dict[str, object]], set[str], str, dict[str, object]]:
     if checkpoint.get("schema") != "centinal26-review-root-checkpoint-v1":
         raise VerificationError("unsupported review root checkpoint schema")
     if checkpoint.get("provisioned") is not True:
         raise VerificationError("review root checkpoint is not provisioned")
+    profile = _parse_profile(checkpoint)
     pinned = checkpoint.get("root_key_fingerprint_sha256")
     if not isinstance(pinned, str) or not HEX64.fullmatch(pinned):
         raise VerificationError("checkpoint root fingerprint invalid")
@@ -159,8 +197,8 @@ def _verify_root_metadata(
         raise VerificationError("review root metadata below release checkpoint")
 
     root_key = metadata.get("root_key")
-    root_key_id, root_modulus, root_exponent = _parse_rsa_key(root_key, "root_key")
-    fingerprint = _key_fingerprint(root_key, "root_key")
+    root_key_id, root_modulus, root_exponent = _parse_rsa_key(root_key, "root_key", profile)
+    fingerprint = _key_fingerprint(root_key, "root_key", profile)
     if fingerprint != pinned:
         raise VerificationError("review root fingerprint does not match release checkpoint")
 
@@ -191,7 +229,7 @@ def _verify_root_metadata(
     for index, item in enumerate(active_value):
         if not isinstance(item, dict):
             raise VerificationError("active_judge_keys entries must be objects")
-        key_id, _, _ = _parse_rsa_key(item, f"active_judge_keys[{index}]")
+        key_id, _, _ = _parse_rsa_key(item, f"active_judge_keys[{index}]", profile)
         if key_id in active:
             raise VerificationError("duplicate active Judge key_id")
         _parse_time(item.get("not_before"), f"active_judge_keys[{index}].not_before")
@@ -200,7 +238,7 @@ def _verify_root_metadata(
 
     if root_key_id in revoked:
         raise VerificationError("pinned root key cannot be listed as revoked Judge key")
-    return version, active, revoked, fingerprint
+    return version, active, revoked, fingerprint, profile
 
 
 def verify(
@@ -222,7 +260,7 @@ def verify(
     attestation = _load_json(attestation_path)
     current = (now or datetime.now(UTC)).astimezone(UTC)
 
-    root_version, active_keys, revoked, root_fingerprint = _verify_root_metadata(
+    root_version, active_keys, revoked, root_fingerprint, profile = _verify_root_metadata(
         checkpoint, metadata, now=current
     )
 
@@ -261,7 +299,7 @@ def verify(
     if issued_at < key_not_before or expires_at > key_not_after:
         raise VerificationError("attestation validity exceeds Judge key validity interval")
 
-    _, judge_modulus, judge_exponent = _parse_rsa_key(judge_key, "Judge key")
+    _, judge_modulus, judge_exponent = _parse_rsa_key(judge_key, "Judge key", profile)
     signature = _decode_signature(attestation.get("signature_b64"), "attestation signature_b64")
     _verify_rsa_pkcs1_v15_sha256(
         _canonical_attestation(attestation),
@@ -277,6 +315,7 @@ def verify(
         "authority_key_id": key_id,
         "root_version": root_version,
         "root_key_fingerprint_sha256": root_fingerprint,
+        "verification_profile": profile,
         "root_metadata_sha256": hashlib.sha256(root_metadata_path.read_bytes()).hexdigest(),
         "attestation_sha256": hashlib.sha256(attestation_path.read_bytes()).hexdigest(),
     }
