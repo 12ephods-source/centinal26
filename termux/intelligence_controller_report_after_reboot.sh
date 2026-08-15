@@ -1,13 +1,15 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-CONFIG="${HOME}/.automation_os_github/config"
+CONFIG="${HOME}/.automation_os_github/config.json"
 GATE_ROOT="${AUTOMATION_INTELLIGENCE_GATE_ROOT:-$HOME/.automation_intelligence_gate}"
 REPO_ROOT="${CENTINAL26_REPO_ROOT:-$HOME/automation-intelligence-control-repo}"
 FINALIZER="$REPO_ROOT/termux/automation_project_finalizer.sh"
-[ -f "$CONFIG" ] || exit 2
+RUNTIME_CONFIG="$REPO_ROOT/termux/github_runtime_config.sh"
+[ -f "$RUNTIME_CONFIG" ] || exit 2
 # shellcheck disable=SC1090
-source "$CONFIG"
+source "$RUNTIME_CONFIG"
+github_runtime_load_config "$CONFIG"
 num="$(cat "$GATE_ROOT/active_issue" 2>/dev/null || true)"
 [ -n "$num" ] || exit 0
 [ -f "$GATE_ROOT/project_pre_reboot.json" ] || exit 0
