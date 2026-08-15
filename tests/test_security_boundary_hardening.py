@@ -39,6 +39,19 @@ def run_bash(script: str, *, home: Path, extra_env: dict[str, str] | None = None
     )
 
 
+def _sign_message(message: bytes) -> str:
+    digest_info = DIGESTINFO_PREFIX + hashlib.sha256(message).digest()
+    width = (TEST_RSA_N.bit_length() + 7) // 8
+    padding = b"\xff" * (width - len(digest_info) - 3)
+    encoded = b"\x00\x01" + padding + b"\x00" + digest_info
+    signature = pow(int.from_bytes(encoded, "big"), TEST_RSA_D, TEST_RSA_N).to_bytes(width, "big")
+    return base64.b64encode(signature).decode()
+
+
+def _canonical_json(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+
+
 def sign_attestation(payload: dict[str, object]) -> str:
     signed = {
         key: payload[key]
@@ -54,13 +67,31 @@ def sign_attestation(payload: dict[str, object]) -> str:
             "expires_at",
         )
     }
-    message = json.dumps(signed, sort_keys=True, separators=(",", ":")).encode()
-    digest_info = DIGESTINFO_PREFIX + hashlib.sha256(message).digest()
-    width = (TEST_RSA_N.bit_length() + 7) // 8
-    padding = b"\xff" * (width - len(digest_info) - 3)
-    encoded = b"\x00\x01" + padding + b"\x00" + digest_info
-    signature = pow(int.from_bytes(encoded, "big"), TEST_RSA_D, TEST_RSA_N).to_bytes(width, "big")
-    return base64.b64encode(signature).decode()
+    return _sign_message(_canonical_json(signed))
+
+
+def _root_key(key_id: str) -> dict[str, object]:
+    return {"key_id": key_id, "n_hex": format(TEST_RSA_N, "x"), "e": 65537}
+
+
+def _root_fingerprint(key: dict[str, object]) -> str:
+    return hashlib.sha256(_canonical_json(key)).hexdigest()
+
+
+def _sign_root_metadata(payload: dict[str, object]) -> str:
+    signed = {
+        key: payload[key]
+        for key in (
+            "schema",
+            "version",
+            "root_key",
+            "active_judge_keys",
+            "revoked_key_ids",
+            "issued_at",
+            "expires_at",
+        )
+    }
+    return _sign_message(_canonical_json(signed))
 
 
 def write_review_attestation(
@@ -69,21 +100,40 @@ def write_review_attestation(
     artifact_sha: str = "a" * 64,
     findings_sha: str = "b" * 64,
     expires_delta: timedelta = timedelta(hours=1),
-) -> tuple[Path, Path]:
-    authority = tmp_path / "review_authority.json"
+) -> tuple[Path, Path, Path]:
+    checkpoint = tmp_path / "review_root_checkpoint.json"
+    root_metadata = tmp_path / "review_root_metadata.json"
     attestation = tmp_path / "review_attestation.json"
-    authority.write_text(
+    now = datetime.now(UTC)
+    root_key = _root_key("test-root-rsa-v1")
+    judge_key = {
+        **_root_key("test-frost-judge-rsa-v1"),
+        "not_before": (now - timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
+        "not_after": (now + timedelta(hours=2)).isoformat().replace("+00:00", "Z"),
+    }
+    checkpoint.write_text(
         json.dumps(
             {
-                "schema": "centinal26-review-authority-rsa-v1",
-                "key_id": "test-frost-judge-rsa-v1",
-                "n_hex": format(TEST_RSA_N, "x"),
-                "e": 65537,
+                "schema": "centinal26-review-root-checkpoint-v1",
+                "release": "1.0.0-test",
+                "provisioned": True,
+                "min_root_version": 1,
+                "root_key_fingerprint_sha256": _root_fingerprint(root_key),
             }
         ),
         encoding="utf-8",
     )
-    now = datetime.now(UTC)
+    root_payload: dict[str, object] = {
+        "schema": "centinal26-review-root-metadata-v1",
+        "version": 1,
+        "root_key": root_key,
+        "active_judge_keys": [judge_key],
+        "revoked_key_ids": [],
+        "issued_at": (now - timedelta(minutes=1)).isoformat().replace("+00:00", "Z"),
+        "expires_at": (now + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
+    }
+    root_payload["signature_b64"] = _sign_root_metadata(root_payload)
+    root_metadata.write_text(json.dumps(root_payload), encoding="utf-8")
     payload: dict[str, object] = {
         "schema": "centinal26-reviewed-artifact-attestation-v1",
         "authority_key_id": "test-frost-judge-rsa-v1",
@@ -97,11 +147,12 @@ def write_review_attestation(
     }
     payload["signature_b64"] = sign_attestation(payload)
     attestation.write_text(json.dumps(payload), encoding="utf-8")
-    return authority, attestation
+    return checkpoint, root_metadata, attestation
 
 
 def run_attestation_verifier(
-    authority: Path,
+    checkpoint: Path,
+    root_metadata: Path,
     attestation: Path,
     *,
     artifact_sha: str = "a" * 64,
@@ -111,8 +162,10 @@ def run_attestation_verifier(
         [
             "python",
             str(ROOT / "scripts" / "verify_review_attestation.py"),
-            "--authority",
-            str(authority),
+            "--checkpoint",
+            str(checkpoint),
+            "--root-metadata",
+            str(root_metadata),
             "--attestation",
             str(attestation),
             "--artifact-sha256",
@@ -210,18 +263,23 @@ def test_untrusted_candidate_auditor_has_no_flag_only_review_override():
 
 
 def test_reviewed_risk_requires_valid_signed_external_judge_attestation(tmp_path: Path):
-    authority, attestation = write_review_attestation(tmp_path)
-    result = run_attestation_verifier(authority, attestation)
+    checkpoint, root_metadata, attestation = write_review_attestation(tmp_path)
+    result = run_attestation_verifier(checkpoint, root_metadata, attestation)
     assert result.returncode == 0, result.stdout
     output = json.loads(result.stdout)
     assert output["decision"] == "VERIFIED_ALLOW"
     assert output["verdict_id"] == "verdict:test-reviewed-artifact-v1"
+    assert output["root_version"] == 1
 
 
 def test_reviewed_risk_rejects_wrong_artifact_and_wrong_findings(tmp_path: Path):
-    authority, attestation = write_review_attestation(tmp_path)
-    wrong_artifact = run_attestation_verifier(authority, attestation, artifact_sha="c" * 64)
-    wrong_findings = run_attestation_verifier(authority, attestation, findings_sha="d" * 64)
+    checkpoint, root_metadata, attestation = write_review_attestation(tmp_path)
+    wrong_artifact = run_attestation_verifier(
+        checkpoint, root_metadata, attestation, artifact_sha="c" * 64
+    )
+    wrong_findings = run_attestation_verifier(
+        checkpoint, root_metadata, attestation, findings_sha="d" * 64
+    )
     assert wrong_artifact.returncode == 23
     assert "artifact identity mismatch" in wrong_artifact.stdout
     assert wrong_findings.returncode == 23
@@ -229,18 +287,20 @@ def test_reviewed_risk_rejects_wrong_artifact_and_wrong_findings(tmp_path: Path)
 
 
 def test_reviewed_risk_rejects_stale_or_unsigned_attestation(tmp_path: Path):
-    authority, stale = write_review_attestation(tmp_path, expires_delta=timedelta(minutes=-2))
-    stale_result = run_attestation_verifier(authority, stale)
+    checkpoint, root_metadata, stale = write_review_attestation(
+        tmp_path, expires_delta=timedelta(minutes=-2)
+    )
+    stale_result = run_attestation_verifier(checkpoint, root_metadata, stale)
     assert stale_result.returncode == 23
     assert "stale or expired" in stale_result.stdout
 
-    authority, unsigned = write_review_attestation(tmp_path)
+    checkpoint, root_metadata, unsigned = write_review_attestation(tmp_path)
     payload = json.loads(unsigned.read_text(encoding="utf-8"))
     payload["signature_b64"] = ""
     unsigned.write_text(json.dumps(payload), encoding="utf-8")
-    unsigned_result = run_attestation_verifier(authority, unsigned)
+    unsigned_result = run_attestation_verifier(checkpoint, root_metadata, unsigned)
     assert unsigned_result.returncode == 23
-    assert "signed attestation required" in unsigned_result.stdout
+    assert "attestation signature_b64 required" in unsigned_result.stdout
 
 
 def test_registry_only_edits_are_not_execution_authority():
