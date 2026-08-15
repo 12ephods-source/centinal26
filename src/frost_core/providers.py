@@ -201,9 +201,11 @@ class ProviderRegistry:
             and record.provider_type not in policy.allowed_provider_types
         ):
             return "provider_type_disallowed"
-        if policy.max_latency_ms is not None:
-            if record.latency_ms is None or record.latency_ms > policy.max_latency_ms:
-                return "latency_bound"
+        if (
+            policy.max_latency_ms is not None
+            and (record.latency_ms is None or record.latency_ms > policy.max_latency_ms)
+        ):
+            return "latency_bound"
         if policy.max_cost_rank is not None and record.cost_rank > policy.max_cost_rank:
             return "cost_bound"
         if policy.require_source_identity and not record.source_identity:
