@@ -27,6 +27,21 @@ def test_worker_is_serialized_and_bounded() -> None:
     assert "timeout-minutes: 20" in text
 
 
+def test_every_new_result_is_independently_verified_before_publication() -> None:
+    text = workflow_text()
+    assert "runtime/verifications" in text
+    assert "callable-worker-v1.0.0/verifier.js" in text
+    assert 'verifier.js "$req" "$out" "$verification"' in text
+    assert "git add runtime/results runtime/verifications" in text
+
+
+def test_existing_unverified_results_are_verified_without_reexecution() -> None:
+    text = workflow_text()
+    assert 'if [[ -e "$out" ]]; then' in text
+    assert 'if [[ ! -e "$verification" ]]; then' in text
+    assert "verified=$((verified + 1))" in text
+
+
 def test_result_publication_has_bounded_reconciliation_retry() -> None:
     text = workflow_text()
     assert "for attempt in 1 2 3; do" in text
@@ -38,6 +53,7 @@ def test_result_publication_has_bounded_reconciliation_retry() -> None:
 
 def test_idle_runs_do_not_publish_fake_results() -> None:
     text = workflow_text()
-    assert "if: steps.worker.outputs.processed != '0'" in text
+    assert "steps.worker.outputs.processed != '0' || steps.worker.outputs.verified != '0'" in text
     assert "processed=$processed" in text
+    assert "verified=$verified" in text
     assert "pending_before=$pending_before" in text
