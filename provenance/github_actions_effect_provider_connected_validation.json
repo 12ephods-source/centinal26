@@ -1,5 +1,5 @@
 {
-  "schema": "frost-provider-connected-validation/1.0",
+  "schema": "frost-provider-connected-validation/1.1",
   "provider": "github-actions",
   "adapter_status": "CONNECTED_VALIDATED",
   "capability": "github.runtime.qualification_marker.put",
@@ -13,9 +13,11 @@
   },
   "implementation": {
     "provider_source_sha256": "70eedf7378654eda56b014313c786c659e08af3d4777a2175f44b88957e1c1d2",
-    "repaired_workflow_source_sha256": "c75dd1a7c3ec75947d40fb7ba27ed24efe20dd023066fd430459688e787890cc",
+    "active_workflow_source_sha256": "27f2d6f91211e63ed80806962c9f68dcec3f9a7e68a62d796273543bb788e98f",
     "provider_merge_commit": "d4030ae23daeb1c1d942c15f89a573c75480b1b8",
-    "resume_fix_merge_commit": "d003efd36b2d40bc7f9c51824f22eb344b998637"
+    "resume_fix_merge_commit": "d003efd36b2d40bc7f9c51824f22eb344b998637",
+    "independent_verifier_merge_commit": "8aec14bff0cd2f098e52340e79478191d57a7428",
+    "independent_verifier_id": "github-actions-effect-independent-git/v2"
   },
   "recovery_evidence": {
     "initial_failed_run_id": 31867656186,
@@ -23,33 +25,52 @@
     "persisted_intent_hash": "0d3bbf6a2226ca02cdb8b658caa757401b5ba782f88d326892a8dc20ab09c9be",
     "resumed_without_reauthorization": true
   },
-  "approved_effect": {
+  "initial_effect": {
     "workflow_run_id": 31867886683,
+    "request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
     "provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
     "effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
     "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
     "result_sha256": "89cd03c6e27f1cac6e769086c5e1e8a0304e6aab9407ae9137a628332f48336d",
-    "verification_hash": "f402d02f8343213c37b9aca3089d251ae60d636026b1844b2196a6bf4d6fb390",
+    "qualification_basis": false,
+    "reason": "the original verifier shared provider hashing and canonicalization routines; its independent claim is superseded"
+  },
+  "independent_connected_validation": {
+    "workflow_run_id": 31868522169,
+    "verifier_id": "github-actions-effect-independent-git/v2",
+    "request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
+    "provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
+    "effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
+    "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
+    "result_sha256": "dead8feaba0b4a9041e70bd174f0d736ea99ed96f02e841aae57fc3c6c2f8cb8",
+    "verification_hash": "65de659054c91b2feebe3be85f4a863a0a7ee274ef0b20ec65ccf083423c9e3d",
     "verification_decision": "POSTCONDITION_VERIFIED",
-    "independent": true
+    "independent": true,
+    "idempotent_replay": true,
+    "same_effect_commit_as_initial": true,
+    "postconditions": {
+      "remote_commit_observed": true,
+      "marker_exists_at_effect_commit": true,
+      "marker_hash_matches_receipt": true,
+      "request_binding_matches": true,
+      "provider_idempotency_rederived": true,
+      "marker_path_rederived": true,
+      "marker_content_rederived": true,
+      "payload_matches": true
+    }
   },
-  "exact_replay": {
-    "workflow_run_id": 31867931324,
-    "same_request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
-    "same_provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
-    "same_effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
-    "same_marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
-    "result_sha256": "dbbcaee68884ea736cd54f296e703c8b0f9014d3941b5a67e7875e60a2159de4",
-    "verification_hash": "e0c427a58ab109c991eb0800100c3fdfff2c74f50d4fb54f9e318b49231c433a",
-    "verification_decision": "POSTCONDITION_VERIFIED"
-  },
-  "guardian_denial": {
-    "workflow_run_id": 31867886683,
+  "independent_guardian_denial": {
+    "workflow_run_id": 31868555692,
+    "verifier_id": "github-actions-effect-independent-git/v2",
     "capability": "github.runtime.unapproved.put",
-    "result_sha256": "7e8b204894be37e2a146d6a60fb3e0b7c6d2f8268502ab993ba5d5aa8de83eea",
-    "verification_hash": "807913b686127e7924230d3d38be497546de76229d92bf16278457927da8289a",
+    "request_sha256": "b02d887f412c89d0d211aa229e828bd572bfbed7eed2dc38c118d76364a2d28b",
+    "result_sha256": "ebf8735c603f2ec83b9fdaaba7824bfce7835431a88092fc19c96bd8ba64b501",
+    "verification_hash": "dd0f3ed00b2af11e48b042205972c48726bf428cd6bb11f1bc3c1f31704cec0b",
     "verification_decision": "DENIAL_VERIFIED",
+    "derived_marker_path": "runtime/effect-markers/086abaabe7ebc5df4c4e8cc19d09164d774dc3b0fd5e77234ec2b3d7d47dc79d.json",
+    "remote_ref_sha": "8ca46df44574e014141a702f1357b6426281fac1",
     "provider_execution_absent": true,
+    "derived_marker_absent_at_remote_ref": true,
     "intent_absent": true
   },
   "limitations": {
