@@ -1,0 +1,17 @@
+# R2 S3-compatible Terraform backend configuration. This file contains no
+# credentials. Provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY through the
+# environment using a bucket-scoped R2 Object Read & Write token.
+bucket = "frost-terraform-state"
+key    = "centinal26/cloudflare-r2-public-domain/terraform.tfstate"
+region = "auto"
+
+endpoints = {
+  s3 = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com"
+}
+
+skip_credentials_validation = true
+skip_metadata_api_check     = true
+skip_region_validation      = true
+skip_requesting_account_id  = true
+skip_s3_checksum            = true
+use_path_style              = true
