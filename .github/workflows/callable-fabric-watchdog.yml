@@ -1,0 +1,66 @@
+name: Frost Callable Fabric Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "3,18,33,48 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: frost-callable-fabric-watchdog
+  cancel-in-progress: false
+
+env:
+  FROST_WORKFLOW_FILE: "callable-fabric-worker.yml"
+  FROST_STALE_AFTER_SECONDS: "1200"
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check worker freshness and dispatch bounded recovery if stale
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api="repos/${REPOSITORY}/actions/workflows/${FROST_WORKFLOW_FILE}/runs?per_page=20"
+          payload="$(gh api "$api")"
+
+          latest_status="$(jq -r '.workflow_runs[0].status // "none"' <<<"$payload")"
+          latest_conclusion="$(jq -r '.workflow_runs[0].conclusion // "none"' <<<"$payload")"
+          latest_started="$(jq -r '.workflow_runs[0].run_started_at // empty' <<<"$payload")"
+
+          printf 'latest_status=%s\n' "$latest_status"
+          printf 'latest_conclusion=%s\n' "$latest_conclusion"
+          printf 'latest_started=%s\n' "${latest_started:-none}"
+
+          if [[ "$latest_status" == "queued" || "$latest_status" == "in_progress" ]]; then
+            echo "Worker already queued or running; no recovery dispatch."
+            exit 0
+          fi
+
+          latest_success="$(jq -r '[.workflow_runs[] | select(.conclusion == "success")] | first | .run_started_at // empty' <<<"$payload")"
+
+          if [[ -n "$latest_success" ]]; then
+            now_epoch="$(date -u +%s)"
+            success_epoch="$(date -u -d "$latest_success" +%s)"
+            age="$((now_epoch - success_epoch))"
+            printf 'last_success_age_seconds=%s\n' "$age"
+
+            if (( age <= FROST_STALE_AFTER_SECONDS )); then
+              echo "Worker healthy within freshness window."
+              exit 0
+            fi
+          else
+            echo "No recent successful worker run found."
+          fi
+
+          echo "Worker stale; dispatching one bounded recovery run."
+          gh workflow run "$FROST_WORKFLOW_FILE" --repo "$REPOSITORY" --ref main
