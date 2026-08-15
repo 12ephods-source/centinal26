@@ -3,8 +3,8 @@ variable "account_id" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.account_id)) > 0
-    error_message = "account_id must not be empty."
+    condition     = can(regex("^[0-9a-fA-F]{32}$", trimspace(var.account_id)))
+    error_message = "account_id must be a 32-character Cloudflare account identifier."
   }
 }
 
@@ -13,8 +13,8 @@ variable "zone_id" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.zone_id)) > 0
-    error_message = "zone_id must not be empty."
+    condition     = can(regex("^[0-9a-fA-F]{32}$", trimspace(var.zone_id)))
+    error_message = "zone_id must be a 32-character Cloudflare zone identifier."
   }
 }
 
@@ -37,8 +37,29 @@ variable "custom_domain" {
   type        = string
 
   validation {
-    condition     = length(trimspace(var.custom_domain)) > 3 && strcontains(var.custom_domain, ".")
-    error_message = "custom_domain must be a fully qualified hostname."
+    condition = (
+      length(trimspace(var.custom_domain)) > 3 &&
+      can(regex("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$", trimspace(var.custom_domain))) &&
+      !endswith(lower(trimspace(var.custom_domain)), ".r2.dev")
+    )
+    error_message = "custom_domain must be a valid fully qualified hostname and must not be an r2.dev hostname."
+  }
+}
+
+variable "manage_custom_domain" {
+  description = "True creates/manages the R2 custom-domain attachment. False requires that the attachment already exist and reads it without taking ownership."
+  type        = bool
+  default     = true
+}
+
+variable "jurisdiction" {
+  description = "R2 data jurisdiction. Keep default unless regulatory requirements require eu or fedramp."
+  type        = string
+  default     = "default"
+
+  validation {
+    condition     = contains(["default", "eu", "fedramp"], lower(var.jurisdiction))
+    error_message = "jurisdiction must be default, eu, or fedramp."
   }
 }
 

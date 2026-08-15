@@ -16,3 +16,7 @@ audit.jsonl
 *.tfstate.*
 *.tfplan
 *.tfvars
+
+# Local backend activation/configuration. Examples remain tracked.
+infra/cloudflare/r2-public-domain/backend.tf
+infra/cloudflare/r2-public-domain/backend.hcl
