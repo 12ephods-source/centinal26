@@ -15,10 +15,10 @@ import dataclasses
 import hashlib
 import json
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, Sequence
 
 
 class Verdict(str, Enum):
@@ -141,8 +141,8 @@ def _terms(text: str) -> set[str]:
 def local_search(claim: Claim, roots: Sequence[Path], max_hits: int = 20) -> list[Evidence]:
     """Search UTF-8-ish local files for lexical overlap with the claim.
 
-    Search hits are documentary evidence only. They never become independent verification
-    merely because the same statement appears in multiple project files.
+    Search hits are discovery candidates only. Callers must not treat them as verified
+    evidence without source-specific review and promotion into the curated evidence set.
     """
     wanted = _terms(claim.text)
     if not wanted:
@@ -168,7 +168,7 @@ def local_search(claim: Claim, roots: Sequence[Path], max_hits: int = 20) -> lis
                 continue
             ev = Evidence(
                 source_id=str(path),
-                description=f"Local documentary match ({len(overlap)}/{len(wanted)} terms)",
+                description=f"Local documentary candidate ({len(overlap)}/{len(wanted)} terms)",
                 tier=EvidenceTier.AUTHORED_DOCUMENT,
                 supports=True,
                 independent=False,
@@ -300,7 +300,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     run.add_argument("--json", required=True, type=Path)
     run.add_argument("--markdown", required=True, type=Path)
 
-    search = sub.add_parser("search-local", help="Search local text files for documentary matches")
+    search = sub.add_parser("search-local", help="Search local text files for documentary candidates")
     search.add_argument("--claims", required=True, type=Path)
     search.add_argument("--root", action="append", required=True, type=Path)
     search.add_argument("--output", required=True, type=Path)
