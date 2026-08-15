@@ -1,0 +1,16 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "idempotency_key": "independent-verification-proof-e8e0aafb0956",
+  "service_id": "frost.callable.fabric",
+  "operation": "frost.diagnostics.sha256",
+  "arguments": {
+    "text": "Frost Callable Fabric independent verification proof 2026-08-15"
+  },
+  "context": {
+    "caller": "automation-os-independent-verification-proof",
+    "role": "operator",
+    "approved": false,
+    "request_id": "independent-verification-proof-e8e0aafb0956"
+  }
+}
