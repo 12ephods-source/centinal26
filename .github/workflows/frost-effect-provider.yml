@@ -76,6 +76,12 @@ jobs:
             exit 1
           }
 
+          verify_denial_remote() {
+            local req="$1" result="$2" verification="$3"
+            git fetch origin callable-runtime
+            node "$verifier" denied "$req" "$result" "origin/callable-runtime" "$verification"
+          }
+
           processed=0
           denied=0
           verified=0
@@ -103,7 +109,7 @@ jobs:
                 echo "result exists without intent and is not DENIED: $base" >&2
                 exit 1
               fi
-              node "$verifier" denied "$req" "$result" "$verification"
+              verify_denial_remote "$req" "$result" "$verification"
               commit_and_push "Verify denied frost-effect request $base" "$verification"
               denied=$((denied + 1))
               processed=$((processed + 1))
@@ -123,7 +129,7 @@ jobs:
 
               if [[ "$approved" != "true" ]]; then
                 commit_and_push "Record denied frost-effect request $base" "$result"
-                node "$verifier" denied "$req" "$result" "$verification"
+                verify_denial_remote "$req" "$result" "$verification"
                 commit_and_push "Verify denied frost-effect request $base" "$verification"
                 denied=$((denied + 1))
                 processed=$((processed + 1))
@@ -153,10 +159,8 @@ jobs:
 
             git fetch origin callable-runtime
             git cat-file -e "origin/callable-runtime:$result"
-            remote_marker="$RUNNER_TEMP/remote-marker-$base.json"
-            git show "$effect_commit:$marker_path" > "$remote_marker"
             node "$verifier" executed \
-              "$req" "$intent" "$result" "$remote_marker" "$effect_commit" "$verification"
+              "$req" "$intent" "$result" "$effect_commit" "$verification"
             commit_and_push "Verify frost-effect postcondition $base" "$verification"
 
             verified=$((verified + 1))
