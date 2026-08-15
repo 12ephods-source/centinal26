@@ -77,9 +77,11 @@ class FederationCatalog:
                 continue
             if operation is not None and operation not in descriptor.operations:
                 continue
-            if minimum_status is not None:
-                if status_order[descriptor.status] < status_order[minimum_status]:
-                    continue
+            if (
+                minimum_status is not None
+                and status_order[descriptor.status] < status_order[minimum_status]
+            ):
+                continue
             results.append(descriptor)
         return tuple(sorted(results, key=lambda item: item.adapter_id))
 
