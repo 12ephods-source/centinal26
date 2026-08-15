@@ -4,13 +4,25 @@ on:
   pull_request:
     paths:
       - "src/centinal26/hard_sandbox.py"
+      - "src/centinal26/evolution_sandbox.py"
+      - "scripts/controlled_evolution_sandboxed.py"
+      - "scripts/run-controlled-evolution.sh"
+      - "scripts/build-evolution-sandbox.sh"
+      - "deploy/evolution/Dockerfile"
       - "tests/test_hard_sandbox.py"
+      - "tests/test_evolution_runner.py"
       - ".github/workflows/hard-sandbox.yml"
   push:
     branches: ["main"]
     paths:
       - "src/centinal26/hard_sandbox.py"
+      - "src/centinal26/evolution_sandbox.py"
+      - "scripts/controlled_evolution_sandboxed.py"
+      - "scripts/run-controlled-evolution.sh"
+      - "scripts/build-evolution-sandbox.sh"
+      - "deploy/evolution/Dockerfile"
       - "tests/test_hard_sandbox.py"
+      - "tests/test_evolution_runner.py"
       - ".github/workflows/hard-sandbox.yml"
 
 permissions:
@@ -39,3 +51,32 @@ jobs:
           docker image inspect --format '{{.Id}}' "$CENTINAL26_SANDBOX_IMAGE" | grep '^sha256:'
       - name: Run executable isolation contract
         run: pytest -q tests/test_hard_sandbox.py
+
+  controlled-evolution-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CENTINAL26_EVOLUTION_SANDBOX_REQUIRED: "1"
+      CENTINAL26_SANDBOX_IMAGE: "centinal26-evolution-validator:ci"
+      CENTINAL26_SANDBOX_PYTHON_VERSION: "3.13"
+      CENTINAL26_SANDBOX_PYTEST_VERSION: "9.1.1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install project test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Build dedicated validator image
+        run: |
+          docker version
+          docker build \
+            --build-arg PYTEST_VERSION="$CENTINAL26_SANDBOX_PYTEST_VERSION" \
+            --tag "$CENTINAL26_SANDBOX_IMAGE" \
+            -f deploy/evolution/Dockerfile \
+            .
+          docker image inspect --format '{{.Id}}' "$CENTINAL26_SANDBOX_IMAGE" | grep '^sha256:'
+      - name: Run controlled-evolution integration contract
+        run: pytest -q tests/test_evolution_runner.py
