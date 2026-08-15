@@ -1,0 +1,67 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31860041127",
+  "provider_sha": "5a91e403bfb72d7eae930b5247ee9af6d691ca88",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "semantic_core": {
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8"
+    },
+    "provider_runtime": {
+      "provider": "github-actions",
+      "worker_source_sha256": "4e64dce74cee2083ff4b6df066eff906e1b89722aa7cfd3662509014546c4b45",
+      "workflow_source_sha256": "765fe88573ec676d730199421d57f6a4ed3678a551769d4ccb471e27f734219c",
+      "checked_out_sha": "5a91e403bfb72d7eae930b5247ee9af6d691ca88",
+      "checked_out_ref": "refs/heads/callable-runtime"
+    },
+    "provider_code_identity_sha256": "b91c33688b7bd8e4639673d7ab74473529e6b5479e1ccfc42244bf2909ae7cff"
+  },
+  "request_sha256": "7de7edf28554e6580906297ef2e5e286e115625ce405d261133cee6d64c2a6af",
+  "idempotency_key": "source-attestation-proof-3d3bfdf760dc",
+  "response": {
+    "ok": true,
+    "request_id": "source-attestation-proof-3d3bfdf760dc",
+    "service_id": "frost.callable.fabric",
+    "operation": "frost.diagnostics.sha256",
+    "result": {
+      "sha256": "3a5847b8f63314aabb92dcb283dfa6f37ed3996a0984960d2c1afe7f1cfeed37"
+    },
+    "diagnostics": {
+      "elapsed_ms": 0,
+      "version": "1.1.0",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "result_hash": "c0ed6fe0ac9182add95b7c7d7bd04178315ab94075ec9b8ad5a334029d7a76da"
+    },
+    "receipt": {
+      "request_id": "source-attestation-proof-3d3bfdf760dc",
+      "service_id": "frost.callable.fabric",
+      "operation": "frost.diagnostics.sha256",
+      "caller": "automation-os-source-attestation-proof",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "c942355d996e0a44cfa8fb288b3019efe9d8ea6e98faeef926121ed18dbfb7ba",
+      "guardian": {
+        "allowed": true,
+        "reason": "authorized"
+      },
+      "event": "INVOCATION_OK",
+      "result_hash": "c0ed6fe0ac9182add95b7c7d7bd04178315ab94075ec9b8ad5a334029d7a76da",
+      "elapsed_ms": 0,
+      "timestamp": "2026-08-15T02:46:03.043Z",
+      "record_hash": "e0ea016d63a6853796b7224af4068fdaccf5e2144afb50525394c81214d4831c"
+    }
+  },
+  "envelope_hash": "d5e4ae6c49d46d508a7902a881a98a41e5744d46267e20f977f165fe2a904766"
+}
