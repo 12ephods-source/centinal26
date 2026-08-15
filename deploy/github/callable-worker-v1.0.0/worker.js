@@ -169,7 +169,9 @@ function processRequest(request, provider = {}) {
   if (request.protocol !== PROTOCOL) throw new Error(`protocol must be ${PROTOCOL}`);
 
   const identity = requestIdentity(request);
-  const expiry = requestExpiry(request, provider);
+  const expiry = Object.prototype.hasOwnProperty.call(provider, 'request_expiry')
+    ? provider.request_expiry
+    : requestExpiry(request, provider);
   const kind = request.kind || 'invoke';
   let response;
   if (kind === 'invoke') {
@@ -258,6 +260,7 @@ function processFile(inputPath, outputPath, provider = {}) {
   let output;
   let reused = false;
   let reconciledFrom = null;
+  let validatedExpiry = null;
 
   try {
     request = JSON.parse(raw);
@@ -277,10 +280,13 @@ function processFile(inputPath, outputPath, provider = {}) {
         existing_result_file: path.basename(prior.path),
       });
     } else {
-      output = processRequest(request, provider);
+      validatedExpiry = requestExpiry(request, provider);
+      output = processRequest(request, {...provider, request_expiry: validatedExpiry});
     }
   } catch (error) {
-    output = errorEnvelope(raw, request, error, provider);
+    const extra = {};
+    if (!error.request_expiry && validatedExpiry) extra.request_expiry = validatedExpiry;
+    output = errorEnvelope(raw, request, error, provider, extra);
   }
 
   fs.mkdirSync(path.dirname(outputPath), {recursive: true});
