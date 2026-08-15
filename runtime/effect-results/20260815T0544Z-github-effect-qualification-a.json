@@ -1,0 +1,29 @@
+{
+  "schema": "frost-effect-result/1.0",
+  "protocol": "frost-effect/1.0",
+  "state": "EXECUTED",
+  "request_id": "github-effect-qualification-20260815-a",
+  "request_sha256": "06d05f26f547095708f2e049100635b53c6c4138a7b7e6a507512f0d4005e7af",
+  "capability": "github.runtime.qualification_marker.put",
+  "intent_hash": "0d3bbf6a2226ca02cdb8b658caa757401b5ba782f88d326892a8dc20ab09c9be",
+  "provider": "github-actions",
+  "provider_idempotency_key": "17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe",
+  "marker_path": "runtime/effect-markers/17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe.json",
+  "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a",
+  "provider_receipt": {
+    "schema": "frost-provider-receipt/1.0",
+    "provider": "github-actions",
+    "branch": "callable-runtime",
+    "effect_commit": "d7511d623a1febe9dc813defe8b61484e327ee48",
+    "marker_path": "runtime/effect-markers/17133949a0c6ac24bd960f66d235b21acb984bbfb6a15714e5563508f34033fe.json",
+    "marker_sha256": "9ad8419e0893860b23c2ad8528b081b2ebb62fc6cbafdb213b1c794133b21e0a"
+  },
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "provider": "github-actions",
+    "provider_source_sha256": "70eedf7378654eda56b014313c786c659e08af3d4777a2175f44b88957e1c1d2",
+    "workflow_source_sha256": "8945767d78664bacc10194a54124325193f76330392709728dcec0ab53700821",
+    "checked_out_sha": "44e4162de7a4d9cd8f540eff78759f1c668d4fa4"
+  },
+  "result_sha256": "89cd03c6e27f1cac6e769086c5e1e8a0304e6aab9407ae9137a628332f48336d"
+}
