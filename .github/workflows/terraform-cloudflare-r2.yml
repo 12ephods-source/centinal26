@@ -1,0 +1,34 @@
+name: Terraform Cloudflare R2
+
+on:
+  pull_request:
+    paths:
+      - "infra/cloudflare/r2-public-domain/**"
+      - ".github/workflows/terraform-cloudflare-r2.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "infra/cloudflare/r2-public-domain/**"
+      - ".github/workflows/terraform-cloudflare-r2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infra/cloudflare/r2-public-domain
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+      - name: Initialize without backend
+        run: terraform init -backend=false
+      - name: Validate Terraform
+        run: terraform validate

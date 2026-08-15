@@ -1,0 +1,13 @@
+account_id    = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+zone_id       = "YOUR_CLOUDFLARE_ZONE_ID"
+bucket_name   = "frost-public-assets"
+custom_domain = "assets.example.com"
+
+# Leave null for Cloudflare automatic placement (recommended).
+location = null
+
+storage_class = "Standard"
+min_tls       = "1.2"
+
+# r2.dev is intended for development and remains disabled by default.
+enable_r2_dev = false
