@@ -11,7 +11,7 @@ from frost_core.federation import AdapterStatus, FederationCatalog, default_fede
 from .event_state import EventStore, derive_ready_tasks, rebuild_state
 
 Json = dict[str, Any]
-CANONICAL_ADAPTER_IDS = frozenset({"aaard", "base44", "discord", "fras", "hermes"})
+CANONICAL_ADAPTER_IDS = frozenset({"aaard", "base44", "discord", "fras", "frost-call", "hermes"})
 _SAFE_TOKEN = re.compile(r"[^A-Za-z0-9_.-]+")
 
 

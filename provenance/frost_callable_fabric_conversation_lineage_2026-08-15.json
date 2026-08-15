@@ -1,0 +1,35 @@
+{
+  "schema": "frost-callable-fabric-lineage/1.0",
+  "recorded_at": "2026-08-15T01:45:00-06:00",
+  "project": "Automation",
+  "primary_component": "C05 Frost Agent Fabric",
+  "subproject": "Frost Agent Bridge / Frost Callable Fabric",
+  "protocol": "frost-call/1.x",
+  "classification": "COMPATIBLE_MODULE_REFERENCE",
+  "canonical_runtime": "12ephods-source/centinal26",
+  "artifacts": [
+    {
+      "name": "Frost-Callable-Fabric-v1.1.1.zip",
+      "sha256": "c6e32043fb5cc625accb52e5f56469bee24dd95bdc6a710e867c76657e9f8951",
+      "role": "conversation-produced transport/reference release"
+    },
+    {
+      "name": "Automation-C05-Frost-Agent-Fabric-Conversation-Archive-2026-08-14.zip",
+      "sha256": "95f364ac4975f118473106b68967739d2721a42dac54c969b3d9dcfb122c003c",
+      "role": "conversation archive and shared-component extraction record"
+    }
+  ],
+  "ownership": {
+    "C01": "Frost Core: runtime/protocol/idempotency/bounded execution primitives",
+    "C02": "Guardian: authorization, allowlists, risk policy, fail-closed decisions",
+    "C03": "Provenance & Recovery: hashes, receipts, audit chains, rollback evidence",
+    "C04": "Epistemic Guard: validation and promotion/regression gates",
+    "C05": "Frost Agent Fabric: frost-call, adapter registry, HTTP/MCP/provider bindings"
+  },
+  "promotion": {
+    "canonicalized_by_this_record": false,
+    "device_validation_claimed": false,
+    "ga_claimed": false,
+    "note": "Artifact hashes establish identity only; Centinal26 remains canonical state and authority."
+  }
+}

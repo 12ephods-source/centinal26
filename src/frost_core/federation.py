@@ -127,6 +127,16 @@ def default_federation_catalog() -> FederationCatalog:
             notes=("adapter requests remain proposal-only until canonical authorization",),
         ),
         AdapterDescriptor("mcp", AdapterKind.PROTOCOL, ("tools.list", "tools.call")),
+        AdapterDescriptor(
+            "frost-call",
+            AdapterKind.PROTOCOL,
+            ("intent.submit",),
+            status=AdapterStatus.DISCOVERED,
+            notes=(
+                "frost-call ingress normalizes proposals into CanonicalAdapterGateway",
+                "protocol membership never grants execution authority",
+            ),
+        ),
         AdapterDescriptor("a2a", AdapterKind.PROTOCOL, ("agent.message",)),
         AdapterDescriptor("nats", AdapterKind.MESSAGING, ("message.publish", "message.consume")),
         AdapterDescriptor("mqtt", AdapterKind.MESSAGING, ("message.publish", "message.consume")),
