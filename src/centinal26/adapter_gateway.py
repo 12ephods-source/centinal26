@@ -93,11 +93,11 @@ def _request_body(request: AdapterRequest) -> Json:
 
 
 def _request_sha256(body: Json) -> str:
-    return hashlib.sha256(_canonical_json(body).encode("utf-8")).hexdigest()
+    return hashlib.sha256(_canonical_json(body).encode()).hexdigest()
 
 
 def _stable_suffix(adapter_id: str, external_id: str) -> str:
-    digest = hashlib.sha256(f"{adapter_id}\0{external_id}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(f"{adapter_id}\0{external_id}".encode()).hexdigest()
     return digest[:24]
 
 
