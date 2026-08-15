@@ -1,5 +1,5 @@
-from pathlib import Path
 from runpy import run_path
+from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "agent_fleet_qualify.py"
