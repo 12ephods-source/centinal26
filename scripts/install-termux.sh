@@ -8,3 +8,6 @@ python -m pip install -e .
 centinal26 init
 centinal26 demo
 centinal26 status
+centinal26 auto-demo
+centinal26 auto-selftest
+centinal26 auto-status
