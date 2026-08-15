@@ -1,6 +1,30 @@
 """Frost CORE Ω future-capability runtime primitives."""
 
+from .capability_factory import (
+    CapabilityCandidate,
+    CapabilityFactoryLedger,
+    CapabilityStage,
+    GateEvidence,
+    PromotionDecision,
+)
 from .condition_watch import ConditionWatchLedger, DeliveryClaim, WatchDecision
+from .effects import (
+    EffectAuthorization,
+    EffectClaim,
+    EffectConflict,
+    EffectProtocolLedger,
+    EffectRequest,
+    EffectSnapshot,
+    EffectState,
+    EffectTransitionError,
+)
+from .federation import (
+    AdapterDescriptor,
+    AdapterKind,
+    AdapterStatus,
+    FederationCatalog,
+    default_federation_catalog,
+)
 from .future_capabilities import (
     AttentionAction,
     AttentionDecision,
@@ -17,27 +41,103 @@ from .future_capabilities import (
     Signal,
     default_registry,
 )
+from .provenance_miner import (
+    ArtifactFinding,
+    EvidenceStrength,
+    MinerQuery,
+    MinerReport,
+    ReadOnlyProvenanceMiner,
+)
+from .providers import (
+    ProviderAvailability,
+    ProviderMaturity,
+    ProviderRecord,
+    ProviderRegistry,
+    RouteDecision,
+    RoutingPolicy,
+)
+from .reconciliation import (
+    ControlPlaneSnapshot,
+    ReconciliationDecision,
+    ReconciliationLedger,
+    ReconciliationState,
+)
+from .sdos import (
+    ExperimentEvidence,
+    ScientificBranchLedger,
+    TheoryBranch,
+    TheoryBranchStatus,
+)
+from .software_creation import (
+    FrostV0Adapter,
+    PreparedPullRequest,
+    SoftwareRequest,
+    SoftwareResult,
+    V0Operation,
+)
 from .strategic import BranchForecast, BranchOption, StrategicBranchForecaster
 
 __all__ = [
+    "AdapterDescriptor",
+    "AdapterKind",
+    "AdapterStatus",
+    "ArtifactFinding",
     "AttentionAction",
     "AttentionDecision",
     "BranchForecast",
     "BranchOption",
     "CapabilityActivation",
+    "CapabilityCandidate",
+    "CapabilityFactoryLedger",
     "CapabilityRegistry",
+    "CapabilityStage",
     "CapabilityStatus",
     "CognitionRoute",
     "CognitionTask",
     "ConditionWatchLedger",
+    "ControlPlaneSnapshot",
     "DelegatedCognitionRouter",
     "DeliveryClaim",
+    "EffectAuthorization",
+    "EffectClaim",
+    "EffectConflict",
+    "EffectProtocolLedger",
+    "EffectRequest",
+    "EffectSnapshot",
+    "EffectState",
+    "EffectTransitionError",
     "EvidenceClass",
     "EvidenceItem",
+    "EvidenceStrength",
+    "ExperimentEvidence",
+    "FederationCatalog",
+    "FrostV0Adapter",
+    "GateEvidence",
     "IntelligenceAwareness",
+    "MinerQuery",
+    "MinerReport",
     "PredictiveAttentionManager",
+    "PreparedPullRequest",
+    "PromotionDecision",
+    "ProviderAvailability",
+    "ProviderMaturity",
+    "ProviderRecord",
+    "ProviderRegistry",
+    "ReadOnlyProvenanceMiner",
+    "ReconciliationDecision",
+    "ReconciliationLedger",
+    "ReconciliationState",
+    "RouteDecision",
+    "RoutingPolicy",
+    "ScientificBranchLedger",
     "Signal",
+    "SoftwareRequest",
+    "SoftwareResult",
     "StrategicBranchForecaster",
+    "TheoryBranch",
+    "TheoryBranchStatus",
+    "V0Operation",
     "WatchDecision",
+    "default_federation_catalog",
     "default_registry",
 ]
