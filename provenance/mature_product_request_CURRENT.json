@@ -1,0 +1,7 @@
+{
+  "schema": "frost.mature_product_request/v1",
+  "request_ref": "provenance/mature_product_request_2026-08-14.json",
+  "status": "QUEUED_FOR_DEVICE_GUARDIAN",
+  "physical_execution_claimed": false,
+  "promotion_allowed": false
+}
