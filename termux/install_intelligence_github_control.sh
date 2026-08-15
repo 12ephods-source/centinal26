@@ -3,18 +3,17 @@ set -euo pipefail
 
 ROOT="${CENTINAL26_REPO_ROOT:-$HOME/automation-intelligence-control-repo}"
 CFGDIR="${HOME}/.automation_os_github"
-REPO="${AUTOMATION_OS_GITHUB_REPO:-12ephods-source/centinal26}"
+CANONICAL_REPO="12ephods-source/centinal26"
+REPO="${AUTOMATION_OS_GITHUB_REPO:-$CANONICAL_REPO}"
 GATE_ROOT="$HOME/.automation_intelligence_gate"
+
+[ "$REPO" = "$CANONICAL_REPO" ] || {
+  echo "BLOCKED_NONCANONICAL_REPO $REPO" >&2
+  exit 64
+}
 
 mkdir -p "$CFGDIR" "$HOME/.termux/boot" "$GATE_ROOT"
 chmod 700 "$CFGDIR" "$GATE_ROOT"
-
-if [ -f "$CFGDIR/config" ]; then
-  # shellcheck disable=SC1090
-  source "$CFGDIR/config"
-fi
-TOKEN="${GITHUB_TOKEN:-}"
-DEVICE_ID="${AUTOMATION_DEVICE_ID:-android-$(uname -m)-$(date +%s)}"
 
 missing_packages=()
 need_package() {
@@ -27,7 +26,7 @@ need_package jq jq
 need_package sha256sum coreutils
 need_package python python
 need_package pgrep procps
-if [ -z "$TOKEN" ]; then need_package gh gh; fi
+need_package gh gh
 
 if [ "${#missing_packages[@]}" -gt 0 ]; then
   command -v pkg >/dev/null 2>&1 || {
@@ -41,16 +40,16 @@ if [ "${#missing_packages[@]}" -gt 0 ]; then
   fi
 fi
 
-if [ -z "$TOKEN" ]; then
-  if gh auth status --hostname github.com >/dev/null 2>&1; then
-    echo "GITHUB_AUTH: EXISTING_LOGIN"
-  else
-    gh auth login --hostname github.com --web --git-protocol https --scopes repo,workflow
-  fi
-  gh auth setup-git --hostname github.com
-  TOKEN="$(gh auth token --hostname github.com)"
+if gh auth status --hostname github.com >/dev/null 2>&1; then
+  echo "GITHUB_AUTH: EXISTING_LOGIN"
+else
+  gh auth login --hostname github.com --web --git-protocol https --scopes repo,workflow
 fi
-[ -n "$TOKEN" ] || { echo "BLOCKED_GITHUB_AUTH" >&2; exit 2; }
+gh auth setup-git --hostname github.com
+[ -n "$(gh auth token --hostname github.com 2>/dev/null || true)" ] || {
+  echo "BLOCKED_GITHUB_AUTH" >&2
+  exit 2
+}
 
 if [ -d "$ROOT/.git" ]; then
   [ -z "$(git -C "$ROOT" status --porcelain)" ] || {
@@ -64,13 +63,20 @@ else
   git clone "https://github.com/${REPO}.git" "$ROOT"
 fi
 
-cat > "$CFGDIR/config" <<EOF_CFG
-GITHUB_REPO="$REPO"
-GITHUB_TOKEN="$TOKEN"
-GITHUB_REF="main"
-AUTOMATION_DEVICE_ID="$DEVICE_ID"
-EOF_CFG
-chmod 600 "$CFGDIR/config"
+RUNTIME_CONFIG="$ROOT/termux/github_runtime_config.sh"
+[ -f "$RUNTIME_CONFIG" ] || { echo "Missing runtime config helper: $RUNTIME_CONFIG" >&2; exit 2; }
+# Preserve a valid prior device identity from data-only config; never execute config content.
+DEVICE_ID=""
+if [ -f "$CFGDIR/config.json" ]; then
+  DEVICE_ID="$(jq -r 'select(.schema == "centinal26-github-worker-config-v1" and .github_repo == "12ephods-source/centinal26") | .automation_device_id // empty' "$CFGDIR/config.json" 2>/dev/null || true)"
+fi
+if ! [[ "$DEVICE_ID" =~ ^[A-Za-z0-9._:-]{1,128}$ ]]; then
+  DEVICE_ID="android-$(uname -m)-$(date +%s)"
+fi
+# shellcheck disable=SC1090
+source "$RUNTIME_CONFIG"
+github_runtime_write_config "$CFGDIR/config.json" "$REPO" "main" "$DEVICE_ID"
+rm -f "$CFGDIR/config"
 
 python -m venv "$ROOT/.venv"
 "$ROOT/.venv/bin/python" -m pip install -e "$ROOT"
