@@ -1,0 +1,12 @@
+{
+  "protocol": "frost-effect/1.0",
+  "request_id": "github-effect-denial-20260815-a",
+  "capability": "github.runtime.unapproved.put",
+  "idempotency_key": "github-effect-denial-20260815-key-001",
+  "actor": "automation-controller",
+  "payload": {
+    "marker": "github-actions-denial-probe",
+    "value": "must-not-execute"
+  },
+  "expires_at": "2026-08-16T06:30:00Z"
+}
