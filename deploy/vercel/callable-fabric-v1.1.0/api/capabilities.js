@@ -1,0 +1,1 @@
+'use strict';const{manifest}=require('../lib/fabric');module.exports=(req,res)=>req.method==='GET'?res.status(200).json({ok:true,capabilities:[manifest]}):res.status(405).json({ok:false,error:'method not allowed'});

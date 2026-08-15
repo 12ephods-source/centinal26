@@ -1,0 +1,1 @@
+'use strict';const{healthResult}=require('../lib/fabric');module.exports=(req,res)=>req.method==='GET'?res.status(200).json({...healthResult(),promotion_state:'REACHABLE',time:new Date().toISOString()}):res.status(405).json({ok:false,error:'method not allowed'});
