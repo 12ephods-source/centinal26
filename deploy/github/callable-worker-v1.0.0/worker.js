@@ -19,6 +19,11 @@ const {
 const PROTOCOL = 'frost-call/1.0';
 const MAX_REQUEST_BYTES = 64 * 1024;
 const MAX_IDEMPOTENCY_KEY_BYTES = 256;
+const FABRIC_SOURCE_PATH = require.resolve('../../vercel/callable-fabric-v1.1.0/lib/fabric');
+const WORKFLOW_SOURCE_PATH = path.resolve(
+  __dirname,
+  '../../../.github/workflows/callable-fabric-worker.yml',
+);
 
 function envelopeHash(value) {
   const body = {...value};
@@ -29,6 +34,41 @@ function envelopeHash(value) {
 function verifyEnvelope(value) {
   if (!value || typeof value !== 'object' || typeof value.envelope_hash !== 'string') return false;
   return envelopeHash(value) === value.envelope_hash;
+}
+
+function fileSha256(filePath) {
+  return sha256(fs.readFileSync(filePath));
+}
+
+function sourceAttestation(provider = {}) {
+  const semanticCoreFileSha256 = fileSha256(FABRIC_SOURCE_PATH);
+  const workerSourceSha256 = fileSha256(__filename);
+  const workflowSourceSha256 = fileSha256(WORKFLOW_SOURCE_PATH);
+  const providerCodeIdentity = {
+    provider: 'github-actions',
+    semantic_core_file_sha256: semanticCoreFileSha256,
+    worker_source_sha256: workerSourceSha256,
+    workflow_source_sha256: workflowSourceSha256,
+  };
+  return {
+    schema: 'frost-source-attestation/1.0',
+    semantic_core: {
+      canonical_git_sha: CANONICAL_GIT_SHA,
+      source_identity_sha256: SOURCE_IDENTITY_SHA256,
+      deployment_adapter_sha256: ADAPTER_SPEC_SHA256,
+      file_sha256: semanticCoreFileSha256,
+    },
+    provider_runtime: {
+      provider: 'github-actions',
+      worker_source_sha256: workerSourceSha256,
+      workflow_source_sha256: workflowSourceSha256,
+      checked_out_sha: provider.sha || null,
+      checked_out_ref: provider.ref || null,
+    },
+    provider_code_identity_sha256: sha256(
+      Buffer.from(canonical(providerCodeIdentity), 'utf8'),
+    ),
+  };
 }
 
 function requestIdentity(request) {
@@ -112,6 +152,7 @@ function processRequest(request, provider = {}) {
     canonical_git_sha: CANONICAL_GIT_SHA,
     source_identity_sha256: SOURCE_IDENTITY_SHA256,
     deployment_adapter_sha256: ADAPTER_SPEC_SHA256,
+    source_attestation: sourceAttestation(provider),
     request_sha256: identity.request_sha256,
     idempotency_key: identity.idempotency_key,
     response,
@@ -135,6 +176,7 @@ function errorEnvelope(raw, request, error, provider = {}, extra = {}) {
     canonical_git_sha: CANONICAL_GIT_SHA,
     source_identity_sha256: SOURCE_IDENTITY_SHA256,
     deployment_adapter_sha256: ADAPTER_SPEC_SHA256,
+    source_attestation: sourceAttestation(provider),
     request_sha256: identity?.request_sha256 || sha256(Buffer.from(raw, 'utf8')),
     idempotency_key: identity?.idempotency_key || null,
     error: {type: error.name || 'Error', message: String(error.message || error)},
@@ -215,6 +257,7 @@ function main(argv) {
   const result = processFile(inputPath, outputPath, {
     run_id: process.env.GITHUB_RUN_ID || null,
     sha: process.env.GITHUB_SHA || null,
+    ref: process.env.GITHUB_REF || null,
   });
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
@@ -227,6 +270,7 @@ module.exports = {
   processRequest,
   processFile,
   requestIdentity,
+  sourceAttestation,
   handleMcp,
   envelopeHash,
   verifyEnvelope,
