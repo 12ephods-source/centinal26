@@ -22,7 +22,7 @@ def test_backlog_recovery_has_push_manual_and_scheduled_wakeups() -> None:
     text = workflow_text()
     assert 'branches: ["callable-runtime"]' in text
     assert "workflow_dispatch:" in text
-    assert 'cron: "17 * * * *"' in text
+    assert 'cron: "*/5 * * * *"' in text
 
 
 def test_every_trigger_checks_out_the_callable_runtime_branch() -> None:
