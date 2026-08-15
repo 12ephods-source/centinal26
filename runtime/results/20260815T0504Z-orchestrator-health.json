@@ -1,0 +1,81 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31866054505",
+  "provider_sha": "857289328f26b29187955653d586beee39940e82",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "semantic_core": {
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8"
+    },
+    "provider_runtime": {
+      "provider": "github-actions",
+      "worker_source_sha256": "31380abafe8ae6a1002eafcfb6d25e2209e7a6e1aea2930a915c18b1f06eb5fd",
+      "workflow_source_sha256": "8b61709ec700886b66e1f27dc93600759f4e4ebfc8d57405e0d1122c0e5d58a4",
+      "checked_out_sha": "857289328f26b29187955653d586beee39940e82",
+      "checked_out_ref": "refs/heads/callable-runtime"
+    },
+    "provider_code_identity_sha256": "21aa48167377adba4f5529b7143edbf038fc0bcbdd6f29a4de13e5cc676716c8"
+  },
+  "provider_effect_policy": {
+    "allowed": true,
+    "status": "READ_ONLY",
+    "operation": "system.health",
+    "semantic_core_file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8"
+  },
+  "request_sha256": "d3c5f64e22e0a4a6b10433bd090c0127aea80a6a8ed2bf834618c81ee72d19d4",
+  "idempotency_key": "orchestrator-health-20260815T0504Z",
+  "response": {
+    "ok": true,
+    "request_id": "orchestrator-health-20260815T0504Z",
+    "service_id": "frost.callable.fabric",
+    "operation": "system.health",
+    "result": {
+      "ok": true,
+      "service": "frost.callable.fabric",
+      "version": "1.1.0",
+      "canonical_repo": "12ephods-source/centinal26",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "semantic_tools_only": true,
+      "unrestricted_remote_shell": false
+    },
+    "diagnostics": {
+      "elapsed_ms": 1,
+      "version": "1.1.0",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "result_hash": "fd88bf10d149af50adf81b8831c52c770b032173f1d62a2875c7a600ad966cfd"
+    },
+    "receipt": {
+      "request_id": "orchestrator-health-20260815T0504Z",
+      "service_id": "frost.callable.fabric",
+      "operation": "system.health",
+      "caller": "frost-automation-orchestrator",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "0ebc9b04faf47c83d81611c0e3fdf1523235363eea4e94fe50113741fd9b567f",
+      "guardian": {
+        "allowed": true,
+        "reason": "authorized"
+      },
+      "event": "INVOCATION_OK",
+      "result_hash": "fd88bf10d149af50adf81b8831c52c770b032173f1d62a2875c7a600ad966cfd",
+      "elapsed_ms": 1,
+      "timestamp": "2026-08-15T05:05:03.546Z",
+      "record_hash": "ecf91af328437fe50843c8388b0f8e8d135305b8468d53b42c274975bdfbd0ac"
+    }
+  },
+  "envelope_hash": "c464676bd61819be9dc2057322b452ea099f3ea0fe4967bac1e0407c4d89b513"
+}
