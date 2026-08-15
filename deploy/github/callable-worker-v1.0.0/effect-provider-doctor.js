@@ -14,8 +14,10 @@ const {
   verifyHash,
 } = require('./effect-provider');
 const {
-  verifyDeniedFile,
-  verifyExecutedFile,
+  markerPathFor: verifierMarkerPathFor,
+  verificationBodyForDenied,
+  verificationBodyForExecuted,
+  verifyHash: verifierVerifyHash,
 } = require('./effect-provider-verifier');
 
 const future = '2099-01-01T00:00:00Z';
@@ -52,6 +54,9 @@ try {
   const verificationDir = path.join(temp, 'runtime', 'effect-verifications');
   fs.mkdirSync(requestDir, {recursive: true});
 
+  const verifierSource = fs.readFileSync(require.resolve('./effect-provider-verifier'), 'utf8');
+  assert.strictEqual(verifierSource.includes("require('./effect-provider')"), false);
+
   const request = approvedRequest();
   const requestPath = path.join(requestDir, 'approved.json');
   const intentPath = path.join(intentDir, 'approved.json');
@@ -64,6 +69,7 @@ try {
   });
   assert.strictEqual(prepared.approved, true);
   assert.strictEqual(prepared.marker_path, markerPathFor(request));
+  assert.strictEqual(prepared.marker_path, verifierMarkerPathFor(request));
   const intent = readJson(intentPath);
   assert.strictEqual(intent.guardian.approved, true);
   assert.strictEqual(intent.guardian.constraints.caller_supplied_path, false);
@@ -81,20 +87,19 @@ try {
   assert.strictEqual(recorded.state, 'EXECUTED');
   assert.ok(verifyHash(readJson(resultPath), 'result_sha256'));
 
-  const remoteMarkerPath = path.join(temp, 'remote-marker.json');
-  fs.copyFileSync(prepared.marker_path, remoteMarkerPath);
   const verificationPath = path.join(verificationDir, 'approved.json');
-  const verified = verifyExecutedFile(
-    requestPath,
-    intentPath,
-    resultPath,
-    remoteMarkerPath,
+  const verification = verificationBodyForExecuted(
+    request,
+    intent,
+    readJson(resultPath),
+    marker,
     effectCommit,
-    verificationPath,
   );
-  assert.strictEqual(verified.state, 'VERIFIED');
-  assert.strictEqual(verified.decision, 'POSTCONDITION_VERIFIED');
-  assert.ok(verifyHash(readJson(verificationPath), 'verification_hash'));
+  writeJson(verificationPath, verification);
+  assert.strictEqual(verification.state, 'VERIFIED');
+  assert.strictEqual(verification.decision, 'POSTCONDITION_VERIFIED');
+  assert.strictEqual(verification.verifier_id, 'github-actions-effect-independent-git/v2');
+  assert.ok(verifierVerifyHash(readJson(verificationPath), 'verification_hash'));
 
   const replayRequestPath = path.join(requestDir, 'replay.json');
   const replayIntentPath = path.join(intentDir, 'replay.json');
@@ -144,9 +149,19 @@ try {
   });
   assert.strictEqual(deniedPrepared.approved, false);
   assert.strictEqual(fs.existsSync(deniedIntentPath), false);
-  assert.strictEqual(readJson(deniedResultPath).state, 'DENIED');
-  const deniedVerified = verifyDeniedFile(deniedRequestPath, deniedResultPath, deniedVerificationPath);
-  assert.strictEqual(deniedVerified.decision, 'DENIAL_VERIFIED');
+  const deniedResult = readJson(deniedResultPath);
+  assert.strictEqual(deniedResult.state, 'DENIED');
+  const absenceEvidence = {
+    remote_ref: 'origin/callable-runtime',
+    remote_ref_sha: 'b'.repeat(40),
+    marker_path: verifierMarkerPathFor(denied),
+    marker_absent: true,
+  };
+  const deniedVerification = verificationBodyForDenied(denied, deniedResult, absenceEvidence);
+  writeJson(deniedVerificationPath, deniedVerification);
+  assert.strictEqual(deniedVerification.decision, 'DENIAL_VERIFIED');
+  assert.strictEqual(deniedVerification.postcondition.derived_marker_absent_at_remote_ref, true);
+  assert.ok(verifierVerifyHash(readJson(deniedVerificationPath), 'verification_hash'));
 
   const stalePath = path.join(requestDir, 'stale.json');
   writeJson(stalePath, approvedRequest({
@@ -175,13 +190,15 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    tests: 9,
+    tests: 10,
     guardian_allowlist: true,
     caller_supplied_path_absent: true,
     shell_authority_absent: true,
     execution_intent_hash: true,
     provider_marker_effect: true,
+    independent_verifier_implementation: true,
     independent_postcondition_verification: true,
+    remote_denial_absence_contract: true,
     idempotent_replay: true,
     idempotency_conflict_rejected: true,
     guardian_denial_verified: true,
