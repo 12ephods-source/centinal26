@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import resource
 import selectors
 import shutil
 import signal
@@ -129,12 +128,17 @@ def _validate_hex_digest(value: str, name: str, lengths: set[int]) -> None:
         raise ValueError(f"{name} must be lowercase hex with length {allowed}")
 
 
-def _limit_process(limits: SandboxLimits) -> None:
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    resource.setrlimit(resource.RLIMIT_CPU, (limits.cpu_seconds, limits.cpu_seconds + 1))
-    resource.setrlimit(resource.RLIMIT_AS, (limits.memory_bytes, limits.memory_bytes))
-    resource.setrlimit(resource.RLIMIT_NPROC, (limits.processes, limits.processes))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (limits.open_files, limits.open_files))
+def _resource_command(prlimit: Path, limits: SandboxLimits, inner: list[str]) -> list[str]:
+    return [
+        str(prlimit),
+        f"--cpu={limits.cpu_seconds}:{limits.cpu_seconds + 1}",
+        f"--as={limits.memory_bytes}:{limits.memory_bytes}",
+        f"--nproc={limits.processes}:{limits.processes}",
+        f"--nofile={limits.open_files}:{limits.open_files}",
+        "--core=0:0",
+        "--",
+        *inner,
+    ]
 
 
 def _kill_process_group(process: subprocess.Popen[bytes]) -> None:
@@ -173,7 +177,6 @@ def _bounded_communicate(
 
         events = selector.select(timeout=max(0.0, min(0.1, remaining)))
         if not events and process.poll() is not None:
-            # One final nonblocking drain pass is still needed after process exit.
             events = [(key, selectors.EVENT_READ) for key in selector.get_map().values()]
 
         for key, _mask in events:
@@ -207,13 +210,20 @@ class BubblewrapEvaluator:
     def __init__(self, binary: str | Path | None = None):
         discovered = shutil.which("bwrap") if binary is None else str(binary)
         self.binary = None if discovered is None else Path(discovered)
+        prlimit = shutil.which("prlimit")
+        self.prlimit = None if prlimit is None else Path(prlimit)
 
-    def _base_command(self, candidate_root: Path) -> list[str]:
+    def _require_backends(self) -> tuple[Path, Path]:
         if self.binary is None or not self.binary.is_file():
             raise SandboxUnavailable("bubblewrap is unavailable")
+        if self.prlimit is None or not self.prlimit.is_file():
+            raise SandboxUnavailable("prlimit is unavailable")
+        return self.binary, self.prlimit
 
+    def _base_command(self, candidate_root: Path) -> list[str]:
+        binary, _prlimit = self._require_backends()
         command = [
-            str(self.binary),
+            str(binary),
             "--die-with-parent",
             "--new-session",
             "--unshare-user",
@@ -260,15 +270,13 @@ class BubblewrapEvaluator:
         return command
 
     def probe(self) -> None:
-        if self.binary is None or not self.binary.is_file():
-            raise SandboxUnavailable("bubblewrap is unavailable")
+        self._require_backends()
         probe_root = Path("/usr").resolve()
         command = self._base_command(probe_root) + ["--", "/usr/bin/true"]
-        process = subprocess.run(  # noqa: S603 - fixed binary and fixed probe command
+        process = subprocess.run(
             command,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             env={},
             check=False,
             timeout=5,
@@ -304,21 +312,21 @@ class BubblewrapEvaluator:
             raise NotADirectoryError(candidate_root)
         source_digest = _tree_digest(candidate_root)
 
-        # Probe immediately before every untrusted evaluation. Failure is a hard block.
         self.probe()
+        _binary, prlimit = self._require_backends()
         bwrap_command = self._base_command(candidate_root) + ["--", *command]
+        bounded_command = _resource_command(prlimit, limits, bwrap_command)
         started_at = datetime.now(UTC).isoformat()
         started = time.monotonic()
         try:
-            process = subprocess.Popen(  # noqa: S603 - execution occurs only inside bwrap
-                bwrap_command,
+            process = subprocess.Popen(
+                bounded_command,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={},
                 cwd="/",
                 start_new_session=True,
-                preexec_fn=lambda: _limit_process(limits),
             )
         except OSError as error:
             raise SandboxUnavailable(f"could not create bubblewrap sandbox: {error}") from error
@@ -332,7 +340,7 @@ class BubblewrapEvaluator:
 
         body: dict[str, Any] = {
             "schema_version": 1,
-            "sandbox_backend": "bubblewrap",
+            "sandbox_backend": "bubblewrap+prlimit",
             "candidate_commit": candidate_commit,
             "goal_digest": goal_digest,
             "source_digest": source_digest,
@@ -352,6 +360,7 @@ class BubblewrapEvaluator:
                 "docker_socket": False,
                 "ssh_agent": False,
                 "host_execution_fallback": False,
+                "resource_limits": "prlimit_inherited",
             },
             "exit_code": process.returncode,
             "timed_out": timed_out,
