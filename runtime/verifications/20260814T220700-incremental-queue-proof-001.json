@@ -1,0 +1,22 @@
+{
+  "schema": "frost-independent-verification/1.0",
+  "verifier": "github-callable-independent-verifier",
+  "verification_status": "VERIFIED",
+  "request_sha256": "8d112cc0d708ed5c2eb3247e9e862fef73665fff449c324ce25f788fd545f42b",
+  "result_file_sha256": "83d95410c90efef9f2c2cc5e7dee1534e6b904869c1bc7d2ef235e8059706579",
+  "result_envelope_hash": "ec994cb0db8c204238f07819a52c85998654d1ca26f58dc0eab5600b0573efdc",
+  "source_attestation_status": "VERIFIED",
+  "provider_code_identity_sha256": "21aa48167377adba4f5529b7143edbf038fc0bcbdd6f29a4de13e5cc676716c8",
+  "verifier_source_sha256": "86d91dbdaaeb2b22ebbc2f04bff222542dddf912190c5a06174b8811e0292dfb",
+  "checks": [
+    "idempotency_key:VERIFIED",
+    "request_identity:VERIFIED",
+    "envelope_hash:VERIFIED",
+    "request_expiry:NOT_REQUESTED",
+    "source_attestation:VERIFIED_HISTORICAL_BYTES",
+    "provider_effect_policy:READ_ONLY_VERIFIED",
+    "semantic_receipt:VERIFIED",
+    "semantic_result_hash:VERIFIED"
+  ],
+  "verification_hash": "6c231b2fa1a8693c45427ecfb2b01af269ba537ce990dd63bc966c86f9b87c0a"
+}
