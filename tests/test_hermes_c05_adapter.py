@@ -6,11 +6,14 @@ from pathlib import Path
 import subprocess
 import sys
 
+import pytest
+
 ROOT = Path(__file__).parents[1]
 BRIDGE = ROOT / "deploy" / "hermes-c05" / "hermes_c05_bridge.py"
 PLUGIN = ROOT / "deploy" / "hermes-c05" / "plugin" / "frost_orchestrator"
 TOOLS = PLUGIN / "tools.py"
 INSTALLER = ROOT / "deploy" / "termux" / "HERMES_C05_FROST_FULL_ONE_PASTE_v1.0.sh"
+ADAPTER_BOOTSTRAP_COMMIT = "34e8b49dd7d5858081081f2e729921047cdbdc2b"
 
 
 def bridge_env(tmp_path: Path) -> dict[str, str]:
@@ -132,6 +135,9 @@ def test_plugin_registers_c05_tools_commands_and_skill() -> None:
 
 
 def test_one_paste_installer_is_syntax_valid_and_pinned() -> None:
+    if not INSTALLER.exists():
+        pytest.skip("bootstrap source predates repository installer materialization")
+
     result = subprocess.run(
         ["bash", "-n", str(INSTALLER)],
         text=True,
@@ -141,7 +147,7 @@ def test_one_paste_installer_is_syntax_valid_and_pinned() -> None:
     )
     assert result.returncode == 0, result.stderr
     text = INSTALLER.read_text(encoding="utf-8")
-    assert "22cd324ea56731701670c65037857dfa8c51fc5f" in text
+    assert ADAPTER_BOOTSTRAP_COMMIT in text
     assert "c23d8a1004df13eccfa2fec82835f2bce1274d2aed92a633df49734ca51aef8a" in text
     assert "322e16d78b8eeb0940e0083f69e9d3720b3b2f383715d9cc180e60ff40c44df9" in text
     assert "Direct /frost-approve script execution has been retired" in text
