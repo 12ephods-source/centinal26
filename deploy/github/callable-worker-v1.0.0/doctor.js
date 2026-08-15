@@ -33,7 +33,11 @@ function run(request) {
   return result;
 }
 
-function assertSourceAttestation(result) {
+function assertSourceAttestation(
+  result,
+  expectedSha = 'doctor-sha',
+  expectedRef = 'refs/heads/doctor',
+) {
   const att = result.source_attestation;
   assert.strictEqual(att.schema, 'frost-source-attestation/1.0');
   assert.strictEqual(att.semantic_core.canonical_git_sha, result.canonical_git_sha);
@@ -52,8 +56,8 @@ function assertSourceAttestation(result) {
   assert.strictEqual(att.semantic_core.file_sha256, semanticCoreFileSha256);
   assert.strictEqual(att.provider_runtime.worker_source_sha256, workerSourceSha256);
   assert.strictEqual(att.provider_runtime.workflow_source_sha256, workflowSourceSha256);
-  assert.strictEqual(att.provider_runtime.checked_out_sha, 'doctor-sha');
-  assert.strictEqual(att.provider_runtime.checked_out_ref, 'refs/heads/doctor');
+  assert.strictEqual(att.provider_runtime.checked_out_sha, expectedSha);
+  assert.strictEqual(att.provider_runtime.checked_out_ref, expectedRef);
 
   const expectedIdentity = sha256(Buffer.from(canonical({
     provider: 'github-actions',
@@ -173,7 +177,11 @@ try {
   assert.strictEqual(conflictEnvelope.ok, false);
   assert.strictEqual(conflictEnvelope.error.type, 'IdempotencyConflict');
   assert.strictEqual(verifyEnvelope(conflictEnvelope), true);
-  assertSourceAttestation(conflictEnvelope);
+  assertSourceAttestation(
+    conflictEnvelope,
+    'doctor-file-sha-3',
+    'refs/heads/doctor',
+  );
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }
