@@ -1,0 +1,16 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "idempotency_key": "side-effect-barrier-proof-2bd392f586a5",
+  "service_id": "frost.callable.fabric",
+  "operation": "frost.future.side_effect",
+  "arguments": {
+    "target": "negative-control-only"
+  },
+  "context": {
+    "caller": "automation-os-side-effect-barrier-proof",
+    "role": "operator",
+    "approved": true,
+    "request_id": "side-effect-barrier-proof-2bd392f586a5"
+  }
+}
