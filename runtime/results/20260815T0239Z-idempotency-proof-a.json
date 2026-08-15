@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31859724469",
+  "provider_sha": "3fde3ab1505a57e1a3817aeee7094ed2a211fc65",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "6acc8b31391e4818e845e437ea4e4cbe48a380517cd9b947e5e4e1383b7facd8",
+  "idempotency_key": "runtime-sync-proof-c8a5ef4931417fda",
+  "response": {
+    "ok": true,
+    "request_id": "runtime-sync-proof-c8a5ef4931417fda",
+    "service_id": "frost.callable.fabric",
+    "operation": "frost.diagnostics.sha256",
+    "result": {
+      "sha256": "25f99867ca90c0a74fe84323faeb2d0c9c1a6a9a373792ddb081a827591a869e"
+    },
+    "diagnostics": {
+      "elapsed_ms": 0,
+      "version": "1.1.0",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "result_hash": "479c471636d71b39629e94e2f2e32924265034090d5d085f4758c10bc755d4ce"
+    },
+    "receipt": {
+      "request_id": "runtime-sync-proof-c8a5ef4931417fda",
+      "service_id": "frost.callable.fabric",
+      "operation": "frost.diagnostics.sha256",
+      "caller": "automation-os-runtime-sync",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "e32ceb1cd5ec4a60f5120e7f2b18b35120c1a6ec848931eddfa8eadc6208f6be",
+      "guardian": {
+        "allowed": true,
+        "reason": "authorized"
+      },
+      "event": "INVOCATION_OK",
+      "result_hash": "479c471636d71b39629e94e2f2e32924265034090d5d085f4758c10bc755d4ce",
+      "elapsed_ms": 0,
+      "timestamp": "2026-08-15T02:38:45.969Z",
+      "record_hash": "26d058ca9515c900159edc67ebeb64f4592173a913d2ae5145f43b2fa0f6dad6"
+    }
+  },
+  "envelope_hash": "fcd7acb4c3bd280ee5b473206a5bba1179031076d121e27c2a88a266778372b5"
+}
