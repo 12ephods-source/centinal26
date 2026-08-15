@@ -1,22 +1,20 @@
-#!/usr/bin/env python3
 """Run the user-claim verifier over curated and repository-local evidence.
 
 Outputs are deterministic for a fixed repository tree and curated evidence file.
-External/web evidence is intentionally ingested as curated Evidence records rather than
-silently fetched at runtime, so every source can be reviewed and pinned.
+Lexical repository matches are emitted as discovery candidates, never as evidence that
+can affect a verdict until explicitly reviewed and promoted into the curated ledger.
 """
 from __future__ import annotations
 
 import argparse
 import csv
-import dataclasses
 import hashlib
 import json
 from pathlib import Path
 
 from centinal26.claim_verifier import (
-    Evidence,
     ClaimResult,
+    Evidence,
     load_claims,
     load_evidence,
     local_search,
@@ -57,16 +55,33 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _search_candidates(claims, root: Path) -> list[dict]:
+    rows: list[dict] = []
+    for claim in claims:
+        for ev in local_search(claim, [root], max_hits=12):
+            source = ev.source_id.replace("\\", "/")
+            if "/provenance/user_claims/" in f"/{source}" or "/build/user_claim_verification/" in f"/{source}":
+                continue
+            rows.append(
+                {
+                    "claim_id": claim.claim_id,
+                    "source_id": ev.source_id,
+                    "description": ev.description,
+                    "locator": ev.locator,
+                    "sha256": ev.sha256,
+                    "status": "DISCOVERY_CANDIDATE_NOT_EVIDENCE",
+                }
+            )
+    return rows
+
+
 def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None:
     claims = load_claims(claims_path)
     curated = load_evidence(curated_path)
-    evidence_by_claim: dict[str, list[Evidence]] = {}
-
-    for claim in claims:
-        combined = list(curated.get(claim.claim_id, []))
-        combined.extend(local_search(claim, [root], max_hits=12))
-        evidence_by_claim[claim.claim_id] = _dedupe(combined)
-
+    evidence_by_claim = {
+        claim.claim_id: _dedupe(list(curated.get(claim.claim_id, []))) for claim in claims
+    }
+    candidates = _search_candidates(claims, root)
     results = verify(claims, evidence_by_claim)
     outdir.mkdir(parents=True, exist_ok=True)
 
@@ -75,6 +90,7 @@ def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None
     ledger_jsonl = outdir / "claim_ledger.jsonl"
     matrix_csv = outdir / "claim_matrix.csv"
     unresolved_md = outdir / "unresolved_evidence_requests.md"
+    candidates_json = outdir / "documentary_search_candidates.json"
     manifest = outdir / "evidence_manifest.json"
 
     report_json.write_text(
@@ -86,6 +102,7 @@ def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None
         "\n".join(json.dumps(_result_payload(r), sort_keys=True) for r in results) + "\n",
         encoding="utf-8",
     )
+    candidates_json.write_text(json.dumps(candidates, indent=2, sort_keys=True), encoding="utf-8")
 
     with matrix_csv.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
@@ -109,9 +126,14 @@ def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None
             ])
 
     unresolved = [
-        r for r in results
-        if r.verdict.value in {
-            "INSUFFICIENT_EVIDENCE", "DOCUMENTED_ONLY", "PARTIALLY_VERIFIED", "PREDICTION"
+        r
+        for r in results
+        if r.verdict.value
+        in {
+            "INSUFFICIENT_EVIDENCE",
+            "DOCUMENTED_ONLY",
+            "PARTIALLY_VERIFIED",
+            "PREDICTION",
         }
     ]
     lines = [
@@ -135,13 +157,21 @@ def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None
         lines.extend(["", f"Next action: {r.next_action}", ""])
     unresolved_md.write_text("\n".join(lines), encoding="utf-8")
 
-    generated = [report_json, report_md, ledger_jsonl, matrix_csv, unresolved_md]
+    generated = [
+        report_json,
+        report_md,
+        ledger_jsonl,
+        matrix_csv,
+        unresolved_md,
+        candidates_json,
+    ]
     manifest_payload = {
         "schema": "centinal26.user-claim-verification-manifest.v1",
         "claims_source": str(claims_path),
         "curated_evidence_source": str(curated_path),
         "repository_root": str(root),
         "claim_count": len(results),
+        "search_candidate_count": len(candidates),
         "verdict_counts": {
             verdict: sum(1 for r in results if r.verdict.value == verdict)
             for verdict in sorted({r.verdict.value for r in results})
@@ -156,8 +186,16 @@ def run(claims_path: Path, curated_path: Path, root: Path, outdir: Path) -> None
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--claims", type=Path, default=Path("provenance/user_claims/2026-08-14_claims.json"))
-    parser.add_argument("--evidence", type=Path, default=Path("provenance/user_claims/2026-08-14_evidence.json"))
+    parser.add_argument(
+        "--claims",
+        type=Path,
+        default=Path("provenance/user_claims/2026-08-14_claims.json"),
+    )
+    parser.add_argument(
+        "--evidence",
+        type=Path,
+        default=Path("provenance/user_claims/2026-08-14_evidence.json"),
+    )
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--outdir", type=Path, default=Path("build/user_claim_verification"))
     args = parser.parse_args()
