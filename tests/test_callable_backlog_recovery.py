@@ -57,3 +57,11 @@ def test_idle_runs_do_not_publish_fake_results() -> None:
     assert "processed=$processed" in text
     assert "verified=$verified" in text
     assert "pending_before=$pending_before" in text
+
+
+def test_provider_attestation_uses_checked_out_runtime_identity() -> None:
+    text = workflow_text()
+    assert 'checked_out_sha="$(git rev-parse HEAD)"' in text
+    assert 'checked_out_ref="refs/heads/callable-runtime"' in text
+    assert 'GITHUB_SHA="$checked_out_sha" GITHUB_REF="$checked_out_ref"' in text
+    assert 'node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"' in text

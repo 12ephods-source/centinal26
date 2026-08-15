@@ -38,6 +38,9 @@ jobs:
           processed=0
           verified=0
           pending_before=0
+          checked_out_sha="$(git rev-parse HEAD)"
+          checked_out_ref="refs/heads/callable-runtime"
+          test -n "$checked_out_sha"
           for req in runtime/requests/*.json; do
             base="$(basename "$req")"
             out="runtime/results/$base"
@@ -52,7 +55,8 @@ jobs:
             fi
 
             pending_before=$((pending_before + 1))
-            node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"
+            GITHUB_SHA="$checked_out_sha" GITHUB_REF="$checked_out_ref" \
+              node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"
             node deploy/github/callable-worker-v1.0.0/verifier.js "$req" "$out" "$verification"
             processed=$((processed + 1))
             verified=$((verified + 1))
