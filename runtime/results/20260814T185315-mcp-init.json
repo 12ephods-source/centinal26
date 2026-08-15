@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31855110929",
+  "provider_sha": "e3fd8665b6fc8a66ff0ad7d5d64ffe40ead54597",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "0deacb0be14c461eb58d30205d48c3269cecc2160cbbd79a0586065cec7a89c3",
+  "response": {
+    "jsonrpc": "2.0",
+    "id": "factory-mcp-init",
+    "result": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "serverInfo": {
+        "name": "frost-callable-fabric",
+        "version": "1.1.0"
+      }
+    }
+  },
+  "envelope_hash": "13f5f5d7a73a89c1778d8f708530ec503546dc21c5b5d4517efb1c97fd42aac1"
+}

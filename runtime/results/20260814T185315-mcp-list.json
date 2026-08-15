@@ -1,0 +1,100 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31855110929",
+  "provider_sha": "e3fd8665b6fc8a66ff0ad7d5d64ffe40ead54597",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "898e166d06cfeee3f2311fb4a700b31a026d0112246bb5478d4a9185ee9f3919",
+  "response": {
+    "jsonrpc": "2.0",
+    "id": "factory-mcp-list",
+    "result": {
+      "tools": [
+        {
+          "name": "system_health",
+          "description": "system.health: Return canonical deployment health and source identity.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "system_capabilities",
+          "description": "system.capabilities: Return the semantic capability contract.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "frost_diagnostics_echo",
+          "description": "frost.diagnostics.echo: Echo UTF-8 text and return its code-point length.",
+          "inputSchema": {
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "frost_diagnostics_sha256",
+          "description": "frost.diagnostics.sha256: Hash UTF-8 text with SHA-256.",
+          "inputSchema": {
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "frost_diagnostics_canonicalize",
+          "description": "frost.diagnostics.canonicalize: Canonicalize a JSON value and hash it.",
+          "inputSchema": {
+            "type": "object",
+            "required": [
+              "value"
+            ],
+            "properties": {
+              "value": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "frost_diagnostics_dangerous_demo_policy_test",
+          "description": "frost.diagnostics.dangerous_demo_policy_test: Guardian negative-control; no destructive implementation.",
+          "inputSchema": {
+            "type": "object",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  },
+  "envelope_hash": "633c22b0c99621ee93efafc8a4d46c5f430f82db58846123739e877382df1c30"
+}

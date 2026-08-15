@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31855110929",
+  "provider_sha": "e3fd8665b6fc8a66ff0ad7d5d64ffe40ead54597",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "744a348b948269a2b1a21fcd3a3f936c45a4b09f0b4e7de3f6eabadf2630d860",
+  "response": {
+    "ok": false,
+    "request_id": "factory-guardian-denial-20260814T1853",
+    "service_id": "frost.callable.fabric",
+    "operation": "frost.diagnostics.dangerous_demo_policy_test",
+    "error": {
+      "type": "DENIED",
+      "message": "role \"operator\" not allowed"
+    },
+    "receipt": {
+      "request_id": "factory-guardian-denial-20260814T1853",
+      "service_id": "frost.callable.fabric",
+      "operation": "frost.diagnostics.dangerous_demo_policy_test",
+      "caller": "callable-factory-sweep",
+      "role": "operator",
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "request_hash": "84843a59ec7da720d022600a991ad5c455b449a25153db14fb2f304cf528d09d",
+      "guardian": {
+        "allowed": false,
+        "reason": "role \"operator\" not allowed"
+      },
+      "event": "INVOCATION_DENIED",
+      "timestamp": "2026-08-15T00:56:42.507Z",
+      "record_hash": "c7d684791dd84cbeacceea1633990c0cef1929d7b540e22e2306333842df5fb8"
+    }
+  },
+  "envelope_hash": "5b9cca4b03ec745ebb92900249bf127362141543640dc40401e9a2e392b61da1"
+}

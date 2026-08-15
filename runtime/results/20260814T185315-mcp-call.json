@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31855110929",
+  "provider_sha": "e3fd8665b6fc8a66ff0ad7d5d64ffe40ead54597",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "request_sha256": "eabc80169ac713eb922227e5f03ac2769220fdd1e0fa937c3fbab44b70f072f0",
+  "response": {
+    "jsonrpc": "2.0",
+    "id": "factory-mcp-call",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ok\":true,\"request_id\":\"factory-mcp-call-20260814T1853\",\"service_id\":\"frost.callable.fabric\",\"operation\":\"frost.diagnostics.sha256\",\"result\":{\"sha256\":\"dc4c0af5ed4bcfcea7485f91bc7fa135a40f719e8d3a236fcd13e81b2ed61eae\"},\"diagnostics\":{\"elapsed_ms\":1,\"version\":\"1.1.0\",\"canonical_git_sha\":\"6e5731bfbb073573c044bcc2e106d3906f6dddf5\",\"source_identity_sha256\":\"623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733\",\"deployment_adapter_sha256\":\"96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a\",\"result_hash\":\"748d953ebfa81b0f2a2742487d7ac3965e4bad16d06a82a6abf5d5cde6b13b96\"},\"receipt\":{\"request_id\":\"factory-mcp-call-20260814T1853\",\"service_id\":\"frost.callable.fabric\",\"operation\":\"frost.diagnostics.sha256\",\"caller\":\"mcp\",\"role\":\"operator\",\"canonical_git_sha\":\"6e5731bfbb073573c044bcc2e106d3906f6dddf5\",\"source_identity_sha256\":\"623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733\",\"deployment_adapter_sha256\":\"96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a\",\"request_hash\":\"83ec124a4d367ebdda33245bfe42617af7ca5aa13950149987c1bfebb4f30bc8\",\"guardian\":{\"allowed\":true,\"reason\":\"authorized\"},\"event\":\"INVOCATION_OK\",\"result_hash\":\"748d953ebfa81b0f2a2742487d7ac3965e4bad16d06a82a6abf5d5cde6b13b96\",\"elapsed_ms\":1,\"timestamp\":\"2026-08-15T00:56:42.532Z\",\"record_hash\":\"10e612cfb88b1b94a6781e3a60208d59660642d5aa1c16f126aa0b3f80ffd041\"}}"
+        }
+      ],
+      "isError": false,
+      "structuredContent": {
+        "ok": true,
+        "request_id": "factory-mcp-call-20260814T1853",
+        "service_id": "frost.callable.fabric",
+        "operation": "frost.diagnostics.sha256",
+        "result": {
+          "sha256": "dc4c0af5ed4bcfcea7485f91bc7fa135a40f719e8d3a236fcd13e81b2ed61eae"
+        },
+        "diagnostics": {
+          "elapsed_ms": 1,
+          "version": "1.1.0",
+          "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+          "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+          "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+          "result_hash": "748d953ebfa81b0f2a2742487d7ac3965e4bad16d06a82a6abf5d5cde6b13b96"
+        },
+        "receipt": {
+          "request_id": "factory-mcp-call-20260814T1853",
+          "service_id": "frost.callable.fabric",
+          "operation": "frost.diagnostics.sha256",
+          "caller": "mcp",
+          "role": "operator",
+          "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+          "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+          "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+          "request_hash": "83ec124a4d367ebdda33245bfe42617af7ca5aa13950149987c1bfebb4f30bc8",
+          "guardian": {
+            "allowed": true,
+            "reason": "authorized"
+          },
+          "event": "INVOCATION_OK",
+          "result_hash": "748d953ebfa81b0f2a2742487d7ac3965e4bad16d06a82a6abf5d5cde6b13b96",
+          "elapsed_ms": 1,
+          "timestamp": "2026-08-15T00:56:42.532Z",
+          "record_hash": "10e612cfb88b1b94a6781e3a60208d59660642d5aa1c16f126aa0b3f80ffd041"
+        }
+      }
+    }
+  },
+  "envelope_hash": "59735b99ee3ddb4e974c6d49693385b1f961375d93665d7151a968faf4bda940"
+}
