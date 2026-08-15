@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -8,13 +7,18 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from frost_core.capability_factory import (
+    REQUIRED_PROMOTION_GATES,
     CapabilityCandidate,
     CapabilityFactoryLedger,
     CapabilityStage,
     GateEvidence,
-    REQUIRED_PROMOTION_GATES,
 )
-from frost_core.effects import EffectAuthorization, EffectProtocolLedger, EffectRequest, EffectState
+from frost_core.effects import (
+    EffectAuthorization,
+    EffectProtocolLedger,
+    EffectRequest,
+    EffectState,
+)
 from frost_core.providers import (
     ProviderAvailability,
     ProviderMaturity,
