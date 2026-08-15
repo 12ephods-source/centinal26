@@ -44,6 +44,7 @@ try {
   assert.strictEqual(verified.verification_status, 'VERIFIED');
   assert.strictEqual(verified.source_attestation_status, 'VERIFIED');
   assert.ok(verified.checks.includes('envelope_hash:VERIFIED'));
+  assert.ok(verified.checks.includes('provider_effect_policy:READ_ONLY_VERIFIED'));
   assert.ok(verified.checks.includes('semantic_receipt:VERIFIED'));
   assert.ok(verified.checks.includes('semantic_result_hash:VERIFIED'));
   assert.ok(verified.checks.includes('source_attestation:VERIFIED_HISTORICAL_BYTES'));
@@ -61,6 +62,7 @@ try {
   const legacyVerificationPath = path.join(temp, 'legacy-verification.json');
   const legacy = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
   delete legacy.source_attestation;
+  delete legacy.provider_effect_policy;
   delete legacy.idempotency_key;
   delete legacy.envelope_hash;
   legacy.envelope_hash = sha256(Buffer.from(canonical(legacy), 'utf8'));
@@ -70,6 +72,7 @@ try {
   assert.strictEqual(limited.source_attestation_status, 'UNAVAILABLE_LEGACY');
   assert.ok(limited.checks.includes('idempotency_key:UNAVAILABLE_LEGACY'));
   assert.ok(limited.checks.includes('source_attestation:UNAVAILABLE_LEGACY'));
+  assert.ok(limited.checks.includes('provider_effect_policy:UNAVAILABLE_LEGACY'));
 
   console.log(JSON.stringify({
     ok: true,

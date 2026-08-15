@@ -7,8 +7,21 @@ const {spawnSync} = require('child_process');
 
 const PROTOCOL = 'frost-call/1.0';
 const VERIFICATION_SCHEMA = 'frost-independent-verification/1.0';
+const REQUIRED_SIDE_EFFECT_PROTOCOL = 'frost-effect/1.0';
 const MAX_FILE_BYTES = 1024 * 1024;
 const RFC3339_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+const APPROVED_SEMANTIC_CORE_FILE_SHA256 = '6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8';
+const APPROVED_READ_ONLY_OPERATIONS = new Set([
+  'system.health',
+  'system.capabilities',
+  'frost.diagnostics.echo',
+  'frost.diagnostics.sha256',
+  'frost.diagnostics.canonicalize',
+]);
+const EFFECT_FREE_NEGATIVE_CONTROLS = new Set([
+  'frost.diagnostics.dangerous_demo_policy_test',
+]);
+const EFFECT_POLICY_MARKER = Buffer.from("REQUIRED_SIDE_EFFECT_PROTOCOL = 'frost-effect/1.0'");
 const WORKER_REPO_PATH = 'deploy/github/callable-worker-v1.0.0/worker.js';
 const WORKFLOW_REPO_PATH = '.github/workflows/callable-fabric-worker.yml';
 const FABRIC_REPO_PATH = 'deploy/vercel/callable-fabric-v1.1.0/lib/fabric.js';
@@ -131,6 +144,109 @@ function verifyRequestExpiry(request, result, checks) {
   checks.push('request_expiry:FRESH_VERIFIED');
 }
 
+function mcpToolName(name) {
+  return name.replace(/[^A-Za-z0-9_-]/g, '_');
+}
+
+function semanticOperation(request) {
+  const kind = request?.kind || 'invoke';
+  if (kind === 'invoke') return typeof request.operation === 'string' ? request.operation : null;
+  if (kind !== 'mcp' || request.message?.method !== 'tools/call') return null;
+  const tool = request.message?.params?.name;
+  if (typeof tool !== 'string') return null;
+  const approved = [...APPROVED_READ_ONLY_OPERATIONS, ...EFFECT_FREE_NEGATIVE_CONTROLS];
+  return approved.find((operation) => mcpToolName(operation) === tool) || tool;
+}
+
+function expectedEffectPolicy(request, semanticCoreFileSha256) {
+  if (semanticCoreFileSha256 !== APPROVED_SEMANTIC_CORE_FILE_SHA256) {
+    return {
+      allowed: false,
+      status: 'SEMANTIC_CORE_POLICY_DRIFT',
+      semantic_core_file_sha256: semanticCoreFileSha256,
+      approved_semantic_core_file_sha256: APPROVED_SEMANTIC_CORE_FILE_SHA256,
+      required_protocol: REQUIRED_SIDE_EFFECT_PROTOCOL,
+    };
+  }
+
+  const kind = request?.kind || 'invoke';
+  if (kind === 'mcp') {
+    const method = request.message?.method;
+    if (method === 'initialize' || method === 'tools/list') {
+      return {
+        allowed: true,
+        status: 'CONTROL_PLANE_READ_ONLY',
+        operation: null,
+        semantic_core_file_sha256: semanticCoreFileSha256,
+      };
+    }
+    if (method !== 'tools/call') {
+      return {
+        allowed: true,
+        status: 'CONTROL_PLANE_NONEXECUTING',
+        operation: null,
+        semantic_core_file_sha256: semanticCoreFileSha256,
+      };
+    }
+  }
+
+  const operation = semanticOperation(request);
+  if (operation && APPROVED_READ_ONLY_OPERATIONS.has(operation)) {
+    return {
+      allowed: true,
+      status: 'READ_ONLY',
+      operation,
+      semantic_core_file_sha256: semanticCoreFileSha256,
+    };
+  }
+  if (operation && EFFECT_FREE_NEGATIVE_CONTROLS.has(operation)) {
+    return {
+      allowed: true,
+      status: 'EFFECT_FREE_NEGATIVE_CONTROL',
+      operation,
+      semantic_core_file_sha256: semanticCoreFileSha256,
+    };
+  }
+  return {
+    allowed: false,
+    status: 'SIDE_EFFECT_PROTOCOL_REQUIRED',
+    operation,
+    semantic_core_file_sha256: semanticCoreFileSha256,
+    required_protocol: REQUIRED_SIDE_EFFECT_PROTOCOL,
+  };
+}
+
+function verifyProviderEffectPolicy(request, result, source, checks) {
+  if (!source.effect_policy_capable) {
+    requireCondition(
+      result.provider_effect_policy === undefined,
+      'legacy worker unexpectedly emitted provider_effect_policy',
+    );
+    checks.push('provider_effect_policy:UNAVAILABLE_LEGACY');
+    return;
+  }
+
+  requireCondition(result.provider_effect_policy, 'provider effect policy evidence missing');
+  const expected = expectedEffectPolicy(request, source.semantic_core_file_sha256);
+  requireCondition(
+    canonical(result.provider_effect_policy) === canonical(expected),
+    'provider effect policy decision mismatch',
+  );
+
+  if (!expected.allowed) {
+    const expectedError = expected.status === 'SEMANTIC_CORE_POLICY_DRIFT'
+      ? 'SemanticCorePolicyDrift'
+      : 'SideEffectProtocolRequired';
+    requireCondition(result.ok === false, 'blocked effect request cannot be successful');
+    requireCondition(result.error?.type === expectedError, 'blocked effect request error mismatch');
+    requireCondition(result.response === undefined, 'blocked effect request must not have semantic response');
+    checks.push(`provider_effect_policy:${expected.status}_VERIFIED`);
+    return;
+  }
+
+  checks.push(`provider_effect_policy:${expected.status}_VERIFIED`);
+}
+
 function verifySourceAttestation(result, checks) {
   const attestation = result.source_attestation;
   if (!attestation) {
@@ -138,6 +254,8 @@ function verifySourceAttestation(result, checks) {
     return {
       status: 'UNAVAILABLE_LEGACY',
       provider_code_identity_sha256: null,
+      semantic_core_file_sha256: null,
+      effect_policy_capable: false,
     };
   }
 
@@ -194,6 +312,8 @@ function verifySourceAttestation(result, checks) {
   return {
     status: 'VERIFIED',
     provider_code_identity_sha256: expectedProviderCodeIdentity,
+    semantic_core_file_sha256: semanticCoreFileSha256,
+    effect_policy_capable: workerBytes.includes(EFFECT_POLICY_MARKER),
   };
 }
 
@@ -247,8 +367,9 @@ function verifyPaths(requestPath, resultPath, verificationPath) {
   verifyEnvelope(result);
   checks.push('envelope_hash:VERIFIED');
   verifyRequestExpiry(identity.request, result, checks);
-  verifySemanticResponse(result, checks);
   const source = verifySourceAttestation(result, checks);
+  verifyProviderEffectPolicy(identity.request, result, source, checks);
+  verifySemanticResponse(result, checks);
 
   const verificationStatus = source.status === 'VERIFIED'
     ? 'VERIFIED'
