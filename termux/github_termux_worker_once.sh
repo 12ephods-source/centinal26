@@ -1,20 +1,24 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-CONFIG="${HOME}/.automation_os_github/config"
+CONFIG="${HOME}/.automation_os_github/config.json"
 STATE="${HOME}/.automation_os_github/state"
 PATCHED_ARTIFACT_NAME="AUTOMATION_OS_1.0.0_RC9_VALIDATION_INTEGRITY_PATCH.zip"
 PATCHED_ARTIFACT_SHA256="8568085fcc44d46a31512ca58c3af863392fcc09cd65fa0e38e46754e0a6b018"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 AUDITOR="$REPO_ROOT/scripts/audit_untrusted_candidate.py"
-REVIEW_REGISTRY="$REPO_ROOT/security/reviewed_artifacts.json"
+ATTESTATION_VERIFIER="$REPO_ROOT/scripts/verify_review_attestation.py"
+REVIEW_AUTHORITY="${AUTOMATION_OS_REVIEW_AUTHORITY:-$STATE/review_authority.json}"
+REVIEW_ATTESTATION="${AUTOMATION_OS_REVIEW_ATTESTATION:-$STATE/review_attestation.json}"
+RUNTIME_CONFIG="$REPO_ROOT/termux/github_runtime_config.sh"
 
 mkdir -p "$(dirname "$CONFIG")" "$STATE"
-[ -f "$CONFIG" ] || { echo "Missing $CONFIG"; exit 2; }
+[ -f "$RUNTIME_CONFIG" ] || { echo "Missing runtime config helper: $RUNTIME_CONFIG"; exit 2; }
 [ -f "$AUDITOR" ] || { echo "Missing adversarial audit gate: $AUDITOR"; exit 2; }
-[ -f "$REVIEW_REGISTRY" ] || { echo "Missing reviewed-artifact registry: $REVIEW_REGISTRY"; exit 2; }
+[ -f "$ATTESTATION_VERIFIER" ] || { echo "Missing signed review attestation verifier: $ATTESTATION_VERIFIER"; exit 2; }
 # shellcheck disable=SC1090
-source "$CONFIG"
+source "$RUNTIME_CONFIG"
+github_runtime_load_config "$CONFIG"
 
 api() {
   curl --fail-with-body -sS \
@@ -38,20 +42,15 @@ set_labels() {
     -d "$(jq -n --argjson labels "$j" '{labels:$labels}')" >/dev/null
 }
 
-reviewed_findings_allow() {
+signed_review_allow() {
   local artifact_sha="$1" findings_sha="$2"
-  jq -e \
-    --arg artifact_sha "$artifact_sha" \
-    --arg findings_sha "$findings_sha" \
-    '.schema == "centinal26-reviewed-artifacts-v1" and
-     any(.artifacts[]?;
-       .sha256 == $artifact_sha and
-       .findings_sha256 == $findings_sha and
-       .status == "REVIEWED_ALLOW" and
-       (.reviewer | type == "string" and length > 0) and
-       (.reviewed_at | type == "string" and length > 0) and
-       (.rationale | type == "string" and length > 0))' \
-    "$REVIEW_REGISTRY" >/dev/null
+  [ -f "$REVIEW_AUTHORITY" ] || return 1
+  [ -f "$REVIEW_ATTESTATION" ] || return 1
+  python "$ATTESTATION_VERIFIER" \
+    --authority "$REVIEW_AUTHORITY" \
+    --attestation "$REVIEW_ATTESTATION" \
+    --artifact-sha256 "$artifact_sha" \
+    --findings-sha256 "$findings_sha"
 }
 
 issue="$(api "https://api.github.com/repos/${GITHUB_REPO}/issues?labels=automation-os-job&state=open&per_page=20" \
@@ -106,10 +105,21 @@ findings_sha="$(jq -cS '.findings // []' "$audit_report" 2>/dev/null | sha256sum
 if [ "$audit_rc" -ne 0 ]; then
   critical_count="$(jq '[.findings[]? | select(.severity == "critical")] | length' "$audit_report" 2>/dev/null || echo '?')"
   high_count="$(jq '[.findings[]? | select(.severity == "high")] | length' "$audit_report" 2>/dev/null || echo '?')"
-  if [ "$audit_reason" = "BEHAVIOR_REVIEW_REQUIRED" ] && reviewed_findings_allow "$actual" "$findings_sha"; then
-    comment_issue "$num" "SECURITY REVIEW MATCH: artifact=$actual findings=$findings_sha. Version-controlled REVIEWED_ALLOW entry matches this exact behavior fingerprint; proceeding to bounded execution."
+  if [ "$audit_reason" = "BEHAVIOR_REVIEW_REQUIRED" ]; then
+    set +e
+    attestation_result="$(signed_review_allow "$actual" "$findings_sha" 2>&1)"
+    attestation_rc=$?
+    set -e
   else
-    comment_issue "$num" "SECURITY BLOCK: pinned artifact failed independent behavior gate. reason=$audit_reason critical=$critical_count high=$high_count artifact=$actual findings=$findings_sha. No artifact code was executed."
+    attestation_result=""
+    attestation_rc=1
+  fi
+  if [ "$audit_reason" = "BEHAVIOR_REVIEW_REQUIRED" ] && [ "$attestation_rc" -eq 0 ]; then
+    verdict_id="$(jq -r '.verdict_id // "UNKNOWN"' <<<"$attestation_result" 2>/dev/null || echo UNKNOWN)"
+    attestation_sha="$(jq -r '.attestation_sha256 // "UNKNOWN"' <<<"$attestation_result" 2>/dev/null || echo UNKNOWN)"
+    comment_issue "$num" "SECURITY REVIEW VERIFIED: artifact=$actual findings=$findings_sha verdict=$verdict_id attestation=$attestation_sha. Signed external Frost Judge attestation matches the exact behavior fingerprint; proceeding to bounded execution."
+  else
+    comment_issue "$num" "SECURITY BLOCK: pinned artifact failed independent behavior gate. reason=$audit_reason critical=$critical_count high=$high_count artifact=$actual findings=$findings_sha. Missing, stale, mismatched, unsigned, or invalid external Judge attestation fails closed. No artifact code was executed."
     set_labels "$num" automation-os-job automation-os-rejected automation-os-security-review
     exit 23
   fi

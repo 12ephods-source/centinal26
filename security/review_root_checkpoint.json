@@ -1,0 +1,13 @@
+{
+  "schema": "centinal26-review-root-checkpoint-v1",
+  "release": "1.0.0",
+  "provisioned": false,
+  "min_root_version": 1,
+  "root_key_fingerprint_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "verification_profile": {
+    "schema": "centinal26-rsa-verification-profile-v1",
+    "version": 1,
+    "min_rsa_bits": 3072,
+    "required_exponent": 65537
+  }
+}

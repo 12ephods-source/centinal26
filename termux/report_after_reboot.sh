@@ -1,11 +1,14 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-CONFIG="${HOME}/.automation_os_github/config"
+CONFIG="${HOME}/.automation_os_github/config.json"
 STATE="${HOME}/.automation_os_github/state"
-[ -f "$CONFIG" ] || exit 2
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RUNTIME_CONFIG="$REPO_ROOT/termux/github_runtime_config.sh"
+[ -f "$RUNTIME_CONFIG" ] || exit 2
 # shellcheck disable=SC1090
-source "$CONFIG"
+source "$RUNTIME_CONFIG"
+github_runtime_load_config "$CONFIG"
 num="$(cat "$STATE/active_issue" 2>/dev/null || true)"
 [ -n "$num" ] || exit 0
 

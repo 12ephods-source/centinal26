@@ -142,7 +142,10 @@ def audit_zip(path: Path, expected_sha256: str | None = None) -> dict[str, objec
         report["reason"] = f"INVALID_ARCHIVE:{type(exc).__name__}"
         return report
 
-    report["archive_safe"] = not any(item.severity == "critical" and item.rule in {"PATH_TRAVERSAL", "SYMLINK_MEMBER"} for item in findings)
+    report["archive_safe"] = not any(
+        item.severity == "critical" and item.rule in {"PATH_TRAVERSAL", "SYMLINK_MEMBER"}
+        for item in findings
+    )
     report["findings"] = [asdict(item) for item in findings]
     blocking = [item for item in findings if item.severity in {"critical", "high"}]
     if not report["archive_safe"]:
@@ -160,21 +163,13 @@ def main() -> int:
     parser.add_argument("artifact", type=Path)
     parser.add_argument("--expected-sha256")
     parser.add_argument("--output", type=Path)
-    parser.add_argument(
-        "--allow-reviewed-risk",
-        action="store_true",
-        help="Convert BEHAVIOR_REVIEW_REQUIRED to REVIEWED_ALLOW only after an external reviewer has inspected every finding.",
-    )
     args = parser.parse_args()
     report = audit_zip(args.artifact.expanduser(), args.expected_sha256)
-    if args.allow_reviewed_risk and report["reason"] == "BEHAVIOR_REVIEW_REQUIRED":
-        report["decision"] = "REVIEWED_ALLOW"
-        report["reason"] = "EXPLICIT_REVIEW_OVERRIDE"
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:
         args.output.expanduser().write_text(rendered, encoding="utf-8")
     sys.stdout.write(rendered)
-    return 0 if report["decision"] in {"ALLOW_STATIC_ONLY", "REVIEWED_ALLOW"} else 23
+    return 0 if report["decision"] == "ALLOW_STATIC_ONLY" else 23
 
 
 if __name__ == "__main__":
