@@ -1,13 +1,10 @@
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from runpy import run_path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "agent_fleet_qualify.py"
-SPEC = spec_from_file_location("agent_fleet_qualify", MODULE_PATH)
-assert SPEC and SPEC.loader
-MODULE = module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
-classify = MODULE.classify
+MODULE = run_path(MODULE_PATH)
+classify = MODULE["classify"]
 
 
 def cmp(ahead=0, behind=0):
