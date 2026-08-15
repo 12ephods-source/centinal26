@@ -1,11 +1,12 @@
 import json
+import sys
 from pathlib import Path
-
-from frost_core.federation import AdapterStatus, default_federation_catalog
-
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "provenance" / "github_actions_effect_provider_connected_validation.json"
+sys.path.insert(0, str(ROOT / "src"))
+
+from frost_core.federation import AdapterStatus, default_federation_catalog
 
 
 def test_github_effect_capability_is_narrowly_connected_validated() -> None:
