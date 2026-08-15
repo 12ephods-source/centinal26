@@ -31,7 +31,8 @@ def test_node_process_identity_is_not_pidfile_only():
 
 def test_worker_remains_allowlisted_and_checks_minimum_commit():
     worker = text("termux/intelligence_controller_github_worker_once.sh")
-    assert 'command == "intelligence_controller_physical_gate_v1"' in worker
+    assert 'ALLOWED_COMMAND="automation_project_finalize_v1"' in worker
+    assert "DENIED_UNSUPPORTED_COMMAND" in worker
     assert "minimum_merge_commit" in worker
     assert "merge-base --is-ancestor" in worker
     assert "--connect-timeout 10" in worker
