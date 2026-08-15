@@ -25,6 +25,7 @@ from .federation import (
     FederationCatalog,
     default_federation_catalog,
 )
+from .fleet_controller import FleetController, rank_contract
 from .future_capabilities import (
     AttentionAction,
     AttentionDecision,
@@ -113,6 +114,7 @@ __all__ = [
     "EvidenceStrength",
     "ExperimentEvidence",
     "FederationCatalog",
+    "FleetController",
     "FrostV0Adapter",
     "GateEvidence",
     "IntelligenceAwareness",
@@ -143,4 +145,5 @@ __all__ = [
     "WatchDecision",
     "default_federation_catalog",
     "default_registry",
+    "rank_contract",
 ]
