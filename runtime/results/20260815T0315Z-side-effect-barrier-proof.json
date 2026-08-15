@@ -1,0 +1,41 @@
+{
+  "ok": false,
+  "protocol": "frost-call/1.0",
+  "provider": "github-actions",
+  "provider_run_id": "31861197356",
+  "provider_sha": "19e9acc94a77df66d5ebc3e707927d925d120e1d",
+  "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+  "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+  "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+  "source_attestation": {
+    "schema": "frost-source-attestation/1.0",
+    "semantic_core": {
+      "canonical_git_sha": "6e5731bfbb073573c044bcc2e106d3906f6dddf5",
+      "source_identity_sha256": "623c8ab6ae44939098fbdbd5f1b362d4239077498a277616f6dee76b38ada733",
+      "deployment_adapter_sha256": "96fedc9ec3affe883fd3fa8f67e1813db9ca153ce9cd3b3aea7fd3379268676a",
+      "file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8"
+    },
+    "provider_runtime": {
+      "provider": "github-actions",
+      "worker_source_sha256": "31380abafe8ae6a1002eafcfb6d25e2209e7a6e1aea2930a915c18b1f06eb5fd",
+      "workflow_source_sha256": "0d7c6d7bc7fea342750adcb7ba459afb4d2df729b612ee81fa832d6554113633",
+      "checked_out_sha": "19e9acc94a77df66d5ebc3e707927d925d120e1d",
+      "checked_out_ref": "refs/heads/callable-runtime"
+    },
+    "provider_code_identity_sha256": "10a19c704ed3d2ff1efdca5438ebe281f8542f1d7d68cfdf8f769955b37eacf0"
+  },
+  "request_sha256": "cd99b25639a6d8310cdabe965ab4f4967a58ee65e75fa87c46c19ffd75100908",
+  "idempotency_key": "side-effect-barrier-proof-2bd392f586a5",
+  "error": {
+    "type": "SideEffectProtocolRequired",
+    "message": "operation requires unavailable frost-effect/1.0"
+  },
+  "provider_effect_policy": {
+    "allowed": false,
+    "status": "SIDE_EFFECT_PROTOCOL_REQUIRED",
+    "operation": "frost.future.side_effect",
+    "semantic_core_file_sha256": "6e3c6dd26f472456f38b1504d12b1e36723494d663426a8fa8d5eb37f413e5a8",
+    "required_protocol": "frost-effect/1.0"
+  },
+  "envelope_hash": "ee8dd8585f81bb1c79d1582717ec23c8aa541cab60aad6831893a054d8a8f12b"
+}
