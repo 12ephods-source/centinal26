@@ -16,6 +16,9 @@ concurrency:
   group: frost-callable-fabric-callable-runtime
   cancel-in-progress: false
 
+env:
+  FROST_CALLABLE_MAX_BATCH: "128"
+
 jobs:
   execute:
     runs-on: ubuntu-latest
@@ -28,42 +31,74 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Plan incremental queue work
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          plan_file="$RUNNER_TEMP/callable-queue-plan.json"
+          node deploy/github/callable-worker-v1.0.0/queue-plan.js \
+            --event "${{ github.event_name }}" \
+            --before "${{ github.event.before }}" \
+            --head "${{ github.sha }}" \
+            --max-batch "$FROST_CALLABLE_MAX_BATCH" > "$plan_file"
+          cat "$plan_file"
+          echo "plan_file=$plan_file" >> "$GITHUB_OUTPUT"
       - name: Execute and independently verify immutable semantic requests
         id: worker
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob
           mkdir -p runtime/results runtime/verifications
           processed=0
           verified=0
-          pending_before=0
+          reverified=0
           checked_out_sha="$(git rev-parse HEAD)"
           checked_out_ref="refs/heads/callable-runtime"
-          test -n "$checked_out_sha"
-          for req in runtime/requests/*.json; do
+          plan_file="${{ steps.plan.outputs.plan_file }}"
+
+          plan_items() {
+            node - "$plan_file" "$1" <<'NODE'
+          const fs = require('fs');
+          const plan = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          for (const item of plan[process.argv[3]] || []) process.stdout.write(`${item}\n`);
+          NODE
+          }
+
+          while IFS= read -r req; do
+            [[ -n "$req" ]] || continue
             base="$(basename "$req")"
             out="runtime/results/$base"
             verification="runtime/verifications/$base"
-
-            if [[ -e "$out" ]]; then
-              if [[ ! -e "$verification" ]]; then
-                node deploy/github/callable-worker-v1.0.0/verifier.js "$req" "$out" "$verification"
-                verified=$((verified + 1))
-              fi
-              continue
-            fi
-
-            pending_before=$((pending_before + 1))
             GITHUB_SHA="$checked_out_sha" GITHUB_REF="$checked_out_ref" \
               node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"
             node deploy/github/callable-worker-v1.0.0/verifier.js "$req" "$out" "$verification"
             processed=$((processed + 1))
             verified=$((verified + 1))
-          done
+          done < <(plan_items execute)
+
+          while IFS= read -r req; do
+            [[ -n "$req" ]] || continue
+            base="$(basename "$req")"
+            node deploy/github/callable-worker-v1.0.0/verifier.js \
+              "$req" "runtime/results/$base" "runtime/verifications/$base"
+            verified=$((verified + 1))
+          done < <(plan_items verify_missing)
+
+          while IFS= read -r req; do
+            [[ -n "$req" ]] || continue
+            base="$(basename "$req")"
+            tmp_verification="$(mktemp)"
+            rm -f "$tmp_verification"
+            node deploy/github/callable-worker-v1.0.0/verifier.js \
+              "$req" "runtime/results/$base" "$tmp_verification"
+            rm -f "$tmp_verification"
+            reverified=$((reverified + 1))
+          done < <(plan_items reverify_existing)
+
           echo "processed=$processed" >> "$GITHUB_OUTPUT"
           echo "verified=$verified" >> "$GITHUB_OUTPUT"
-          echo "pending_before=$pending_before" >> "$GITHUB_OUTPUT"
+          echo "reverified=$reverified" >> "$GITHUB_OUTPUT"
       - name: Commit immutable results and independent verifications
         if: steps.worker.outputs.processed != '0' || steps.worker.outputs.verified != '0'
         shell: bash
@@ -92,11 +127,12 @@ jobs:
 
           echo "result reconciliation failed after 3 attempts" >&2
           exit 1
-      - name: Report idle or recovered backlog state
+      - name: Report queue state
         if: always()
         shell: bash
         run: |
           printf 'processed=%s\n' "${{ steps.worker.outputs.processed || '0' }}"
           printf 'verified=%s\n' "${{ steps.worker.outputs.verified || '0' }}"
-          printf 'pending_before=%s\n' "${{ steps.worker.outputs.pending_before || '0' }}"
+          printf 'reverified=%s\n' "${{ steps.worker.outputs.reverified || '0' }}"
           printf 'trigger=%s\n' "${{ github.event_name }}"
+          cat "${{ steps.plan.outputs.plan_file }}" 2>/dev/null || true
