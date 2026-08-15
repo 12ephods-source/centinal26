@@ -356,7 +356,7 @@ class EffectProtocolLedger:
         if not provider_id.strip() or not provider_idempotency_key.strip() or not operation.strip():
             raise ValueError("provider_id, provider_idempotency_key, and operation are required")
         with self._lock:
-            row = self._claimed_row_locked(claim)
+            self._claimed_row_locked(claim)
             execution_token = str(uuid.uuid4())
             intent = {
                 "schema": self.schema,
@@ -815,7 +815,7 @@ class EffectProtocolLedger:
             fields.append("execution_intent_json=NULL")
         values.append(row["effect_id"])
         self.db.execute(
-            f"UPDATE effects SET {','.join(fields)} WHERE effect_id=?",  # noqa: S608
+            f"UPDATE effects SET {','.join(fields)} WHERE effect_id=?",
             values,
         )
         self._append_history_locked(
