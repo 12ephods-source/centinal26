@@ -272,9 +272,7 @@ class ReadOnlyProvenanceMiner:
 
     @staticmethod
     def _probably_text(data: bytes) -> bool:
-        if b"\x00" in data[:4096]:
-            return False
-        return True
+        return b"\x00" not in data[:4096]
 
     @staticmethod
     def _strength_rank(strength: EvidenceStrength) -> int:
