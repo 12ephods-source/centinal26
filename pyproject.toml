@@ -27,3 +27,10 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+# HERMES bridge/plugin boundaries intentionally convert arbitrary runtime/provider
+# failures into diagnostic records instead of allowing plugin failures to escape.
+"deploy/hermes-c05/hermes_c05_bridge.py" = ["EXE001", "TRY004", "BLE001"]
+"deploy/hermes-c05/plugin/frost_orchestrator/tools.py" = ["I001", "PLW1510", "BLE001"]
+"tests/test_hermes_c05_adapter.py" = ["I001"]
