@@ -81,7 +81,11 @@ chmod 700 \
   "$ROOT/termux/intelligence_controller_supervisor.sh" \
   "$ROOT/termux/intelligence_controller_github_worker_once.sh" \
   "$ROOT/termux/intelligence_controller_report_after_reboot.sh" \
-  "$ROOT/termux/intelligence_controller_physical_gate.sh"
+  "$ROOT/termux/intelligence_controller_physical_gate.sh" \
+  "$ROOT/termux/automation_project_finalizer.sh" \
+  "$ROOT/termux/intelligence_node_endurance.sh" \
+  "$ROOT/termux/verify_project_finalization.py" \
+  "$ROOT/deploy/termux/recover-rc4-parent-inputs.sh"
 
 cat > "$HOME/.termux/boot/centinal26-intelligence-controller.sh" <<EOF_BOOT
 #!/data/data/com.termux/files/usr/bin/bash
@@ -117,11 +121,11 @@ bash "$ROOT/termux/intelligence_controller_report_after_reboot.sh" >> "$GATE_ROO
 EOF_REPORT
 chmod 700 "$HOME/.termux/boot/centinal26-intelligence-report.sh"
 
-echo "Centinal26 Termux node v2 installed for device $DEVICE_ID."
+echo "Centinal26 Termux node v2 + Automation v1 finalizer installed for device $DEVICE_ID."
 "$NODE" start >/dev/null
 "$NODE" doctor
 
-echo "Attempting immediate bounded physical-gate claim..."
+echo "Attempting immediate bounded finalization claim..."
 set +e
 "$NODE" kick
 rc=$?
