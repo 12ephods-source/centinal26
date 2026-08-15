@@ -41,6 +41,7 @@ from .future_capabilities import (
     Signal,
     default_registry,
 )
+from .intelligence_controller import CadencePolicy, IntelligenceController
 from .provenance_miner import (
     ArtifactFinding,
     EvidenceStrength,
@@ -86,6 +87,7 @@ __all__ = [
     "AttentionDecision",
     "BranchForecast",
     "BranchOption",
+    "CadencePolicy",
     "CapabilityActivation",
     "CapabilityCandidate",
     "CapabilityFactoryLedger",
@@ -114,6 +116,7 @@ __all__ = [
     "FrostV0Adapter",
     "GateEvidence",
     "IntelligenceAwareness",
+    "IntelligenceController",
     "MinerQuery",
     "MinerReport",
     "PredictiveAttentionManager",
