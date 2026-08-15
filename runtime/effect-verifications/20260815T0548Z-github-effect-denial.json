@@ -1,0 +1,16 @@
+{
+  "schema": "frost-effect-verification/1.0",
+  "protocol": "frost-effect/1.0",
+  "state": "VERIFIED",
+  "decision": "DENIAL_VERIFIED",
+  "independent": true,
+  "verifier_id": "github-actions-effect-readback/v1",
+  "request_id": "github-effect-denial-20260815-a",
+  "request_sha256": "54440e9694f7f1b8906cdd7da51b21860c8040c32f5637dbbfc0b877a58f40bf",
+  "result_sha256": "7e8b204894be37e2a146d6a60fb3e0b7c6d2f8268502ab993ba5d5aa8de83eea",
+  "postcondition": {
+    "provider_execution_absent": true,
+    "guardian_denial_present": true
+  },
+  "verification_hash": "807913b686127e7924230d3d38be497546de76229d92bf16278457927da8289a"
+}
