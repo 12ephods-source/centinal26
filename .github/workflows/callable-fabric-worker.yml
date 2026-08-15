@@ -5,20 +5,25 @@ on:
     branches: ["callable-runtime"]
     paths:
       - "runtime/requests/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: frost-callable-fabric-${{ github.ref }}
+  group: frost-callable-fabric-callable-runtime
   cancel-in-progress: false
 
 jobs:
   execute:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: callable-runtime
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -31,18 +36,21 @@ jobs:
           shopt -s nullglob
           mkdir -p runtime/results
           processed=0
+          pending_before=0
           for req in runtime/requests/*.json; do
             base="$(basename "$req")"
             out="runtime/results/$base"
             if [[ -e "$out" ]]; then
               continue
             fi
+            pending_before=$((pending_before + 1))
             node deploy/github/callable-worker-v1.0.0/worker.js "$req" "$out"
-            processed=1
+            processed=$((processed + 1))
           done
           echo "processed=$processed" >> "$GITHUB_OUTPUT"
-      - name: Commit immutable results
-        if: steps.worker.outputs.processed == '1'
+          echo "pending_before=$pending_before" >> "$GITHUB_OUTPUT"
+      - name: Commit immutable results with bounded reconciliation retry
+        if: steps.worker.outputs.processed != '0'
         shell: bash
         run: |
           set -euo pipefail
@@ -53,4 +61,26 @@ jobs:
             exit 0
           fi
           git commit -m "Record callable fabric result"
-          git push origin HEAD:callable-runtime
+
+          for attempt in 1 2 3; do
+            git fetch origin callable-runtime
+            if ! git rebase origin/callable-runtime; then
+              git rebase --abort || true
+              echo "reconciliation rebase failed" >&2
+              exit 1
+            fi
+            if git push origin HEAD:callable-runtime; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+
+          echo "result reconciliation failed after 3 attempts" >&2
+          exit 1
+      - name: Report idle or recovered backlog state
+        if: always()
+        shell: bash
+        run: |
+          printf 'processed=%s\n' "${{ steps.worker.outputs.processed || '0' }}"
+          printf 'pending_before=%s\n' "${{ steps.worker.outputs.pending_before || '0' }}"
+          printf 'trigger=%s\n' "${{ github.event_name }}"
