@@ -120,6 +120,12 @@ def default_federation_catalog() -> FederationCatalog:
         AdapterDescriptor("autogen", AdapterKind.AGENT_FRAMEWORK, ("agent.invoke",)),
         AdapterDescriptor("google-adk", AdapterKind.AGENT_FRAMEWORK, ("agent.invoke",)),
         AdapterDescriptor("semantic-kernel", AdapterKind.AGENT_FRAMEWORK, ("agent.invoke",)),
+        AdapterDescriptor(
+            "hermes",
+            AdapterKind.AGENT_FRAMEWORK,
+            ("agent.invoke", "intent.submit"),
+            notes=("adapter requests remain proposal-only until canonical authorization",),
+        ),
         AdapterDescriptor("mcp", AdapterKind.PROTOCOL, ("tools.list", "tools.call")),
         AdapterDescriptor("a2a", AdapterKind.PROTOCOL, ("agent.message",)),
         AdapterDescriptor("nats", AdapterKind.MESSAGING, ("message.publish", "message.consume")),
@@ -130,6 +136,12 @@ def default_federation_catalog() -> FederationCatalog:
             "websocket",
             AdapterKind.MESSAGING,
             ("message.publish", "message.consume"),
+        ),
+        AdapterDescriptor(
+            "discord",
+            AdapterKind.CONTROL_PLANE,
+            ("message.publish", "message.consume", "intent.submit"),
+            notes=("Discord transport does not grant execution authority",),
         ),
         AdapterDescriptor(
             "github-actions",
@@ -146,7 +158,24 @@ def default_federation_catalog() -> FederationCatalog:
             notes=("physical Android validation remains separate",),
         ),
         AdapterDescriptor("vercel", AdapterKind.EXECUTION_PROVIDER, ("http.invoke", "mcp.call")),
-        AdapterDescriptor("base44", AdapterKind.CONTROL_PLANE, ("state.mirror", "job.rendezvous")),
+        AdapterDescriptor(
+            "base44",
+            AdapterKind.CONTROL_PLANE,
+            ("state.mirror", "job.rendezvous", "intent.submit"),
+            notes=("control-plane mirror is not canonical state or authorization",),
+        ),
+        AdapterDescriptor(
+            "aaard",
+            AdapterKind.CONTROL_PLANE,
+            ("intent.submit", "state.mirror"),
+            notes=("legacy/domain requests normalize into canonical event state",),
+        ),
+        AdapterDescriptor(
+            "fras",
+            AdapterKind.CONTROL_PLANE,
+            ("intent.submit", "research.claim.submit"),
+            notes=("scientific task submission is not scientific validation",),
+        ),
         AdapterDescriptor("v0", AdapterKind.SOFTWARE_CREATION, ("v0.chat.*", "v0.sync.prepare_pr")),
     )
     return FederationCatalog(descriptors)
