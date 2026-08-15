@@ -1,0 +1,5 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "mcp",
+  "message": {"jsonrpc":"2.0","id":"factory-mcp-init","method":"initialize","params":{}}
+}

@@ -1,0 +1,5 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "mcp",
+  "message": {"jsonrpc":"2.0","id":"factory-mcp-call","method":"tools/call","params":{"name":"frost_diagnostics_sha256","arguments":{"text":"Frost Callable Factory sweep"},"_meta":{"role":"operator","approved":false,"request_id":"factory-mcp-call-20260814T1853"}}}
+}

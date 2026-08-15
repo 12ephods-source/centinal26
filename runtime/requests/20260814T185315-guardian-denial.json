@@ -1,0 +1,8 @@
+{
+  "protocol": "frost-call/1.0",
+  "kind": "invoke",
+  "service_id": "frost.callable.fabric",
+  "operation": "frost.diagnostics.dangerous_demo_policy_test",
+  "arguments": {"target":"factory-negative-control"},
+  "context": {"caller":"callable-factory-sweep","role":"operator","approved":false,"request_id":"factory-guardian-denial-20260814T1853"}
+}
