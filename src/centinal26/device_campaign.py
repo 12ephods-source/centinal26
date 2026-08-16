@@ -9,7 +9,6 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .advance import advance_until_idle, build_advance_engine
-from .core import AuditLog
 from .event_state import EventStore, rebuild_state
 from .frost_call_adapter import ingest_frost_call
 from .qualification import platform_identity
@@ -21,7 +20,7 @@ REPORT_NAME = "device-validation-report.json"
 MANIFEST_NAME = "device-validation-manifest.json"
 PHASE_AWAITING_REBOOT = "AWAITING_REBOOT"
 PHASE_COMPLETE = "COMPLETE"
-DECISION_DEVICE_VALIDATED = "DEVICE_VALIDATED"
+DECISION_PERSISTENT_VALIDATED = "PERSISTENT_VALIDATED"
 DECISION_WAITING_FOR_REBOOT = "WAITING_FOR_REBOOT"
 
 
@@ -204,9 +203,7 @@ def _verify_probe(campaign: Path, probe: Json) -> bool:
         path = Path(evidence_path)
         if not path.is_file() or _sha256_file(path) != evidence_sha256:
             return False
-        if not runtime.evidence.verify(path) or not runtime.audit.verify():
-            return False
-        return True
+        return runtime.evidence.verify(path) and runtime.audit.verify()
     finally:
         store.close()
         runtime.store.db.close()
@@ -224,34 +221,33 @@ def prepare_device_campaign(campaign: Path, *, boot_hook: Path) -> Json:
     campaign_id = str(uuid.uuid4())
     campaign.mkdir(parents=True)
 
-    try:
-        pre_probe = _run_canonical_probe(campaign, campaign_id, "PRE_REBOOT")
-        checkpoint: Json = {
-            "schema_version": CAMPAIGN_SCHEMA_VERSION,
-            "campaign_id": campaign_id,
-            "phase": PHASE_AWAITING_REBOOT,
-            "created_at": _utc_now_iso(),
-            "source_commit": os.environ.get("CENTINAL26_CAMPAIGN_SOURCE_SHA"),
-            "platform": identity,
-            "pre_boot_id": boot_id,
-            "boot_hook": str(boot_hook),
-            "boot_hook_sha256": boot_hook_sha256,
-            "pre_reboot_probe": pre_probe,
-        }
-        _atomic_write_json(campaign / CHECKPOINT_NAME, checkpoint)
-        return {
-            "schema_version": CAMPAIGN_SCHEMA_VERSION,
-            "campaign_id": campaign_id,
-            "phase": PHASE_AWAITING_REBOOT,
-            "decision": DECISION_WAITING_FOR_REBOOT,
-            "campaign": str(campaign),
-            "pre_boot_id": boot_id,
-            "task_id": pre_probe["task_id"],
-            "next_action": "REBOOT_ANDROID",
-        }
-    except Exception:
-        # Preserve partial evidence for diagnosis rather than silently deleting it.
-        raise
+    pre_probe = _run_canonical_probe(campaign, campaign_id, "PRE_REBOOT")
+    checkpoint: Json = {
+        "schema_version": CAMPAIGN_SCHEMA_VERSION,
+        "campaign_id": campaign_id,
+        "phase": PHASE_AWAITING_REBOOT,
+        "created_at": _utc_now_iso(),
+        "source_commit": os.environ.get("CENTINAL26_CAMPAIGN_SOURCE_SHA"),
+        "platform": identity,
+        "pre_boot_id": boot_id,
+        "boot_hook": str(boot_hook),
+        "boot_hook_sha256": boot_hook_sha256,
+        "pre_reboot_probe": pre_probe,
+        "device_validated": True,
+    }
+    _atomic_write_json(campaign / CHECKPOINT_NAME, checkpoint)
+    return {
+        "schema_version": CAMPAIGN_SCHEMA_VERSION,
+        "campaign_id": campaign_id,
+        "phase": PHASE_AWAITING_REBOOT,
+        "decision": DECISION_WAITING_FOR_REBOOT,
+        "campaign": str(campaign),
+        "pre_boot_id": boot_id,
+        "task_id": pre_probe["task_id"],
+        "device_validated": True,
+        "persistent_validated": False,
+        "next_action": "REBOOT_ANDROID",
+    }
 
 
 def _manifest_entries(campaign: Path) -> dict[str, str]:
@@ -292,6 +288,8 @@ def resume_device_campaign(campaign: Path, *, boot_hook: Path | None = None) -> 
             "campaign": str(campaign),
             "pre_boot_id": pre_boot_id,
             "current_boot_id": current_boot_id,
+            "device_validated": True,
+            "persistent_validated": False,
             "next_action": "REBOOT_ANDROID",
         }
 
@@ -310,7 +308,7 @@ def resume_device_campaign(campaign: Path, *, boot_hook: Path | None = None) -> 
         "schema_version": CAMPAIGN_SCHEMA_VERSION,
         "campaign_id": campaign_id,
         "phase": PHASE_COMPLETE,
-        "decision": DECISION_DEVICE_VALIDATED,
+        "decision": DECISION_PERSISTENT_VALIDATED,
         "completed_at": _utc_now_iso(),
         "source_commit": checkpoint.get("source_commit"),
         "platform": identity,
@@ -330,8 +328,9 @@ def resume_device_campaign(campaign: Path, *, boot_hook: Path | None = None) -> 
             "canonical_event_chain_valid": True,
             "runtime_audit_chain_valid": True,
         },
-        "promotion_scope": "DEVICE_VALIDATED",
-        "persistent_validated": False,
+        "promotion_scope": "PERSISTENT_VALIDATED",
+        "device_validated": True,
+        "persistent_validated": True,
         "autonomous_validated": False,
     }
     _atomic_write_json(campaign / REPORT_NAME, report)
@@ -394,13 +393,15 @@ def verify_device_campaign(campaign: Path) -> bool:
             return False
         if report.get("campaign_id") != manifest.get("campaign_id"):
             return False
-        if report.get("decision") != DECISION_DEVICE_VALIDATED:
+        if report.get("decision") != DECISION_PERSISTENT_VALIDATED:
             return False
         if report.get("phase") != PHASE_COMPLETE:
             return False
-        if report.get("promotion_scope") != "DEVICE_VALIDATED":
+        if report.get("promotion_scope") != "PERSISTENT_VALIDATED":
             return False
-        if report.get("persistent_validated") is not False:
+        if report.get("device_validated") is not True:
+            return False
+        if report.get("persistent_validated") is not True:
             return False
         if report.get("autonomous_validated") is not False:
             return False
