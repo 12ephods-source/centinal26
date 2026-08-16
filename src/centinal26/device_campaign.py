@@ -353,12 +353,16 @@ def _manifest_entries(campaign: Path) -> dict[str, str]:
 def resume_device_campaign(campaign: Path, *, boot_hook: Path | None = None) -> Json:
     campaign = campaign.expanduser().resolve()
     identity = _require_physical_termux()
+    report_path = campaign / REPORT_NAME
+    if report_path.is_file():
+        if verify_device_campaign(campaign):
+            return _read_json(report_path)
+        raise DeviceCampaignError("existing final device report failed verification")
+
     checkpoint = _read_json(campaign / CHECKPOINT_NAME)
     if checkpoint.get("schema_version") != CAMPAIGN_SCHEMA_VERSION:
         raise DeviceCampaignError("unsupported device campaign checkpoint schema")
     if checkpoint.get("phase") != PHASE_AWAITING_REBOOT:
-        if (campaign / REPORT_NAME).is_file() and verify_device_campaign(campaign):
-            return _read_json(campaign / REPORT_NAME)
         raise DeviceCampaignError("device campaign is not awaiting reboot")
 
     campaign_id = checkpoint.get("campaign_id")
