@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Discretized de Sitter diamond -> modular/cocycle -> relational-map harness.
 
 This is the first geometry-bearing extension stacked on the validated finite Type-I
@@ -14,6 +13,7 @@ import importlib.util
 import json
 import platform
 import sys
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -137,10 +137,7 @@ def geometry_metrics() -> dict[str, Any]:
             }
         )
 
-    ratios = [
-        float(np.min(earlier / later))
-        for earlier, later in zip(errors[:-1], errors[1:], strict=True)
-    ]
+    ratios = [float(np.min(earlier / later)) for earlier, later in pairwise(errors)]
     return {
         "dimension": "1+1",
         "radius_L": L_DS,
@@ -243,12 +240,8 @@ def relational_embedding_metrics() -> dict[str, Any]:
 
         r_c = [float(row["R_C_over_omega"]) for row in rows]
         r_int = [float(row["R_int_corrected"]) for row in rows]
-        monotonic_constraint &= all(
-            a > b for a, b in zip(r_c[:-1], r_c[1:], strict=True)
-        )
-        monotonic_intertwining &= all(
-            a > b for a, b in zip(r_int[:-1], r_int[1:], strict=True)
-        )
+        monotonic_constraint &= all(a > b for a, b in pairwise(r_c))
+        monotonic_intertwining &= all(a > b for a, b in pairwise(r_int))
         final_rows.append(rows[-1])
         scans[f"mode_{mode_index}"] = {"omega": omega, "scan": rows}
 
