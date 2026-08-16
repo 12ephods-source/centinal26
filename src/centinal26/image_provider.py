@@ -10,10 +10,10 @@ import base64
 import json
 import os
 import urllib.request
+from collections.abc import Sequence
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
-from typing import Sequence
 
 from .visual_optimizer import Candidate, Defect, Scores
 
@@ -111,19 +111,23 @@ class HTTPImageProvider:
 
     def _multipart(self, boundary: str, source: Path, prompt: str) -> bytes:
         chunks: list[bytes] = []
+
         def field(name: str, value: str) -> None:
             chunks.extend([
                 f"--{boundary}\r\n".encode(),
                 f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode(),
-                value.encode(), b"\r\n",
+                value.encode(),
+                b"\r\n",
             ])
+
         field("model", self.config.model)
         field("prompt", prompt)
         chunks.extend([
             f"--{boundary}\r\n".encode(),
             f'Content-Disposition: form-data; name="image"; filename="{source.name}"\r\n'.encode(),
             b"Content-Type: image/png\r\n\r\n",
-            source.read_bytes(), b"\r\n",
+            source.read_bytes(),
+            b"\r\n",
             f"--{boundary}--\r\n".encode(),
         ])
         return b"".join(chunks)
