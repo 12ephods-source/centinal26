@@ -1,0 +1,55 @@
+name: KMS modular cocycle harness
+
+on:
+  push:
+    branches: ["main", "agent/**"]
+    paths:
+      - "candidates/kms-modular-cocycle-harness/**"
+      - ".github/workflows/kms-modular-cocycle-harness.yml"
+  pull_request:
+    paths:
+      - "candidates/kms-modular-cocycle-harness/**"
+      - ".github/workflows/kms-modular-cocycle-harness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - run: python -m pip install --upgrade pip
+      - run: >-
+          python -m pip install
+          -r candidates/kms-modular-cocycle-harness/requirements.txt
+          ruff==0.16.3
+      - name: Lint candidate
+        run: >-
+          ruff check
+          candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py
+          candidates/kms-modular-cocycle-harness/test_kms_modular_cocycle_scan.py
+      - name: Run strict falsification gates
+        run: >-
+          python candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py
+          --strict
+          --output kms-modular-cocycle-python-${{ matrix.python-version }}.json
+      - name: Run regression tests
+        run: >-
+          python -m unittest discover
+          -s candidates/kms-modular-cocycle-harness
+          -p 'test_*.py'
+          -v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kms-modular-cocycle-python-${{ matrix.python-version }}
+          path: kms-modular-cocycle-python-${{ matrix.python-version }}.json
+          if-no-files-found: error
