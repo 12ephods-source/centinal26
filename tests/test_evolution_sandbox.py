@@ -34,10 +34,13 @@ def _require_live_sandbox() -> None:
 
 def test_supported_launcher_uses_hard_runner_and_has_no_legacy_direct_path() -> None:
     launcher = (ROOT / "scripts/run-controlled-evolution.sh").read_text(encoding="utf-8")
+    guard = (ROOT / "security/control_plane_guard.py").read_text(encoding="utf-8")
     hard_runner = (ROOT / "scripts/controlled_evolution_hard.py").read_text(encoding="utf-8")
 
-    assert "controlled_evolution_hard.py" in launcher
+    assert "control_plane_guard.py" in launcher
+    assert "controlled_evolution_hard.py" in guard
     assert 'python "$ROOT/scripts/controlled_evolution_loop.py"' not in launcher
+    assert "controlled_evolution_loop.py" not in guard
     assert "host execution fallback is disabled" in launcher
     assert "evaluate_in_hard_sandbox" in hard_runner
     assert "host_execution_fallback" in hard_runner
