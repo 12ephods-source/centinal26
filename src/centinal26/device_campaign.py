@@ -200,7 +200,7 @@ def _run_canonical_probe(campaign: Path, campaign_id: str, phase: str) -> Json:
 
 def _readonly_sqlite(path: Path) -> sqlite3.Connection:
     resolved = path.expanduser().resolve()
-    connection = sqlite3.connect(f"{resolved.as_uri()}?mode=ro", uri=True)
+    connection = sqlite3.connect(f"{resolved.as_uri()}?mode=ro&immutable=1", uri=True)
     connection.row_factory = sqlite3.Row
     return connection
 
