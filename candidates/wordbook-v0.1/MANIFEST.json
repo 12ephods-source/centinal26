@@ -1,0 +1,30 @@
+{
+  "artifact_id": "WORDBOOK-V0-1",
+  "name": "Wordbook v0.1 — Personal Language Index",
+  "classification": "EXPERIMENTAL",
+  "provenance_class": "GENERATED_SUCCESSOR",
+  "source": {
+    "kind": "conversation-directed implementation",
+    "ref": "github:agent/wordbook-language-index",
+    "created_at": "2026-08-16"
+  },
+  "content_imported": true,
+  "repository_paths": [
+    "src/centinal26/wordbook.py",
+    "tests/test_wordbook.py",
+    "docs/WORDBOOK.md"
+  ],
+  "validation": {
+    "state": "HOST_FOCUSED_TESTS_PASS",
+    "focused_tests": "14/14",
+    "physical_device_validated": false,
+    "full_repository_ci_validated": false,
+    "notes": [
+      "Core uses Python standard-library SQLite, hashing, JSON, regex tokenization, and optional SQLite FTS5.",
+      "Original evidence is not mutated by the 100-generation evolution campaign.",
+      "Meta-reference and quotation are separated from ordinary authored usage.",
+      "No Android/Termux validation is inferred from host tests.",
+      "No exhaustive account-wide language claim is valid until a complete corpus is imported and deduplicated."
+    ]
+  }
+}
