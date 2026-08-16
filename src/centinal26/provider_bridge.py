@@ -158,6 +158,14 @@ class GitHubPullRequestTransport(Protocol):
 
 
 class Base44MirrorTransport(Protocol):
+    """Privileged Base44 write boundary.
+
+    Production implementations must execute inside a trusted Base44-hosted backend
+    function or an equivalently attested connector boundary with admin/service-role
+    authority. External Centinal26 code must not embed an admin password or impersonate
+    the Base44 service role merely to satisfy this protocol.
+    """
+
     def actor_identity(self) -> str: ...
 
     def observe_schema(self, app_id: str, entity_name: str) -> Mapping[str, Any]: ...
