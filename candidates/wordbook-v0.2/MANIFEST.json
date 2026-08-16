@@ -1,0 +1,64 @@
+{
+  "artifact_id": "WORDBOOK-V0-2",
+  "name": "Wordbook v0.2 — Canonical Export Evidence Pipeline",
+  "classification": "EXPERIMENTAL",
+  "provenance_class": "GENERATED_SUCCESSOR",
+  "created_at": "2026-08-16",
+  "parents": [
+    "WORDBOOK-V0-1",
+    "centinal26.export_evidence"
+  ],
+  "critical_path": {
+    "class": "evidence-recovery",
+    "blocker": "external-evidence",
+    "expected_result": "one preserved ChatGPT export can be independently verified and deterministically transformed into an exhaustive Wordbook dictionary plus a 100-generation analysis report without duplicating raw evidence"
+  },
+  "repository_paths": [
+    "src/centinal26/wordbook.py",
+    "src/centinal26/wordbook_archive.py",
+    "src/centinal26/wordbook_pipeline.py",
+    "scripts/process-wordbook-export-termux.sh",
+    "tests/test_wordbook.py",
+    "tests/test_wordbook_archive.py",
+    "tests/test_wordbook_pipeline.py",
+    "docs/WORDBOOK.md",
+    "docs/WORDBOOK_PIPELINE.md"
+  ],
+  "pipeline_invariants": {
+    "raw_acquired_once": true,
+    "raw_store_owner": "centinal26.export_evidence",
+    "raw_reverified_before_derivation": true,
+    "wordbook_raw_store_duplicate": false,
+    "dictionary_deterministic_for_fixed_database": true,
+    "dictionary_file_sha256_recorded": true,
+    "evolution_file_sha256_recorded": true,
+    "termux_latest_export_skip_when_unchanged": true,
+    "tampered_canonical_object_rejected": true
+  },
+  "validation": {
+    "state": "HOST_QUALIFICATION_PENDING_AT_CURRENT_HEAD",
+    "physical_device_validated": false,
+    "real_corpus_imported": false,
+    "required_host_workflows": [
+      "CI",
+      "validate",
+      "automation-gates",
+      "federation-gates",
+      "Mature Product Qualification"
+    ],
+    "focused_pipeline_tests": [
+      "preserve-before-derive",
+      "ordinary-vs-meta attribution",
+      "same-source idempotency",
+      "tampered-object rejection",
+      "latest-export discovery",
+      "absence fail-closed"
+    ]
+  },
+  "boundaries": [
+    "Host validation is not Android/Termux validation.",
+    "Provider-export acquisition is owned by the canonical export watcher/evidence control plane, not Wordbook.",
+    "No exhaustive account-wide claim is valid until the intended corpus is acquired and completeness limitations are recorded.",
+    "The current conversations.json parser materializes the top-level JSON structure in memory."
+  ]
+}
