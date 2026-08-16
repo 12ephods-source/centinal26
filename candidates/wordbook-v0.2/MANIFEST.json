@@ -38,7 +38,7 @@
   "validation": {
     "state": "HOST_VALIDATED_CLEAN_STACK",
     "validated_parent_export_evidence_head": "4c4c970f158bcfd5d57323bac3e80fc7a91571d4",
-    "validated_wordbook_head_before_manifest_attestation": "105267aef1ec5edda134553d12b627a5d6353418",
+    "validated_wordbook_head": "bb96db0dfb676b42966aa71c946c6f5eb153a2a0",
     "physical_device_validated": false,
     "real_corpus_imported": false,
     "required_host_workflows": [
