@@ -10,12 +10,12 @@ calculation and the matter/clock intertwining signs.
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import math
 import platform
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -540,7 +540,7 @@ def build_validation_payload() -> dict[str, Any]:
                 else "BLOCKED_PENDING_CLOCK_SCALING"
             ),
             "continuum_cocycle_physics_validated": False,
-            "generated_at_utc": datetime.now(UTC).isoformat(),
+            "generated_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
             "python_version": platform.python_version(),
             "numpy_version": np.__version__,
             "platform": platform.platform(),
