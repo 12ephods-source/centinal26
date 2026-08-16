@@ -36,7 +36,9 @@
     "tampered_canonical_object_rejected": true
   },
   "validation": {
-    "state": "HOST_QUALIFICATION_PENDING_AT_CURRENT_HEAD",
+    "state": "HOST_VALIDATED_CLEAN_STACK",
+    "validated_parent_export_evidence_head": "4c4c970f158bcfd5d57323bac3e80fc7a91571d4",
+    "validated_wordbook_head_before_manifest_attestation": "105267aef1ec5edda134553d12b627a5d6353418",
     "physical_device_validated": false,
     "real_corpus_imported": false,
     "required_host_workflows": [
@@ -46,6 +48,13 @@
       "federation-gates",
       "Mature Product Qualification"
     ],
+    "host_workflows_at_validated_head": {
+      "CI": "PASS",
+      "validate": "PASS",
+      "automation-gates": "PASS",
+      "federation-gates": "PASS",
+      "Mature Product Qualification": "PASS"
+    },
     "focused_pipeline_tests": [
       "preserve-before-derive",
       "ordinary-vs-meta attribution",
@@ -59,6 +68,7 @@
     "Host validation is not Android/Termux validation.",
     "Provider-export acquisition is owned by the canonical export watcher/evidence control plane, not Wordbook.",
     "No exhaustive account-wide claim is valid until the intended corpus is acquired and completeness limitations are recorded.",
-    "The current conversations.json parser materializes the top-level JSON structure in memory."
+    "The current conversations.json parser materializes the top-level JSON structure in memory.",
+    "The Base44 FrostOperation wordbook.process_export_evidence remains disabled until merged/deployed code and a real Android/Termux worker capability are verified."
   ]
 }
