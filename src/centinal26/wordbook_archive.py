@@ -110,20 +110,25 @@ def _copy_member_to_temp(
 ) -> tuple[Path, str, int]:
     digest = hashlib.sha256()
     total = 0
-    handle = tempfile.NamedTemporaryFile(prefix="wordbook-", suffix=".json", delete=False)
-    temp_path = Path(handle.name)
+    temp_path: Path | None = None
     keep = False
     try:
-        with handle, archive.open(info, "r") as source:
-            while True:
-                chunk = source.read(_CHUNK)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > max_bytes:
-                    raise ValueError("conversations.json exceeded configured limit while reading")
-                digest.update(chunk)
-                handle.write(chunk)
+        with tempfile.NamedTemporaryFile(
+            prefix="wordbook-", suffix=".json", delete=False
+        ) as handle:
+            temp_path = Path(handle.name)
+            with archive.open(info, "r") as source:
+                while True:
+                    chunk = source.read(_CHUNK)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > max_bytes:
+                        raise ValueError(
+                            "conversations.json exceeded configured limit while reading"
+                        )
+                    digest.update(chunk)
+                    handle.write(chunk)
         if total != info.file_size:
             raise ValueError(
                 f"conversations.json size mismatch: metadata={info.file_size}, read={total}"
@@ -131,7 +136,7 @@ def _copy_member_to_temp(
         keep = True
         return temp_path, digest.hexdigest(), total
     finally:
-        if not keep:
+        if temp_path is not None and not keep:
             temp_path.unlink(missing_ok=True)
 
 
