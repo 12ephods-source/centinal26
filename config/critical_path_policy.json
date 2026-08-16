@@ -1,0 +1,63 @@
+{
+  "schema": "centinal26.critical_path_policy/v1",
+  "mode": "CRITICAL_PATH",
+  "enforced_base_branch": "main",
+  "active_blocker_states": [
+    "OPEN",
+    "ACTIONABLE",
+    "WAITING_EXTERNAL"
+  ],
+  "blockers": [
+    {
+      "id": "physical-ga:#64",
+      "state": "OPEN",
+      "objective": "Produce independently verified authentic Android/Termux physical release evidence for GitHub Issue #64."
+    },
+    {
+      "id": "external-evidence",
+      "state": "WAITING_EXTERNAL",
+      "objective": "Acquire, authenticate, ingest, correlate, or explicitly terminally dispose missing provider/original forensic evidence."
+    }
+  ],
+  "allowed_work_classes": [
+    "physical-validation",
+    "evidence-acquisition",
+    "evidence-recovery",
+    "provider-records",
+    "blocker-remediation",
+    "security-regression",
+    "provenance-recovery"
+  ],
+  "blocker_work_classes": {
+    "physical-ga:#64": [
+      "physical-validation",
+      "blocker-remediation",
+      "security-regression",
+      "provenance-recovery"
+    ],
+    "external-evidence": [
+      "evidence-acquisition",
+      "evidence-recovery",
+      "provider-records",
+      "blocker-remediation",
+      "provenance-recovery"
+    ]
+  },
+  "deferred_work_classes": [
+    "architecture-expansion",
+    "controlled-evolution",
+    "speculative-feature",
+    "unrelated-research",
+    "new-product-feature",
+    "new-adapter",
+    "optimization-not-required-by-blocker"
+  ],
+  "terminal_evidence_dispositions": [
+    "ACQUIRED",
+    "VERIFIED_ABSENT_FROM_SUPPLIED_EXPORT",
+    "PROVIDER_UNAVAILABLE",
+    "RETENTION_EXPIRED",
+    "IRRECOVERABLE"
+  ],
+  "exit_rule": "Critical-path mode may be disabled only by a reviewed state change backed by physical-gate evidence and an explicit terminal disposition for each external evidence gap."
+}
