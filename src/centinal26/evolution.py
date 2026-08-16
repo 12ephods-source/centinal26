@@ -24,6 +24,7 @@ DEFAULT_PROTECTED_PREFIXES = (
     "SECURITY.md",
     "pyproject.toml",
     "src/centinal26/core.py",
+    "src/centinal26/control_plane.py",
     "src/centinal26/evolution.py",
     "scripts/audit_untrusted_candidate.py",
     "scripts/controlled_evolution_loop.py",
