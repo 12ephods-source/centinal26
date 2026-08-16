@@ -20,6 +20,7 @@ centinal26 = "centinal26.cli:main"
 centinal26-intelligence = "frost_core.intelligence_cli:main"
 centinal26-fleet = "frost_core.fleet_cli:main"
 centinal26-wordbook = "centinal26.wordbook:main"
+centinal26-wordbook-archive = "centinal26.wordbook_archive:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
