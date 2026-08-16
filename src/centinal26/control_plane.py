@@ -76,7 +76,9 @@ class EvidenceRecord:
             raise ValueError("digest must be a lowercase SHA-256 hex string")
         if self.provenance not in {"internal", "external"}:
             raise ValueError("provenance must be internal or external")
-        parse_time(self.acquired_at)
+        acquired = parse_time(self.acquired_at)
+        if self.epoch != hourly_epoch(acquired):
+            raise ValueError("evidence epoch must match acquired_at hourly epoch")
 
     def expires_at(self) -> datetime:
         return parse_time(self.acquired_at) + timedelta(seconds=self.ttl_seconds)
@@ -153,6 +155,12 @@ def prove_mutation(
     for record in evidence:
         by_kind.setdefault(record.kind, []).append(record)
 
+    expected_subjects = {
+        "authority": contract.authority,
+        "identity": contract.actor_identity,
+        "target": contract.target_identity,
+        "preconditions": contract.target_identity,
+    }
     evidence_digests: list[str] = []
     for kind in contract.evidence_required:
         candidates = by_kind.get(kind, [])
@@ -163,6 +171,13 @@ def prove_mutation(
         if not fresh:
             reasons.append(f"evidence_stale:{kind}")
             continue
+        expected_subject = expected_subjects.get(kind)
+        if expected_subject is not None:
+            bound = [record for record in fresh if record.subject == expected_subject]
+            if not bound:
+                reasons.append(f"evidence_subject_mismatch:{kind}")
+                continue
+            fresh = bound
         selected = max(fresh, key=lambda record: parse_time(record.acquired_at))
         evidence_digests.append(selected.digest)
 
@@ -259,6 +274,7 @@ class ComponentState:
     deployment_debt: int
     failure_streak: int
     circuit_state: CircuitState
+    opened_at: str | None
     last_revalidated_at: str | None
     drift_status: str
 
