@@ -149,9 +149,8 @@ def test_evolution_is_exactly_100_generations_and_evidence_pinned() -> None:
 
 
 def test_evolution_refuses_other_generation_counts() -> None:
-    with WordbookStore() as store:
-        with pytest.raises(ValueError, match="exactly 100"):
-            store.evolve(99)
+    with WordbookStore() as store, pytest.raises(ValueError, match="exactly 100"):
+        store.evolve(99)
 
 
 def test_policy_bounds_are_enforced() -> None:
@@ -160,9 +159,8 @@ def test_policy_bounds_are_enforced() -> None:
 
 
 def test_empty_term_rejected() -> None:
-    with WordbookStore() as store:
-        with pytest.raises(ValueError):
-            store.query("---")
+    with WordbookStore() as store, pytest.raises(ValueError):
+        store.query("---")
 
 
 def test_meta_discussion_does_not_become_ordinary_usage() -> None:
