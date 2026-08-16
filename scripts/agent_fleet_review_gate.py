@@ -16,8 +16,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 API = "https://api.github.com"
 REPO = os.environ.get("GITHUB_REPOSITORY", "12ephods-source/centinal26")
