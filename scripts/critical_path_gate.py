@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail-closed repository work-intake gate for Centinal26 critical-path mode."""
 
 from __future__ import annotations
@@ -11,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 TRAILER_RE = re.compile(
-    r"^(Critical-Path-(?:Class|Blocker|Result|State)):\s*(.*?)\s*$", re.I
+    r"^(Critical-Path-(?:Class|Blocker|Result|State)):\s*(.*?)\s*$", re.IGNORECASE
 )
 
 
