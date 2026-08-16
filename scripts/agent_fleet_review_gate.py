@@ -327,19 +327,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="fresh agent_fleet.json from agent_fleet_qualify.py")
     parser.add_argument("--release-relevance", type=Path)
-    parser.add_argument("--live-observation", type=Path, help="use a pre-collected live observation instead of GitHub")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
     snapshot = json.loads(args.input.read_text(encoding="utf-8"))
     relevance = json.loads(args.release_relevance.read_text(encoding="utf-8")) if args.release_relevance else {}
-    if args.live_observation:
-        live = json.loads(args.live_observation.read_text(encoding="utf-8"))
-    else:
-        if not TOKEN:
-            print("GITHUB_TOKEN is required unless --live-observation is supplied", file=os.sys.stderr)
-            return 2
-        live = collect_live_state(snapshot)
+    if not TOKEN:
+        print("GITHUB_TOKEN is required for mandatory independent live refresh", file=os.sys.stderr)
+        return 2
+    live = collect_live_state(snapshot)
 
     result = route_snapshot(snapshot, live, relevance)
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
