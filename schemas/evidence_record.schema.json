@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/evidence_record.schema.json",
+  "title": "Centinal26 Fresh Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "evidence_id",
+    "kind",
+    "subject",
+    "source",
+    "acquired_at",
+    "ttl_seconds",
+    "digest",
+    "provenance",
+    "run_id",
+    "epoch"
+  ],
+  "properties": {
+    "schema": {"const": "centinal26-evidence-record-v1"},
+    "evidence_id": {"type": "string", "minLength": 1},
+    "kind": {"type": "string", "minLength": 1},
+    "subject": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "acquired_at": {"type": "string", "format": "date-time"},
+    "ttl_seconds": {"type": "integer", "minimum": 0},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provenance": {"enum": ["internal", "external"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "epoch": {"type": "integer", "minimum": 0}
+  }
+}
