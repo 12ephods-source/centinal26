@@ -6,11 +6,12 @@ import json
 import os
 import stat
 import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 try:
     import fcntl
@@ -55,7 +56,7 @@ def _canonical_json(value: Any) -> str:
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _hash_file(path: Path) -> tuple[str, int]:
