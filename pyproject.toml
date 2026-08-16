@@ -36,4 +36,7 @@ target-version = "py311"
 # failures into diagnostic records instead of allowing plugin failures to escape.
 "deploy/hermes-c05/hermes_c05_bridge.py" = ["EXE001", "TRY004", "BLE001"]
 "deploy/hermes-c05/plugin/frost_orchestrator/tools.py" = ["I001", "PLW1510", "BLE001"]
+# The conversation CLI is a process boundary: all uncaught domain/provider failures
+# must become structured JSON errors for the Base44 worker rather than escape to stdout.
+"src/frost_core/conversation_cli.py" = ["BLE001"]
 "tests/test_hermes_c05_adapter.py" = ["I001"]
