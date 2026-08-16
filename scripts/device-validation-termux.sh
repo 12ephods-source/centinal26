@@ -7,8 +7,8 @@ export CENTINAL26_DEVICE_CAMPAIGN="${CENTINAL26_DEVICE_CAMPAIGN:-$CENTINAL26_HOM
 boot_hook="$HOME/.termux/boot/centinal26.sh"
 history_dir="$CENTINAL26_HOME/device-validation/history"
 
-if [[ "${PREFIX:-}" != *com.termux* ]] || [[ -z "${ANDROID_ROOT:-}" ]]; then
-  printf 'ERROR: this campaign must run inside Termux on Android.\n' >&2
+if [[ "${PREFIX:-}" != *com.termux* ]]; then
+  printf 'ERROR: this campaign must run inside Termux.\n' >&2
   exit 2
 fi
 if ! command -v python >/dev/null 2>&1; then
