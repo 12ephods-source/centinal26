@@ -3,9 +3,8 @@ from __future__ import annotations
 import math
 import unittest
 
-import numpy as np
-
 import clock_regulator_scan as harness
+import numpy as np
 
 
 class ClockRegulatorHarnessTests(unittest.TestCase):
@@ -93,4 +92,3 @@ class ClockRegulatorHarnessTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

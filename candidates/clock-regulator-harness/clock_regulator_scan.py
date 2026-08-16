@@ -15,7 +15,7 @@ import json
 import math
 import platform
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -105,7 +105,7 @@ def intervals_for_delta(q_max: float, delta_q: float) -> int:
     """Require a uniform grid whose final point is exactly q_max."""
     if delta_q <= 0.0:
         raise ValueError("delta_q must be positive")
-    intervals = int(round(q_max / delta_q))
+    intervals = round(q_max / delta_q)
     if not math.isclose(intervals * delta_q, q_max, rel_tol=0.0, abs_tol=1.0e-12):
         raise ValueError("q_max must be an integer multiple of delta_q")
     return intervals
@@ -540,7 +540,7 @@ def build_validation_payload() -> dict[str, Any]:
                 else "BLOCKED_PENDING_CLOCK_SCALING"
             ),
             "continuum_cocycle_physics_validated": False,
-            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "generated_at_utc": datetime.now(UTC).isoformat(),
             "python_version": platform.python_version(),
             "numpy_version": np.__version__,
             "platform": platform.platform(),
