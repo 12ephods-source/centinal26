@@ -126,6 +126,29 @@ def test_conflicting_duplicate_qualification_heads_fail_closed():
     assert result["decision_counts"] == {"AMBIGUOUS_IDENTITY": 2}
 
 
+def test_same_head_conflicting_qualification_states_fail_all_rows_closed():
+    data = snapshot(row(state="SUBSUMED_OR_MERGED"))
+    data["branches"].append(row(state="AHEAD_AFTER_PRIOR_MERGE_REVIEW"))
+    result = route_snapshot(data, observation(), {"agent/example": "RELEVANT"})
+    assert result["decision_counts"] == {"AMBIGUOUS_IDENTITY": 2}
+    assert result["deep_review_eligible_count"] == 0
+
+
+def test_same_head_conflicting_snapshot_pr_state_fails_all_rows_closed():
+    data = snapshot(row(open_prs=[]))
+    data["branches"].append(row(open_prs=[78]))
+    result = route_snapshot(data, observation(), {"agent/example": "RELEVANT"})
+    assert result["decision_counts"] == {"AMBIGUOUS_IDENTITY": 2}
+    assert result["deep_review_eligible_count"] == 0
+
+
+def test_identical_duplicate_qualification_rows_are_not_an_identity_conflict():
+    data = snapshot()
+    data["branches"].append(row())
+    result = route_snapshot(data, observation(), {"agent/example": "RELEVANT"})
+    assert result["decision_counts"] == {"DEEP_REVIEW_ELIGIBLE": 2}
+
+
 def test_review_state_change_is_detected_by_revalidation():
     before = observation(prs=[live_pr(requested=["alice"])])
     after = observation(prs=[live_pr(requested=["bob"])])
