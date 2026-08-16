@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import stat
 import tempfile
 import zipfile
@@ -113,6 +112,7 @@ def _copy_member_to_temp(
     total = 0
     handle = tempfile.NamedTemporaryFile(prefix="wordbook-", suffix=".json", delete=False)
     temp_path = Path(handle.name)
+    keep = False
     try:
         with handle, archive.open(info, "r") as source:
             while True:
@@ -128,10 +128,11 @@ def _copy_member_to_temp(
             raise ValueError(
                 f"conversations.json size mismatch: metadata={info.file_size}, read={total}"
             )
+        keep = True
         return temp_path, digest.hexdigest(), total
-    except Exception:
-        temp_path.unlink(missing_ok=True)
-        raise
+    finally:
+        if not keep:
+            temp_path.unlink(missing_ok=True)
 
 
 def _record_archive_import(
@@ -197,6 +198,7 @@ def ingest_chatgpt_zip(
 
     archive_sha = sha256_file(archive_path)
     with zipfile.ZipFile(archive_path, "r") as archive:
+        member_count = len(archive.infolist())
         info = _select_conversations_member(
             archive,
             max_members=max_members,
@@ -230,7 +232,7 @@ def ingest_chatgpt_zip(
         conversations_member=info.filename,
         conversations_sha256=member_sha,
         conversations_bytes=member_size,
-        archive_members=len(zipfile.ZipFile(archive_path, "r").infolist()),
+        archive_members=member_count,
         user_messages=int(stats.get("user_messages", 0)),
         non_user_messages=int(stats.get("non_user_messages", 0)),
         duplicate_messages=int(stats.get("duplicate_messages", 0)),
@@ -275,7 +277,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         report_path = Path(args.report)
         report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(rendered, encoding="utf-8")
-        os.chmod(report_path, 0o600)
+        report_path.chmod(0o600)
     print(rendered, end="")
     return 0
 
