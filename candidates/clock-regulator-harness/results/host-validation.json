@@ -1092,14 +1092,14 @@
     "continuum_cocycle_physics_validated": false,
     "continuum_target": "Type III_1 -> Type II_infinity -> Type II_1",
     "evaluation_algorithm": "exact Frobenius sums compressed by uniform-grid difference multiplicity",
-    "generated_at_utc": "2026-08-16T08:16:15.777661+00:00",
+    "generated_at_utc": "2026-08-16T08:18:44.095507+00:00",
     "map_under_test": "regulated relational readout; not a proven embedding",
     "numerical_algebra": "finite-dimensional Type I GNS-clock regulator",
     "numpy_version": "2.3.5",
     "platform": "Linux-6.18.35-x86_64-with-glibc2.39",
     "python_version": "3.12.13",
     "schema_version": 1,
-    "source_sha256": "d520895f0635059d107d044eb8eb2597831a640f6fd0e3c3db6dc77f214a587a"
+    "source_sha256": "e426f2cba5a163db857f170c7c32d90bcf3047b8ae39ad391a8eeb5ce4c754b5"
   },
   "resolved_q_max_scan": {
     "q_max_10": {

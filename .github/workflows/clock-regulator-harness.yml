@@ -32,9 +32,9 @@ jobs:
           python -m pip install
           -r candidates/clock-regulator-harness/requirements.txt
           ruff==0.16.3
-      - name: Show Ruff import-sort diff
+      - name: Lint candidate
         run: >-
-          ruff check --select I --diff
+          ruff check
           candidates/clock-regulator-harness/clock_regulator_scan.py
           candidates/clock-regulator-harness/test_clock_regulator_scan.py
       - name: Run strict convergence gates

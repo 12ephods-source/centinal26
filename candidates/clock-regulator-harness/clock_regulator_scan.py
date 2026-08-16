@@ -21,7 +21,6 @@ from typing import Any
 
 import numpy as np
 
-
 DEFAULT_BETA = 2.0 * np.pi
 DEFAULT_SIGMA_RATIO = 1.0 / 16.0
 DEFAULT_MODULAR_PARAMETER = 0.25
