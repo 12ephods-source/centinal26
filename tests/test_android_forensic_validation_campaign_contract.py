@@ -47,6 +47,7 @@ def test_campaign_identity_binds_commit_and_boot_epochs():
     assert "pre_boot_id" in TEXT
     assert "post_boot_id" in TEXT
     assert "repository HEAD changed across reboot" in TEXT
+    assert "boot_epoch:{pre:$pre_boot_id,post:$post_boot_id}" in TEXT
 
 
 def test_receipts_are_hash_sealed_and_non_promoting():
