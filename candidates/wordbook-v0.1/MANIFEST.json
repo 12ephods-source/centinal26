@@ -1,0 +1,63 @@
+{
+  "artifact_id": "WORDBOOK-V0-1",
+  "name": "Wordbook v0.1 — Personal Language Index",
+  "classification": "EXPERIMENTAL",
+  "provenance_class": "GENERATED_SUCCESSOR",
+  "source": {
+    "kind": "conversation-directed implementation",
+    "ref": "github:agent/wordbook-language-index",
+    "created_at": "2026-08-16"
+  },
+  "content_imported": true,
+  "repository_paths": [
+    "src/centinal26/wordbook.py",
+    "src/centinal26/wordbook_archive.py",
+    "tests/test_wordbook.py",
+    "tests/test_wordbook_archive.py",
+    "docs/WORDBOOK.md",
+    "scripts/install-wordbook-termux.sh"
+  ],
+  "validation": {
+    "state": "EXPERIMENTAL_DEVICE_GATE_PREPARED",
+    "physical_device_validated": false,
+    "host_validation_source": "GitHub Actions at the current pull-request head",
+    "required_host_workflows": [
+      "CI",
+      "validate",
+      "automation-gates",
+      "federation-gates",
+      "Mature Product Qualification"
+    ],
+    "device_gate": {
+      "script": "scripts/install-wordbook-termux.sh",
+      "prepared": true,
+      "executed": false,
+      "synthetic_route": "ChatGPT ZIP -> safe archive adapter -> Wordbook -> 100-generation campaign",
+      "expected_report": "~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json",
+      "expected_report_sha256": "~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json.sha256"
+    },
+    "archive_ingestion": {
+      "direct_zip_supported": true,
+      "filesystem_extraction": false,
+      "archive_sha256": true,
+      "member_sha256": true,
+      "import_ledger": true,
+      "ambiguous_member_rejection": true,
+      "traversal_rejection": true,
+      "symlink_rejection": true,
+      "encrypted_member_rejection": true,
+      "size_limits": true,
+      "compression_ratio_limit": true
+    },
+    "notes": [
+      "Core uses Python standard-library SQLite, hashing, JSON, regex tokenization, zipfile, and optional SQLite FTS5.",
+      "Original evidence is not mutated by the 100-generation evolution campaign.",
+      "Meta-reference and quotation are separated from ordinary authored usage.",
+      "Host validation must be read from GitHub Actions at the current PR head; the manifest does not self-attest a mutable commit hash.",
+      "No Android/Termux validation is inferred from host tests or from merely preparing the device gate.",
+      "The device self-test uses a temporary synthetic ZIP and database so test language cannot contaminate the personal corpus.",
+      "No exhaustive account-wide language claim is valid until a complete corpus is imported and deduplicated.",
+      "The current JSON parser materializes conversations.json in memory; streaming import remains a future scalability gate."
+    ]
+  }
+}
