@@ -1,8 +1,13 @@
 from pathlib import Path
 
-from centinal26.event_state import EventStore
 from centinal26.intent_execution import CapabilityRegistry, IntentExecutionController
-from centinal26.physical_capabilities import BoundedLocalExecutor, CommandSpec, register_physical_capabilities
+
+from centinal26.event_state import EventStore
+from centinal26.physical_capabilities import (
+    BoundedLocalExecutor,
+    CommandSpec,
+    register_physical_capabilities,
+)
 
 
 def test_physical_capability_runs_through_intent_vertical(tmp_path: Path):
