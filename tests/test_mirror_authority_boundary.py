@@ -44,4 +44,5 @@ def test_registered_provider_writer_requires_canonical_authority_separate_from_m
     # The mutable Base44 row is staging/evidence only. The bridge's authority proof is
     # independently rooted in the append-only canonical event store.
     assert "subject=spec.authority.identity" in text
-    assert "source=\"canonical-event-store\"" in text
+    assert 'source="canonical-event-store"' in text
+    assert "External Centinal26 code must not embed an admin password" in text
