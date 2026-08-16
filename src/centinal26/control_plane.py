@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import os
@@ -509,6 +510,7 @@ class ReentrancyGuard:
         self.run_id = run_id
         self.lease_seconds = lease_seconds
         self.acquired = False
+        self._fd: int | None = None
 
     def _payload(self, now: datetime) -> dict[str, Any]:
         return {
@@ -516,56 +518,41 @@ class ReentrancyGuard:
             "pid": os.getpid(),
             "acquired_at": now.astimezone(UTC).isoformat(),
             "lease_seconds": self.lease_seconds,
+            "lock_backend": "flock",
         }
 
-    def _try_create(self, now: datetime) -> bool:
+    def acquire(self, now: datetime | None = None) -> None:
+        if self.acquired:
+            raise RuntimeError("controller_reentrancy_guard_already_acquired")
+        current = (now or datetime.now(UTC)).astimezone(UTC)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
-            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        except FileExistsError:
-            return False
-        try:
-            payload = json.dumps(self._payload(now), sort_keys=True).encode("utf-8")
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuntimeError("controller_reentrancy_blocked") from None
+            payload = json.dumps(self._payload(current), sort_keys=True).encode("utf-8")
+            os.ftruncate(fd, 0)
+            os.lseek(fd, 0, os.SEEK_SET)
             os.write(fd, payload)
             os.fsync(fd)
-        finally:
+        except Exception:
             os.close(fd)
+            raise
+        self._fd = fd
         self.acquired = True
-        return True
-
-    def acquire(self, now: datetime | None = None) -> None:
-        current = (now or datetime.now(UTC)).astimezone(UTC)
-        if self._try_create(current):
-            return
-        try:
-            active = json.loads(self.path.read_text(encoding="utf-8"))
-            acquired_at = parse_time(str(active["acquired_at"]))
-            lease_seconds = int(active.get("lease_seconds", self.lease_seconds))
-            stale = current > acquired_at + timedelta(seconds=lease_seconds)
-        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
-            stale = False
-        if not stale:
-            raise RuntimeError("controller_reentrancy_blocked")
-        try:
-            self.path.unlink()
-        except FileNotFoundError:
-            pass
-        if not self._try_create(current):
-            raise RuntimeError("controller_reentrancy_race_lost")
 
     def release(self) -> None:
-        if not self.acquired:
+        if not self.acquired or self._fd is None:
             return
-        try:
-            active = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            active = {}
-        if active.get("run_id") == self.run_id:
-            try:
-                self.path.unlink()
-            except FileNotFoundError:
-                pass
+        fd = self._fd
+        self._fd = None
         self.acquired = False
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
 
     def __enter__(self) -> ReentrancyGuard:
         self.acquire()
