@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from __future__ import annotations
 
 import json
@@ -8,8 +7,9 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from centinal26.event_state import EventStore
 from centinal26.intent_execution import CapabilityRegistry, IntentExecutionController
+
+from centinal26.event_state import EventStore
 from centinal26.physical_capabilities import register_physical_capabilities
 
 
