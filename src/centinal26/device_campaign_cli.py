@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from .device_campaign import (
-    DECISION_DEVICE_VALIDATED,
+    DECISION_PERSISTENT_VALIDATED,
     DeviceCampaignError,
     prepare_device_campaign,
     resume_device_campaign,
@@ -37,7 +37,9 @@ def main() -> None:
         if args.command == "resume":
             report = resume_device_campaign(args.campaign, boot_hook=args.boot_hook)
             print(json.dumps(report, sort_keys=True))
-            raise SystemExit(0 if report.get("decision") == DECISION_DEVICE_VALIDATED else 3)
+            raise SystemExit(
+                0 if report.get("decision") == DECISION_PERSISTENT_VALIDATED else 3
+            )
         valid = verify_device_campaign(args.campaign)
         print(json.dumps({"campaign": str(args.campaign), "valid": valid}, sort_keys=True))
         raise SystemExit(0 if valid else 1)
