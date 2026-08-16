@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 
 def canonical_sha256(value: Any) -> str:
@@ -487,7 +487,7 @@ class OperationLedger:
             return {}
         value = json.loads(self.path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
-            raise ValueError("operation ledger must contain a JSON object")
+            raise TypeError("operation ledger must contain a JSON object")
         return {str(key): str(item) for key, item in value.items()}
 
     def contains(self, idempotency_key: str) -> bool:
@@ -554,7 +554,7 @@ class ReentrancyGuard:
         finally:
             os.close(fd)
 
-    def __enter__(self) -> ReentrancyGuard:
+    def __enter__(self) -> Self:
         self.acquire()
         return self
 
