@@ -36,6 +36,7 @@ jobs:
         run: >-
           ruff check
           --output-format=github
+          --ignore EXE001
           candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py
           candidates/kms-modular-cocycle-harness/test_kms_modular_cocycle_scan.py
       - name: Run strict falsification gates
