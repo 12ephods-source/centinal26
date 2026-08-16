@@ -87,11 +87,16 @@ def test_changed_boot_hook_blocks_post_reboot_promotion(tmp_path, monkeypatch):
     assert not (campaign / dc.REPORT_NAME).exists()
 
 
-def test_final_manifest_detects_report_tampering(tmp_path, monkeypatch):
+def test_final_verifier_is_repeatable_and_detects_report_tampering(tmp_path, monkeypatch):
     campaign, hook, _ = _prepare(tmp_path, monkeypatch)
     monkeypatch.setattr(dc, "_read_boot_id", lambda: "boot-after")
     dc.resume_device_campaign(campaign, boot_hook=hook)
+
+    manifest_path = campaign / dc.MANIFEST_NAME
+    manifest_before = manifest_path.read_bytes()
     assert dc.verify_device_campaign(campaign)
+    assert dc.verify_device_campaign(campaign)
+    assert manifest_path.read_bytes() == manifest_before
 
     report_path = campaign / dc.REPORT_NAME
     report = json.loads(report_path.read_text(encoding="utf-8"))
