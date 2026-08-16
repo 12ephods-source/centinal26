@@ -76,6 +76,21 @@ def test_campaign_fails_closed_until_real_reboot_then_verifies(tmp_path, monkeyp
     assert dc.verify_device_campaign(campaign)
 
 
+def test_completed_campaign_resume_is_idempotent(tmp_path, monkeypatch):
+    campaign, hook, _ = _prepare(tmp_path, monkeypatch)
+    monkeypatch.setattr(dc, "_read_boot_id", lambda: "boot-after")
+    report = dc.resume_device_campaign(campaign, boot_hook=hook)
+
+    repeated = dc.resume_device_campaign(campaign, boot_hook=hook)
+    rows = dc._runtime_rows_readonly(campaign)
+
+    assert repeated == report
+    assert rows is not None
+    assert len(rows) == 2
+    assert all(row["state"] == "verified" for row in rows)
+    assert dc.verify_device_campaign(campaign)
+
+
 def test_changed_boot_hook_blocks_post_reboot_promotion(tmp_path, monkeypatch):
     campaign, hook, _ = _prepare(tmp_path, monkeypatch)
     hook.write_text("#!/bin/sh\necho changed\n", encoding="utf-8")
