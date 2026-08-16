@@ -3,7 +3,7 @@ import zipfile
 from pathlib import Path
 
 from centinal26.advance import advance_until_idle, build_advance_engine
-from centinal26.event_state import EventStore, rebuild_state
+from centinal26.event_state import EventStore, derive_ready_tasks, rebuild_state
 from centinal26.export_evidence import preserve_export
 from centinal26.frost_call_adapter import ingest_frost_call
 
@@ -70,7 +70,8 @@ def test_frost_call_to_authorized_verified_chat_import(tmp_path, monkeypatch):
 
     ingested = ingest_frost_call(store, envelope)
     before = rebuild_state(store.events())
-    assert before.tasks[ingested.canonical.task_id]["status"] == "READY"
+    assert before.tasks[ingested.canonical.task_id]["status"] == "DISCOVERED"
+    assert ingested.canonical.task_id in derive_ready_tasks(before)
 
     home = tmp_path / "state"
     runtime = build_advance_engine(home)
