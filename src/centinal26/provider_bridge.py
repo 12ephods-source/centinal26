@@ -105,7 +105,7 @@ class ProviderSagaRunner:
                         compensated.append(step.name)
                     else:
                         failures.append(f"compensation_postcondition_failed:{step.name}")
-                except Exception as compensation_error:  # noqa: BLE001
+                except Exception as compensation_error:  # noqa: BLE001 - evidence boundary
                     failures.append(
                         f"compensation_failed:{step.name}:{type(compensation_error).__name__}"
                     )
@@ -188,7 +188,7 @@ class Base44MirrorTransport(Protocol):
 
 
 class GitHubGraphQLTransport:
-    """Exact-head GitHub PR readiness transport; merge/rebase/close are intentionally absent."""
+    """Exact-head GitHub readiness transport; merge/rebase/close are intentionally absent."""
 
     def __init__(
         self,
@@ -246,11 +246,11 @@ class GitHubGraphQLTransport:
             raise ValueError("noncanonical GitHub repository")
         value = self._request(f"{self.api_url}/repos/{repository}/pulls/{number}")
         if not isinstance(value, dict):
-            raise RuntimeError("github_pr_observation_invalid")
+            raise TypeError("github_pr_observation_invalid")
         head = value.get("head")
         base = value.get("base")
         if not isinstance(head, dict) or not isinstance(base, dict):
-            raise RuntimeError("github_pr_identity_missing")
+            raise TypeError("github_pr_identity_missing")
         node_id = value.get("node_id")
         head_sha = head.get("sha")
         base_sha = base.get("sha")
@@ -260,7 +260,7 @@ class GitHubGraphQLTransport:
         if not all(isinstance(item, str) and item for item in strings):
             raise RuntimeError("github_pr_identity_missing")
         if not isinstance(draft, bool):
-            raise RuntimeError("github_pr_draft_state_missing")
+            raise TypeError("github_pr_draft_state_missing")
         return GitHubPullRequestSnapshot(
             repository=repository,
             number=number,
@@ -307,7 +307,7 @@ class GitHubGraphQLTransport:
             write_error = error
         try:
             after = self.observe_pull_request(repository, number)
-        except Exception as error:  # noqa: BLE001 - write outcome cannot be determined
+        except Exception as error:
             raise ProviderOutcomeAmbiguous("github_ready_outcome_unobservable") from error
         if after.head_sha != expected_head_sha:
             raise ProviderOutcomeAmbiguous("github_head_changed_during_write")
@@ -338,7 +338,7 @@ def validate_base44_mirror_schema(entity_name: str, schema: Mapping[str, Any]) -
     if not isinstance(required, list) or set(required) != _REQUIRED_FIELDS[entity_name]:
         raise ValueError("base44_schema_required_set_mismatch")
     if not isinstance(rls, Mapping):
-        raise ValueError("base44_schema_rls_missing")
+        raise TypeError("base44_schema_rls_missing")
     for operation in ("create", "read", "update", "delete"):
         if rls.get(operation) != _ADMIN_RLS:
             raise ValueError(f"base44_schema_rls_mismatch:{operation}")
@@ -413,7 +413,7 @@ class Base44MirrorAdapter:
             write_error = error
         try:
             after = self.observe(entity_name, logical_id)
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:
             raise ProviderOutcomeAmbiguous("base44_create_outcome_unobservable") from error
         if after.projection_sha256 == expected:
             return after
