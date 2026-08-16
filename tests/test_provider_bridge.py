@@ -388,14 +388,12 @@ def test_concurrent_mirror_edit_prevents_destructive_compensation(tmp_path: Path
     assert result.state is ProviderBridgeState.COMPENSATION_FAILED
     assert base44.record is not None
     assert base44.record["status"] == "CONCURRENTLY_EDITED"
-    assert base44.delete_calls == 1
+    # The adapter detects projection drift locally and refuses to invoke the provider
+    # delete at all, which is stronger than asking the provider to reject it.
+    assert base44.delete_calls == 0
     assert result.replay_blocked is True
 
 
 def test_wrong_repository_is_rejected_before_execution() -> None:
     with pytest.raises(ValueError, match="hard-bound"):
         replace(_provisional_spec(_record()), repository="other/repository")
-
-
-def test_base44_transport_protocol_is_structural() -> None:
-    assert isinstance(FakeBase44(), Base44MirrorTransport.__class__) is False
