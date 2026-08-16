@@ -29,6 +29,7 @@ MODE_COUNT = 3
 T_RATIOS = (1.0, 2.0, 4.0, 8.0)
 ETA_TARGET = 0.0625
 Q_MAX = 8.0
+POVM_DELTA_Q = 0.25
 SIGMA_RATIO = 1.0 / 16.0
 MODULAR_PARAMETER = 0.25
 N_CUT = 5
@@ -245,10 +246,12 @@ def relational_embedding_metrics() -> dict[str, Any]:
         final_rows.append(rows[-1])
         scans[f"mode_{mode_index}"] = {"omega": omega, "scan": rows}
 
-    final_delta_q = float(final_rows[0]["delta_q"])
+    # POVM closure is a clock-construction regression, not a T-refinement test.
+    # Keep it on the validated moderate grid so the exact finite-DFT check remains
+    # O(N_q^3) bounded while the relational scan itself uses compressed sums.
     povm = CLOCK.time_povm_metrics(
         q_max=Q_MAX,
-        delta_q=final_delta_q,
+        delta_q=POVM_DELTA_Q,
         sigma_tau=SIGMA_RATIO * BETA,
     )
     return {
@@ -278,6 +281,7 @@ def relational_embedding_metrics() -> dict[str, Any]:
             for mode in scans.values()
             for row in mode["scan"]
         ),
+        "clock_povm_regression_delta_q": POVM_DELTA_Q,
         "clock_povm": povm,
     }
 
@@ -355,6 +359,7 @@ def run() -> dict[str, Any]:
         "T_over_beta_scan": list(T_RATIOS),
         "eta_target": ETA_TARGET,
         "q_max": Q_MAX,
+        "povm_regression_delta_q": POVM_DELTA_Q,
         "sigma_tau_over_beta": SIGMA_RATIO,
         "modular_parameter": MODULAR_PARAMETER,
         "thresholds": THRESH,
