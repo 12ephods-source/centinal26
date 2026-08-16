@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/checkpoint.schema.json",
+  "title": "Centinal26 Stable Resume Checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_id",
+    "epoch",
+    "phase",
+    "immutable_inputs_digest",
+    "result_digests",
+    "pending_obligations",
+    "state_digest",
+    "resume_digest"
+  ],
+  "properties": {
+    "schema": {"const": "centinal26-checkpoint-v1"},
+    "run_id": {"type": "string", "minLength": 1},
+    "epoch": {"type": "integer", "minimum": 0},
+    "phase": {"enum": ["BUILD", "EVOLVE", "VERIFY", "RECOVER", "OPERATE"]},
+    "immutable_inputs_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "result_digests": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "pending_obligations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "state_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "resume_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
