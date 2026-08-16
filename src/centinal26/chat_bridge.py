@@ -6,9 +6,10 @@ import json
 import os
 import re
 import zipfile
+from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from .export_evidence import DEFAULT_ROOT, verify_receipt
 from .pipeline import AutomatedEngine, CapabilitySpec
@@ -174,9 +175,11 @@ def _load_export_json(export_path: Path) -> Any:
                 )
                 if not candidates:
                     raise ChatBridgeError("The ZIP does not contain conversations.json.")
-                with archive.open(candidates[0], "r") as raw:
-                    with io.TextIOWrapper(raw, encoding="utf-8-sig") as stream:
-                        return json.load(stream)
+                with (
+                    archive.open(candidates[0], "r") as raw,
+                    io.TextIOWrapper(raw, encoding="utf-8-sig") as stream,
+                ):
+                    return json.load(stream)
         with export_path.open("r", encoding="utf-8-sig") as stream:
             return json.load(stream)
     except ChatBridgeError:
