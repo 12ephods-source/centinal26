@@ -520,13 +520,11 @@ def verify_device_campaign(campaign: Path) -> bool:
             return False
         if any(row["state"] != "verified" for row in rows):
             return False
-        if any(
+        return not any(
             not row["evidence_path"]
             or not EvidenceStore.verify(Path(row["evidence_path"]))
             for row in rows
-        ):
-            return False
-        return True
+        )
     except (
         DeviceCampaignError,
         FileNotFoundError,
