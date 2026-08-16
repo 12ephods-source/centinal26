@@ -6,10 +6,11 @@ import json
 import re
 import sqlite3
 from collections import Counter
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import asdict, dataclass, replace
 from enum import StrEnum
 from pathlib import Path
-from typing import Iterable, Iterator, Sequence
+from typing import Self
 
 SCHEMA_VERSION = "centinal26-wordbook-v1"
 WORD_RE = re.compile(r"[^\W_]+(?:['’][^\W_]+)*", re.UNICODE)
@@ -56,7 +57,7 @@ class EvolutionPolicy:
     rejection_penalty: float = 1.0
     meta_penalty: float = 0.5
 
-    def validate(self) -> "EvolutionPolicy":
+    def validate(self) -> EvolutionPolicy:
         if not 1 <= self.min_phrase_n <= self.max_phrase_n <= 12:
             raise ValueError("phrase n-gram bounds must satisfy 1 <= min <= max <= 12")
         if self.min_phrase_count < 1:
@@ -118,7 +119,7 @@ def tokenize(text: str) -> list[str]:
 def ngrams(tokens: Sequence[str], n: int) -> Iterator[str]:
     if n < 1:
         raise ValueError("n must be >= 1")
-    for i in range(0, len(tokens) - n + 1):
+    for i in range(len(tokens) - n + 1):
         yield " ".join(tokens[i : i + n])
 
 
@@ -174,7 +175,7 @@ class WordbookStore:
     def close(self) -> None:
         self.conn.close()
 
-    def __enter__(self) -> "WordbookStore":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:  # type: ignore[no-untyped-def]
@@ -350,7 +351,7 @@ class WordbookStore:
     ) -> dict[str, int]:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(payload, list):
-            raise ValueError("ChatGPT conversations.json must contain a top-level list")
+            raise TypeError("ChatGPT conversations.json must contain a top-level list")
         accepted_names = {name.casefold() for name in user_author_names}
         stats: Counter[str] = Counter()
         seen_messages: set[str] = set()
