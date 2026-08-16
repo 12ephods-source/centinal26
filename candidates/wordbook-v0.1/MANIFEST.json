@@ -12,18 +12,36 @@
   "repository_paths": [
     "src/centinal26/wordbook.py",
     "tests/test_wordbook.py",
-    "docs/WORDBOOK.md"
+    "docs/WORDBOOK.md",
+    "scripts/install-wordbook-termux.sh"
   ],
   "validation": {
-    "state": "HOST_FOCUSED_TESTS_PASS",
+    "state": "HOST_VALIDATED_DEVICE_GATE_PREPARED",
     "focused_tests": "14/14",
     "physical_device_validated": false,
-    "full_repository_ci_validated": false,
+    "full_repository_ci_validated": true,
+    "repository_ci": {
+      "head": "9e413f187d2bfd87028801219debfc589f6e05e6",
+      "ci": "PASS",
+      "validate": "PASS",
+      "automation_gates": "PASS",
+      "federation_gates": "PASS",
+      "mature_product_qualification": "PASS"
+    },
+    "device_gate": {
+      "script": "scripts/install-wordbook-termux.sh",
+      "prepared": true,
+      "executed": false,
+      "expected_report": "~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json",
+      "expected_report_sha256": "~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json.sha256"
+    },
     "notes": [
       "Core uses Python standard-library SQLite, hashing, JSON, regex tokenization, and optional SQLite FTS5.",
       "Original evidence is not mutated by the 100-generation evolution campaign.",
       "Meta-reference and quotation are separated from ordinary authored usage.",
-      "No Android/Termux validation is inferred from host tests.",
+      "All five repository workflows passed before the Termux gate was added; the branch must pass again after this change.",
+      "No Android/Termux validation is inferred from host tests or from merely preparing the device gate.",
+      "The device self-test uses a temporary synthetic database so test language cannot contaminate the personal corpus.",
       "No exhaustive account-wide language claim is valid until a complete corpus is imported and deduplicated."
     ]
   }
