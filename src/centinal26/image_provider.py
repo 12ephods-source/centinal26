@@ -1,9 +1,4 @@
-"""Provider bridge for autonomous visual optimization.
-
-Uses only Python stdlib. Credentials are read from environment and never
-persisted. The generator is OpenAI-compatible; evaluation is local and
-conservative so promotion fails closed unless measurable evidence is supplied.
-"""
+"""Provider bridge for autonomous visual optimization."""
 from __future__ import annotations
 
 import base64
@@ -15,6 +10,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 
+from .visual_evaluator import MultimodalEvaluator, scores_from_evidence
 from .visual_optimizer import Candidate, Defect, Scores
 
 
@@ -28,15 +24,15 @@ class ProviderConfig:
 
 
 class HTTPImageProvider:
-    """Generate preservation-first image edits through an HTTP image API.
+    """Generate bounded edits and require independent evidence before promotion."""
 
-    Evaluation deliberately does not invent semantic scores. A sidecar JSON
-    file may be produced by an independent evaluator; absent that evidence,
-    the candidate receives fail-closed scores and cannot be promoted.
-    """
-
-    def __init__(self, config: ProviderConfig | None = None):
+    def __init__(
+        self,
+        config: ProviderConfig | None = None,
+        evaluator: MultimodalEvaluator | None = None,
+    ):
         self.config = config or ProviderConfig()
+        self.evaluator = evaluator
         self.output_dir = Path(self.config.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -50,7 +46,7 @@ class HTTPImageProvider:
         prompt = self._prompt(defect, locks)
         boundary = "----centinal26-image-boundary"
         body = self._multipart(boundary, source, prompt)
-        req = urllib.request.Request(
+        request = urllib.request.Request(
             self.config.api_url,
             data=body,
             headers={
@@ -59,7 +55,7 @@ class HTTPImageProvider:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
+        with urllib.request.urlopen(request, timeout=self.config.timeout_seconds) as response:
             payload = json.loads(response.read().decode("utf-8"))
         datum = payload["data"][0]
         if "b64_json" not in datum:
@@ -75,12 +71,26 @@ class HTTPImageProvider:
             "defect": defect.key,
             "model": self.config.model,
         }
-        target.with_suffix(".manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2))
+        target.with_suffix(".manifest.json").write_text(
+            json.dumps(manifest, sort_keys=True, indent=2)
+        )
         return str(target)
 
-    def evaluate(self, *, canonical_artifact: str, candidate_artifact: str, defect: Defect, locks: Sequence[str]) -> Candidate:
+    def evaluate(
+        self,
+        *,
+        canonical_artifact: str,
+        candidate_artifact: str,
+        defect: Defect,
+        locks: Sequence[str],
+    ) -> Candidate:
+        del locks
         candidate = Path(candidate_artifact)
         evidence_path = candidate.with_suffix(".evaluation.json")
+        if self.evaluator is not None:
+            evidence = self.evaluator.evaluate(canonical_artifact, candidate_artifact, defect)
+            evidence_path.write_text(json.dumps(evidence, sort_keys=True, indent=2))
+            return Candidate(str(candidate), scores_from_evidence(evidence), evidence)
         if not evidence_path.exists():
             return Candidate(
                 artifact=str(candidate),
@@ -88,16 +98,7 @@ class HTTPImageProvider:
                 evidence={"status": "UNVERIFIED", "reason": "independent evaluation missing"},
             )
         evidence = json.loads(evidence_path.read_text())
-        scores = evidence.get("scores", {})
-        return Candidate(
-            artifact=str(candidate),
-            scores=Scores(
-                preservation=float(scores["preservation"]),
-                target_gain=float(scores["target_gain"]),
-                collateral_drift=float(scores["collateral_drift"]),
-            ),
-            evidence=evidence,
-        )
+        return Candidate(str(candidate), scores_from_evidence(evidence), evidence)
 
     def _prompt(self, defect: Defect, locks: Sequence[str]) -> str:
         lock_text = "\n".join(f"- {lock}" for lock in locks)
