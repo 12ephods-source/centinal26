@@ -2,7 +2,7 @@
 """Discretized de Sitter diamond -> modular/cocycle -> relational-map harness.
 
 This is the first geometry-bearing extension stacked on the validated finite Type-I
-KMS/modular/cocycle baseline.  It deliberately remains a regulated finite surrogate:
+KMS/modular/cocycle baseline. It deliberately remains a regulated finite surrogate:
 no continuum Type-II/III classification, gravitational canonical-energy identity,
 or Einstein reconstruction is inferred from these calculations.
 """
@@ -13,6 +13,7 @@ import hashlib
 import importlib.util
 import json
 import platform
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +53,7 @@ def load_parent_module(name: str, relative_path: str):
     if spec is None or spec.loader is None:
         raise ImportError(f"unable to load parent harness: {path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -106,10 +108,7 @@ def geometry_metrics() -> dict[str, Any]:
     lapse = 1.0 - (r / L_DS) ** 2
     dr_dx = sech2
     metric_identity_residual = float(
-        max(
-            np.max(np.abs(lapse - sech2)),
-            np.max(np.abs(dr_dx - sech2)),
-        )
+        max(np.max(np.abs(lapse - sech2)), np.max(np.abs(dr_dx - sech2)))
     )
 
     n_matrix = N_SITE_SCAN[0]
@@ -138,10 +137,10 @@ def geometry_metrics() -> dict[str, Any]:
             }
         )
 
-    ratios = []
-    for earlier, later in zip(errors[:-1], errors[1:], strict=True):
-        ratios.append(float(np.min(earlier / later)))
-
+    ratios = [
+        float(np.min(earlier / later))
+        for earlier, later in zip(errors[:-1], errors[1:], strict=True)
+    ]
     return {
         "dimension": "1+1",
         "radius_L": L_DS,
@@ -165,15 +164,10 @@ def geometry_kms_cocycle_metrics() -> dict[str, Any]:
     x_op = (a + a.conj().T) / np.sqrt(2.0)
     b_op = number + 0.13 * x_op
 
-    flow_residuals = []
-    for s in (-0.25, -0.125, 0.125, 0.25):
-        flow_residuals.append(
-            KMS.nr(
-                KMS.sigma(rho0, s, x_op),
-                KMS.alpha(h, -BETA * s, x_op),
-            )
-        )
-
+    flow_residuals = [
+        KMS.nr(KMS.sigma(rho0, s, x_op), KMS.alpha(h, -BETA * s, x_op))
+        for s in (-0.25, -0.125, 0.125, 0.25)
+    ]
     sig_i_x = np.linalg.inv(rho0) @ x_op @ rho0
     left = np.trace(rho0 @ sig_i_x @ b_op)
     right = np.trace(rho0 @ b_op @ x_op)
@@ -181,8 +175,8 @@ def geometry_kms_cocycle_metrics() -> dict[str, Any]:
 
     displacement = KMS.displace(N_CUT, 0.10 * (0.31 + 0.17j))
     rho1 = displacement @ rho0 @ displacement.conj().T
-    cocycle_residuals = []
-    intertwining_residuals = []
+    cocycle_residuals: list[float] = []
+    intertwining_residuals: list[float] = []
     for s in (-0.25, -0.125, 0.125, 0.25):
         u_s = KMS.cocycle(rho1, rho0, s)
         cocycle_residuals.append(KMS.nr(u_s.conj().T @ u_s, np.eye(N_CUT)))
@@ -224,12 +218,12 @@ def relational_embedding_metrics() -> dict[str, Any]:
         modular_parameter=MODULAR_PARAMETER,
     )
     scans: dict[str, Any] = {}
-    final_rows = []
+    final_rows: list[dict[str, Any]] = []
     monotonic_constraint = True
     monotonic_intertwining = True
 
     for mode_index, omega in enumerate(frequencies, start=1):
-        rows = []
+        rows: list[dict[str, Any]] = []
         for t_ratio in T_RATIOS:
             width = t_ratio * BETA
             n_intervals = CLOCK.select_resolved_intervals(
@@ -249,15 +243,14 @@ def relational_embedding_metrics() -> dict[str, Any]:
 
         r_c = [float(row["R_C_over_omega"]) for row in rows]
         r_int = [float(row["R_int_corrected"]) for row in rows]
-        monotonic_constraint &= all(a > b for a, b in zip(r_c[:-1], r_c[1:], strict=True))
+        monotonic_constraint &= all(
+            a > b for a, b in zip(r_c[:-1], r_c[1:], strict=True)
+        )
         monotonic_intertwining &= all(
             a > b for a, b in zip(r_int[:-1], r_int[1:], strict=True)
         )
         final_rows.append(rows[-1])
-        scans[f"mode_{mode_index}"] = {
-            "omega": omega,
-            "scan": rows,
-        }
+        scans[f"mode_{mode_index}"] = {"omega": omega, "scan": rows}
 
     final_delta_q = float(final_rows[0]["delta_q"])
     povm = CLOCK.time_povm_metrics(
@@ -310,9 +303,7 @@ def source_hashes() -> dict[str, str]:
 
 
 def evaluate_gates(
-    geometry: dict[str, Any],
-    kms: dict[str, Any],
-    relational: dict[str, Any],
+    geometry: dict[str, Any], kms: dict[str, Any], relational: dict[str, Any]
 ) -> dict[str, bool]:
     povm = relational["clock_povm"]
     return {
@@ -413,7 +404,9 @@ def run() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=Path("ds-diamond-relational.json"))
+    parser.add_argument(
+        "--output", type=Path, default=Path("ds-diamond-relational.json")
+    )
     parser.add_argument("--strict", action="store_true")
     args = parser.parse_args()
     result = run()
