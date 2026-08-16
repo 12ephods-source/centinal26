@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 
 from centinal26.export_evidence import DEFAULT_ROOT as DEFAULT_EVIDENCE_ROOT
 from centinal26.export_evidence import PreservationResult, preserve_export, verify_receipt
-from centinal26.wordbook import Attribution, WordbookStore, canonical_sha256
+from centinal26.wordbook import Attribution, WordbookStore
 from centinal26.wordbook_archive import ArchiveImportReport, ingest_chatgpt_zip
 
 PIPELINE_SCHEMA = "centinal26-wordbook-pipeline-v1"
@@ -239,15 +239,13 @@ def run_pipeline(
     with WordbookStore(database_path) as store:
         archive_report: ArchiveImportReport = ingest_chatgpt_zip(store, verified.object_path)
         dictionary = _dictionary_payload(store)
-        dictionary_sha = canonical_sha256(dictionary)
         dictionary_path = state_path / DEFAULT_DICTIONARY.name
-        _write_private_json(dictionary_path, dictionary)
+        dictionary_sha = _write_private_json(dictionary_path, dictionary)
 
         evolution = store.evolve()
         evolution_payload = evolution.to_dict()
-        evolution_sha = canonical_sha256(evolution_payload)
         evolution_path = state_path / DEFAULT_EVOLUTION.name
-        _write_private_json(evolution_path, evolution_payload)
+        evolution_sha = _write_private_json(evolution_path, evolution_payload)
         corpus_sha = store.corpus_digest()
 
     return PipelineReport(
