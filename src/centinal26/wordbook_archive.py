@@ -6,9 +6,9 @@ import json
 import stat
 import tempfile
 import zipfile
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
-from typing import Sequence
 
 from centinal26.wordbook import WordbookStore
 
