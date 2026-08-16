@@ -1,9 +1,13 @@
 import runpy
+import sys
 from pathlib import Path
+
+import pytest
 
 MODULE = runpy.run_path(Path(__file__).resolve().parents[1] / "scripts" / "agent_fleet_review_gate.py")
 route_snapshot = MODULE["route_snapshot"]
 revalidate_observation = MODULE["revalidate_observation"]
+main = MODULE["main"]
 
 BASE = "b" * 40
 HEAD = "a" * 40
@@ -145,3 +149,23 @@ def test_proposal_only_policy_is_explicit():
     assert result["policy"]["repository_mutation"] is False
     assert result["policy"]["auto_merge"] is False
     assert result["policy"]["exact_observation_revalidation_required_before_consequential_action"] is True
+
+
+def test_production_cli_rejects_precollected_live_observation(monkeypatch, tmp_path):
+    input_path = tmp_path / "agent_fleet.json"
+    input_path.write_text("{}", encoding="utf-8")
+    live_path = tmp_path / "fabricated-live.json"
+    live_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "agent_fleet_review_gate.py",
+            str(input_path),
+            "--live-observation",
+            str(live_path),
+        ],
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+    assert exc_info.value.code == 2
