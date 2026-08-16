@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Run the preservation-first visual optimizer from a device or CI worker."""
 from __future__ import annotations
 
@@ -21,10 +20,17 @@ def main() -> int:
     image = Path(args.image)
     if not image.is_file():
         parser.error(f"image not found: {image}")
-    provider = HTTPImageProvider(ProviderConfig(api_url=args.api_url, model=args.model, output_dir=args.output_dir))
+    provider = HTTPImageProvider(
+        ProviderConfig(api_url=args.api_url, model=args.model, output_dir=args.output_dir)
+    )
     optimizer = VisualOptimizer(provider, args.ledger)
     final = optimizer.optimize(str(image))
-    print(json.dumps({"status": "complete", "final_artifact": final, "ledger": args.ledger}, sort_keys=True))
+    print(
+        json.dumps(
+            {"status": "complete", "final_artifact": final, "ledger": args.ledger},
+            sort_keys=True,
+        )
+    )
     return 0
 
 
