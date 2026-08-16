@@ -3,14 +3,22 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sqlite3
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .advance import advance_until_idle, build_advance_engine
-from .event_state import EventStore, rebuild_state
+from .event_state import (
+    EVENT_TYPES,
+    GENESIS_HASH,
+    Event,
+    EventStore,
+    rebuild_state,
+)
 from .frost_call_adapter import ingest_frost_call
+from .pipeline import EvidenceStore
 from .qualification import platform_identity
 
 Json = dict[str, Any]
@@ -30,6 +38,16 @@ class DeviceCampaignError(RuntimeError):
 
 def _utc_now_iso() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    )
 
 
 def _sha256_file(path: Path, *, chunk_size: int = 1024 * 1024) -> str:
@@ -180,6 +198,80 @@ def _run_canonical_probe(campaign: Path, campaign_id: str, phase: str) -> Json:
         runtime.store.db.close()
 
 
+def _readonly_sqlite(path: Path) -> sqlite3.Connection:
+    resolved = path.expanduser().resolve()
+    connection = sqlite3.connect(f"{resolved.as_uri()}?mode=ro", uri=True)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def _event_digest(event: Event) -> str:
+    body = {
+        "schema_version": 1,
+        "event_id": event.event_id,
+        "ts": event.ts,
+        "type": event.type,
+        "entity_id": event.entity_id,
+        "payload": event.payload,
+        "prev_hash": event.prev_hash,
+    }
+    return hashlib.sha256(_canonical_json(body).encode("utf-8")).hexdigest()
+
+
+def _readonly_events(campaign: Path) -> list[Event] | None:
+    connection = _readonly_sqlite(_state_home(campaign) / "events.sqlite3")
+    try:
+        rows = connection.execute("SELECT * FROM events ORDER BY seq").fetchall()
+        events = [EventStore._row_to_event(row) for row in rows]
+    except (json.JSONDecodeError, sqlite3.Error, TypeError, ValueError):
+        return None
+    finally:
+        connection.close()
+
+    previous = GENESIS_HASH
+    for event in events:
+        if event.prev_hash != previous or event.type not in EVENT_TYPES:
+            return None
+        if _event_digest(event) != event.event_hash:
+            return None
+        previous = event.event_hash
+    return events
+
+
+def _verify_audit_readonly(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    previous = GENESIS_HASH
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            record = json.loads(line)
+            if not isinstance(record, dict):
+                return False
+            found = record.pop("hash", None)
+            if not isinstance(found, str) or record.get("previous_hash") != previous:
+                return False
+            canonical = json.dumps(record, sort_keys=True, separators=(",", ":"))
+            if hashlib.sha256(canonical.encode()).hexdigest() != found:
+                return False
+            previous = found
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    return True
+
+
+def _runtime_rows_readonly(campaign: Path) -> list[sqlite3.Row] | None:
+    connection = _readonly_sqlite(_state_home(campaign) / "advance.sqlite3")
+    try:
+        return connection.execute(
+            "SELECT state,evidence_path FROM jobs WHERE capability=? ORDER BY rowid",
+            ("system.echo",),
+        ).fetchall()
+    except sqlite3.Error:
+        return None
+    finally:
+        connection.close()
+
+
 def _verify_probe(campaign: Path, probe: Json) -> bool:
     task_id = probe.get("task_id")
     evidence_path = probe.get("evidence_path")
@@ -191,22 +283,20 @@ def _verify_probe(campaign: Path, probe: Json) -> bool:
     if not isinstance(evidence_sha256, str) or len(evidence_sha256) != 64:
         return False
 
-    store = _event_store(campaign)
-    runtime = build_advance_engine(_state_home(campaign))
-    try:
-        if not store.verify_chain():
-            return False
-        state = rebuild_state(store.events())
-        task = state.tasks.get(task_id)
-        if not isinstance(task, dict) or task.get("status") != "COMPLETE":
-            return False
-        path = Path(evidence_path)
-        if not path.is_file() or _sha256_file(path) != evidence_sha256:
-            return False
-        return runtime.evidence.verify(path) and runtime.audit.verify()
-    finally:
-        store.close()
-        runtime.store.db.close()
+    events = _readonly_events(campaign)
+    if events is None:
+        return False
+    state = rebuild_state(events)
+    task = state.tasks.get(task_id)
+    if not isinstance(task, dict) or task.get("status") != "COMPLETE":
+        return False
+
+    path = Path(evidence_path)
+    if not path.is_file() or _sha256_file(path) != evidence_sha256:
+        return False
+    if not EvidenceStore.verify(path):
+        return False
+    return _verify_audit_readonly(_state_home(campaign) / "advance-audit.jsonl")
 
 
 def prepare_device_campaign(campaign: Path, *, boot_hook: Path) -> Json:
@@ -418,31 +508,30 @@ def verify_device_campaign(campaign: Path) -> bool:
         if not _verify_probe(campaign, pre_probe) or not _verify_probe(campaign, post_probe):
             return False
 
-        store = _event_store(campaign)
-        runtime = build_advance_engine(_state_home(campaign))
-        try:
-            if not store.verify_chain() or not runtime.audit.verify():
-                return False
-            rows = runtime.store.db.execute(
-                "SELECT state,evidence_path FROM jobs WHERE capability=? ORDER BY rowid",
-                ("system.echo",),
-            ).fetchall()
-            if len(rows) != 2 or any(row["state"] != "verified" for row in rows):
-                return False
-            if any(
-                not row["evidence_path"]
-                or not runtime.evidence.verify(Path(row["evidence_path"]))
-                for row in rows
-            ):
-                return False
-        finally:
-            store.close()
-            runtime.store.db.close()
+        events = _readonly_events(campaign)
+        if events is None:
+            return False
+        rebuild_state(events)
+        if not _verify_audit_readonly(_state_home(campaign) / "advance-audit.jsonl"):
+            return False
+
+        rows = _runtime_rows_readonly(campaign)
+        if rows is None or len(rows) != 2:
+            return False
+        if any(row["state"] != "verified" for row in rows):
+            return False
+        if any(
+            not row["evidence_path"]
+            or not EvidenceStore.verify(Path(row["evidence_path"]))
+            for row in rows
+        ):
+            return False
         return True
     except (
         DeviceCampaignError,
         FileNotFoundError,
         OSError,
+        sqlite3.Error,
         TypeError,
         ValueError,
         json.JSONDecodeError,
