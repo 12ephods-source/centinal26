@@ -1,0 +1,57 @@
+name: critical-path-gate
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  critical-path:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Read live physical blocker state
+        id: physical
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$(curl --fail-with-body -sS \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/issues/64" \
+            | python -c 'import json,sys; print(json.load(sys.stdin)["state"].upper())')"
+          echo "state=${state}" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce critical-path intake
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/critical_path_gate.py \
+            --policy config/critical_path_policy.json \
+            --event "$GITHUB_EVENT_PATH" \
+            --blocker-state "physical-ga:#64=${{ steps.physical.outputs.state }}" \
+            --output critical-path-verdict.json
+
+      - name: Publish verdict summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f critical-path-verdict.json ]; then
+            echo '### Critical-path verdict' >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat critical-path-verdict.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
