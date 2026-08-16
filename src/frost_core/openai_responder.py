@@ -84,7 +84,7 @@ class OpenAIResponsesResponder:
         except json.JSONDecodeError as exc:
             raise RuntimeError("OpenAI responder returned invalid JSON") from exc
         if not isinstance(parsed, dict):
-            raise RuntimeError("OpenAI responder returned a non-object payload")
+            raise TypeError("OpenAI responder returned a non-object payload")
         return parsed
 
     @staticmethod
@@ -96,7 +96,7 @@ class OpenAIResponsesResponder:
         tool_calls: list[ToolCall] = []
         output = response.get("output") or []
         if not isinstance(output, list):
-            raise RuntimeError("OpenAI response output is not a list")
+            raise TypeError("OpenAI response output is not a list")
         for item in output:
             if not isinstance(item, dict):
                 continue
@@ -126,11 +126,11 @@ class OpenAIResponsesResponder:
                 elif isinstance(arguments_raw, dict):
                     arguments = arguments_raw
                 else:
-                    raise RuntimeError(
+                    raise TypeError(
                         f"OpenAI function call {call_id} arguments are not an object/string"
                     )
                 if not isinstance(arguments, dict):
-                    raise RuntimeError(f"OpenAI function call {call_id} arguments are not an object")
+                    raise TypeError(f"OpenAI function call {call_id} arguments are not an object")
                 tool_calls.append(ToolCall(call_id=call_id, name=name, arguments=arguments))
         return ResponderStep(
             response_id=response_id,
