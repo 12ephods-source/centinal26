@@ -1,8 +1,8 @@
 """Live, fail-closed routing for Agent Fleet review candidates.
 
-Consumes fresh ``agent_fleet_qualify.py`` JSON and independently refreshes canonical
-main plus live branch/PR/review state. Output is proposal evidence only; this module
-never mutates GitHub state.
+Consumes fresh ``agent_fleet_qualify.py`` JSON and independently refreshes the
+configured canonical repository/main plus live branch/PR/review state. Output is
+proposal evidence only; this module never mutates GitHub state.
 """
 
 from __future__ import annotations
@@ -21,7 +21,9 @@ from pathlib import Path
 from typing import Any
 
 API = "https://api.github.com"
-REPO = os.environ.get("GITHUB_REPOSITORY", "12ephods-source/centinal26")
+CANONICAL_REPOSITORY = "12ephods-source/centinal26"
+CANONICAL_BASE = "main"
+CANONICAL_BASE_REF_PATH = "heads/main"
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 SHA40_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 NO_DEEP_REVIEW_STATES = {"SUBSUMED_OR_MERGED", "SUPERSEDED_PRESERVE_ONLY"}
@@ -52,11 +54,21 @@ def normalize_release_relevance(value: Any) -> str:
     return "UNKNOWN"
 
 
+def canonical_identity_error(snapshot: dict[str, Any]) -> str | None:
+    repository = str(snapshot.get("repository") or "")
+    base = str(snapshot.get("base") or "")
+    if repository != CANONICAL_REPOSITORY:
+        return f"qualification repository must be {CANONICAL_REPOSITORY}"
+    if base != CANONICAL_BASE:
+        return f"qualification base must be {CANONICAL_BASE}"
+    return None
+
+
 def github_request(path: str) -> Any:
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "centinal26-agent-fleet-review-gate/2.0",
+        "User-Agent": "centinal26-agent-fleet-review-gate/3.0",
     }
     if TOKEN:
         headers["Authorization"] = f"Bearer {TOKEN}"
@@ -108,11 +120,13 @@ def collect_live_state(
     *,
     request_fn: RequestFn = github_request,
 ) -> dict[str, Any]:
-    repository = str(snapshot.get("repository") or REPO)
-    base = str(snapshot.get("base") or "main")
+    error = canonical_identity_error(snapshot)
+    if error:
+        raise ValueError(error)
+
+    repository = CANONICAL_REPOSITORY
     owner = repository.split("/", 1)[0]
-    base_ref = urllib.parse.quote(base, safe="")
-    main_ref = request_fn(f"/repos/{repository}/git/ref/heads/{base_ref}")
+    main_ref = request_fn(f"/repos/{repository}/git/ref/{CANONICAL_BASE_REF_PATH}")
     current_main_sha = normalize_sha((main_ref.get("object") or {}).get("sha"))
 
     branches: dict[str, Any] = {}
@@ -140,9 +154,9 @@ def collect_live_state(
         }
 
     observation = {
-        "schema": "frost-agent-fleet-live-observation/1.0",
-        "repository": repository,
-        "base": base,
+        "schema": "frost-agent-fleet-live-observation/1.1",
+        "repository": CANONICAL_REPOSITORY,
+        "base": CANONICAL_BASE,
         "current_main_sha": current_main_sha,
         "branches": branches,
     }
@@ -172,6 +186,7 @@ def route_branch(
     snapshot_base_sha: Any,
     current_main_sha: Any,
     identity_conflict: bool = False,
+    canonical_identity_valid: bool = True,
 ) -> dict[str, Any]:
     branch = str(row.get("branch") or "")
     state = str(row.get("state") or "")
@@ -188,7 +203,9 @@ def route_branch(
     decision = "AMBIGUOUS_REVIEW"
     reason = "unrecognized qualification state is preserved for review"
 
-    if state == "SUBSUMED_OR_MERGED":
+    if not canonical_identity_valid:
+        decision, reason = "INVALID_CANONICAL_IDENTITY", "qualification/live identity does not match configured canonical repository/main"
+    elif state == "SUBSUMED_OR_MERGED":
         decision, reason = "NO_DEEP_REVIEW", "fresh qualification says current base subsumes branch changes"
     elif state == "SUPERSEDED_PRESERVE_ONLY":
         decision, reason = "PRESERVE_ONLY", "explicit supersession evidence blocks reuse"
@@ -225,7 +242,7 @@ def route_branch(
     else:
         decision, reason = (
             "DEEP_REVIEW_ELIGIBLE",
-            "live head/current-main/no-open-PR/supersession/release-relevance gates passed",
+            "canonical live main/head/no-open-PR/supersession/release-relevance gates passed",
         )
 
     return {
@@ -252,6 +269,13 @@ def route_snapshot(
 ) -> dict[str, Any]:
     release_relevance = release_relevance or {}
     conflicts = _identity_conflicts(snapshot)
+    snapshot_identity_error = canonical_identity_error(snapshot)
+    live_identity_valid = (
+        str(live_observation.get("repository") or "") == CANONICAL_REPOSITORY
+        and str(live_observation.get("base") or "") == CANONICAL_BASE
+    )
+    canonical_identity_valid = snapshot_identity_error is None and live_identity_valid
+
     rows = [
         route_branch(
             row,
@@ -260,6 +284,7 @@ def route_snapshot(
             snapshot_base_sha=snapshot.get("base_sha"),
             current_main_sha=live_observation.get("current_main_sha"),
             identity_conflict=str(row.get("branch") or "") in conflicts,
+            canonical_identity_valid=canonical_identity_valid,
         )
         for row in snapshot.get("branches", [])
     ]
@@ -268,15 +293,19 @@ def route_snapshot(
         1 for row in snapshot.get("branches", []) if row.get("state") not in NO_DEEP_REVIEW_STATES
     )
     result = {
-        "schema": "frost-agent-fleet-review-gate/2.0",
+        "schema": "frost-agent-fleet-review-gate/3.0",
         "source_schema": snapshot.get("schema"),
         "source_hash": canonical_hash(snapshot),
         "live_observation_hash": live_observation.get("observation_hash") or canonical_hash(live_observation),
         "release_relevance_hash": canonical_hash(release_relevance),
-        "repository": snapshot.get("repository"),
-        "base": snapshot.get("base"),
+        "repository": CANONICAL_REPOSITORY,
+        "base": CANONICAL_BASE,
+        "snapshot_repository": snapshot.get("repository"),
+        "snapshot_base": snapshot.get("base"),
         "snapshot_base_sha": normalize_sha(snapshot.get("base_sha")),
         "current_main_sha": normalize_sha(live_observation.get("current_main_sha")),
+        "canonical_identity_valid": canonical_identity_valid,
+        "canonical_identity_error": snapshot_identity_error if snapshot_identity_error else (None if live_identity_valid else "live observation canonical identity mismatch"),
         "routed_branch_count": len(rows),
         "baseline_attention_count": baseline_attention,
         "deep_review_eligible_count": counts.get("DEEP_REVIEW_ELIGIBLE", 0),
@@ -285,6 +314,9 @@ def route_snapshot(
             "proposal_only": True,
             "repository_mutation": False,
             "auto_merge": False,
+            "canonical_repository": CANONICAL_REPOSITORY,
+            "canonical_base": CANONICAL_BASE,
+            "canonical_identity_snapshot_override": False,
             "live_head_required": True,
             "live_main_required": True,
             "live_pr_review_state_bound": True,
@@ -298,6 +330,9 @@ def route_snapshot(
 
 def revalidate_observation(expected: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
     mismatches: list[str] = []
+    for field, expected_value in (("repository", CANONICAL_REPOSITORY), ("base", CANONICAL_BASE)):
+        if expected.get(field) != expected_value or current.get(field) != expected_value:
+            mismatches.append(field)
     if normalize_sha(expected.get("current_main_sha")) != normalize_sha(current.get("current_main_sha")):
         mismatches.append("current_main_sha")
 
@@ -315,7 +350,7 @@ def revalidate_observation(expected: dict[str, Any], current: dict[str, Any]) ->
             mismatches.append(f"{branch}:review_state")
 
     return {
-        "schema": "frost-agent-fleet-observation-revalidation/1.0",
+        "schema": "frost-agent-fleet-observation-revalidation/1.1",
         "match": not mismatches,
         "mismatches": mismatches,
         "expected_hash": expected.get("observation_hash") or canonical_hash(expected),
@@ -332,10 +367,18 @@ def main() -> int:
 
     snapshot = json.loads(args.input.read_text(encoding="utf-8"))
     relevance = json.loads(args.release_relevance.read_text(encoding="utf-8")) if args.release_relevance else {}
+    error = canonical_identity_error(snapshot)
+    if error:
+        print(error, file=os.sys.stderr)
+        return 2
     if not TOKEN:
         print("GITHUB_TOKEN is required for mandatory independent live refresh", file=os.sys.stderr)
         return 2
-    live = collect_live_state(snapshot)
+    try:
+        live = collect_live_state(snapshot)
+    except (RuntimeError, ValueError) as exc:
+        print(str(exc), file=os.sys.stderr)
+        return 2
 
     result = route_snapshot(snapshot, live, relevance)
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
