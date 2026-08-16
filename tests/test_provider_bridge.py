@@ -410,3 +410,4 @@ def test_provider_bridge_does_not_embed_admin_credentials() -> None:
     for marker in forbidden:
         assert marker not in source
     assert "trusted Base44-hosted backend" in source
+    assert "External Centinal26 code must not embed an admin password" in source
