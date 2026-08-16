@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Iterable
+from typing import Any
 
 from .control_plane import canonical_sha256
 from .intent_operators import IntentOperator
@@ -41,9 +42,17 @@ class ReconciliationEvent:
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @classmethod
-    def create(cls, *, project_id: str, intent: IntentOperator, action: str,
-               result: str, evidence: Iterable[str] = (), artifacts: Iterable[str] = (),
-               parent_event: str | None = None) -> "ReconciliationEvent":
+    def create(
+        cls,
+        *,
+        project_id: str,
+        intent: IntentOperator,
+        action: str,
+        result: str,
+        evidence: Iterable[str] = (),
+        artifacts: Iterable[str] = (),
+        parent_event: str | None = None,
+    ) -> ReconciliationEvent:
         seed = {
             "project_id": project_id,
             "intent": intent.value,
