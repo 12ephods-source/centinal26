@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Finite-Type-I KMS/modular/cocycle falsification harness.
 
 This NumPy-only surrogate tests algebraic identities and convergence. It does not
