@@ -1,6 +1,6 @@
 # Wordbook v0.1 — Personal Language Index
 
-Status: **EXPERIMENTAL**. Host-testable only; no Android/Termux validation is implied.
+Status: **EXPERIMENTAL**. Host CI is validated; Android/Termux physical validation remains a separate empirical gate until the device script is actually executed on a phone.
 
 Wordbook is a local-first language evidence module for Centinal26. It imports authored text, preserves source identity, computes exact word and 2–8-word phrase occurrences, separates attribution classes, records explicit rejection evidence, and runs a fixed 100-generation bounded evolution campaign over derived policy parameters.
 
@@ -18,6 +18,31 @@ centinal26-wordbook --db wordbook.sqlite3 top-phrases --limit 100
 centinal26-wordbook --db wordbook.sqlite3 reject basically --reason "not my voice"
 centinal26-wordbook --db wordbook.sqlite3 evolve --output wordbook_evolution.json
 ```
+
+## Android / Termux gate
+
+From a Centinal26 checkout on the Wordbook branch or a later release containing Wordbook:
+
+```bash
+bash scripts/install-wordbook-termux.sh
+```
+
+The script does not run `pkg update`; it uses the Python already available in the Centinal26/Termux environment, installs the current checkout with pip, executes an isolated synthetic corpus test, exercises attribution and the full 100-generation campaign, and writes:
+
+```text
+~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json
+~/.local/state/centinal26/wordbook/WORD_BOOK_DEVICE_VALIDATION_REPORT.json.sha256
+```
+
+The synthetic validation database is temporary and is deleted after the gate, so validation text cannot contaminate the personal corpus.
+
+To validate first and then import a real ChatGPT export into the persistent Wordbook database:
+
+```bash
+bash scripts/install-wordbook-termux.sh /path/to/conversations.json
+```
+
+A `TERMUX_SELFTEST_PASS` report is physical execution evidence only. It does not authorize promotion by itself.
 
 ## Attribution classes
 
@@ -48,6 +73,7 @@ Every generation records its phase, baseline score, candidate score, promotion d
 - Spoken transcripts, email, generic document, and file-organizer adapters are not yet connected.
 - The first 100-loop engine evolves bounded analysis policy parameters; it does not self-edit source code.
 - No claim of exhaustive account-wide counts is valid until a complete corpus has been imported and deduplicated.
+- The Termux gate is prepared but is not considered executed until its report comes from an actual Android/Termux environment.
 
 ## Acceptance target
 
