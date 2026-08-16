@@ -32,7 +32,7 @@ def _read_request() -> Json:
         raise ValueError("stdin request JSON is required")
     value = json.loads(raw)
     if not isinstance(value, dict):
-        raise ValueError("request must be a JSON object")
+        raise TypeError("request must be a JSON object")
     return value
 
 
