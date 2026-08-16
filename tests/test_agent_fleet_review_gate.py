@@ -5,6 +5,9 @@ from pathlib import Path
 import pytest
 
 MODULE = runpy.run_path(Path(__file__).resolve().parents[1] / "scripts" / "agent_fleet_review_gate.py")
+CANONICAL_REPOSITORY = MODULE["CANONICAL_REPOSITORY"]
+CANONICAL_BASE = MODULE["CANONICAL_BASE"]
+collect_live_state = MODULE["collect_live_state"]
 route_snapshot = MODULE["route_snapshot"]
 revalidate_observation = MODULE["revalidate_observation"]
 main = MODULE["main"]
@@ -23,21 +26,21 @@ def row(*, head=HEAD, state="AHEAD_AFTER_PRIOR_MERGE_REVIEW", open_prs=None):
     }
 
 
-def snapshot(candidate=None, *, base_sha=BASE):
+def snapshot(candidate=None, *, base_sha=BASE, repository=CANONICAL_REPOSITORY, base=CANONICAL_BASE):
     return {
         "schema": "frost-agent-fleet-qualification/1.1",
-        "repository": "12ephods-source/centinal26",
-        "base": "main",
+        "repository": repository,
+        "base": base,
         "base_sha": base_sha,
         "branches": [candidate or row()],
     }
 
 
-def observation(*, main=BASE, head=HEAD, prs=None):
+def observation(*, main=BASE, head=HEAD, prs=None, repository=CANONICAL_REPOSITORY, base=CANONICAL_BASE):
     return {
-        "schema": "frost-agent-fleet-live-observation/1.0",
-        "repository": "12ephods-source/centinal26",
-        "base": "main",
+        "schema": "frost-agent-fleet-live-observation/1.1",
+        "repository": repository,
+        "base": base,
         "current_main_sha": main,
         "branches": {
             "agent/example": {
@@ -61,9 +64,9 @@ def live_pr(*, number=78, head=HEAD, base=BASE, requested=None, reviews=None, dr
     }
 
 
-def decision(candidate=None, *, live=None, relevance="RELEVANT", base_sha=BASE):
+def decision(candidate=None, *, live=None, relevance="RELEVANT", base_sha=BASE, repository=CANONICAL_REPOSITORY, base=CANONICAL_BASE):
     result = route_snapshot(
-        snapshot(candidate, base_sha=base_sha),
+        snapshot(candidate, base_sha=base_sha, repository=repository, base=base),
         live or observation(),
         {"agent/example": relevance},
     )
@@ -148,7 +151,71 @@ def test_proposal_only_policy_is_explicit():
     assert result["policy"]["proposal_only"] is True
     assert result["policy"]["repository_mutation"] is False
     assert result["policy"]["auto_merge"] is False
+    assert result["policy"]["canonical_repository"] == CANONICAL_REPOSITORY
+    assert result["policy"]["canonical_base"] == CANONICAL_BASE
+    assert result["policy"]["canonical_identity_snapshot_override"] is False
     assert result["policy"]["exact_observation_revalidation_required_before_consequential_action"] is True
+
+
+def test_noncanonical_snapshot_repository_fails_closed_even_with_matching_shas():
+    result = decision(repository="attacker/example")
+    assert result["decision"] == "INVALID_CANONICAL_IDENTITY"
+
+
+def test_non_main_snapshot_base_fails_closed_even_with_matching_shas():
+    result = decision(base="agent/fake-main")
+    assert result["decision"] == "INVALID_CANONICAL_IDENTITY"
+
+
+def test_noncanonical_live_observation_identity_fails_closed():
+    result = decision(live=observation(repository="attacker/example"))
+    assert result["decision"] == "INVALID_CANONICAL_IDENTITY"
+
+
+def test_collect_live_state_rejects_wrong_repository_before_any_request():
+    calls = []
+
+    def request(path):
+        calls.append(path)
+        raise AssertionError("request must not execute for invalid canonical identity")
+
+    with pytest.raises(ValueError, match="qualification repository"):
+        collect_live_state(snapshot(repository="attacker/example"), request_fn=request)
+    assert calls == []
+
+
+def test_collect_live_state_rejects_wrong_base_before_any_request():
+    calls = []
+
+    def request(path):
+        calls.append(path)
+        raise AssertionError("request must not execute for invalid canonical identity")
+
+    with pytest.raises(ValueError, match="qualification base"):
+        collect_live_state(snapshot(base="agent/fake-main"), request_fn=request)
+    assert calls == []
+
+
+def test_collect_live_state_queries_configured_main_not_snapshot_selected_ref():
+    calls = []
+    data = snapshot()
+    data["branches"] = []
+
+    def request(path):
+        calls.append(path)
+        return {"object": {"sha": BASE}}
+
+    live = collect_live_state(data, request_fn=request)
+    assert calls == [f"/repos/{CANONICAL_REPOSITORY}/git/ref/heads/main"]
+    assert live["repository"] == CANONICAL_REPOSITORY
+    assert live["base"] == CANONICAL_BASE
+    assert live["current_main_sha"] == BASE
+
+
+def test_revalidation_rejects_noncanonical_identity():
+    result = revalidate_observation(observation(), observation(base="agent/fake-main"))
+    assert result["match"] is False
+    assert result["mismatches"] == ["base"]
 
 
 def test_production_cli_rejects_precollected_live_observation(monkeypatch, tmp_path):
@@ -169,3 +236,14 @@ def test_production_cli_rejects_precollected_live_observation(monkeypatch, tmp_p
     with pytest.raises(SystemExit) as exc_info:
         main()
     assert exc_info.value.code == 2
+
+
+def test_production_cli_rejects_noncanonical_snapshot_without_network(monkeypatch, tmp_path, capsys):
+    input_path = tmp_path / "agent_fleet.json"
+    input_path.write_text(
+        '{"repository":"attacker/example","base":"main","base_sha":"' + BASE + '","branches":[]}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sys, "argv", ["agent_fleet_review_gate.py", str(input_path)])
+    assert main() == 2
+    assert "qualification repository" in capsys.readouterr().err
