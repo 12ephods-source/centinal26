@@ -164,14 +164,29 @@ def collect_live_state(
     return observation
 
 
+def _qualification_identity(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "branch": str(row.get("branch") or ""),
+        "head_sha": normalize_sha(row.get("head_sha")),
+        "state": str(row.get("state") or ""),
+        "open_prs": sorted(int(value) for value in (row.get("open_prs") or [])),
+    }
+
+
 def _identity_conflicts(snapshot: dict[str, Any]) -> set[str]:
-    heads_by_branch: dict[str, set[str]] = defaultdict(set)
+    identities_by_branch: dict[str, set[str]] = defaultdict(set)
+    row_count_by_branch: Counter[str] = Counter()
     for row in snapshot.get("branches", []):
         branch = str(row.get("branch") or "")
-        head = normalize_sha(row.get("head_sha"))
-        if branch and head:
-            heads_by_branch[branch].add(head)
-    return {branch for branch, heads in heads_by_branch.items() if len(heads) > 1}
+        if not branch:
+            continue
+        row_count_by_branch[branch] += 1
+        identities_by_branch[branch].add(canonical_hash(_qualification_identity(row)))
+    return {
+        branch
+        for branch, identities in identities_by_branch.items()
+        if row_count_by_branch[branch] > 1 and len(identities) > 1
+    }
 
 
 def _review_state_digest(prs: list[dict[str, Any]]) -> str:
@@ -205,12 +220,12 @@ def route_branch(
 
     if not canonical_identity_valid:
         decision, reason = "INVALID_CANONICAL_IDENTITY", "qualification/live identity does not match configured canonical repository/main"
+    elif identity_conflict:
+        decision, reason = "AMBIGUOUS_IDENTITY", "duplicate qualification rows disagree on routing-relevant branch identity"
     elif state == "SUBSUMED_OR_MERGED":
         decision, reason = "NO_DEEP_REVIEW", "fresh qualification says current base subsumes branch changes"
     elif state == "SUPERSEDED_PRESERVE_ONLY":
         decision, reason = "PRESERVE_ONLY", "explicit supersession evidence blocks reuse"
-    elif identity_conflict:
-        decision, reason = "AMBIGUOUS_IDENTITY", "qualification contains conflicting immutable branch heads"
     elif current_main is None or snapshot_base is None:
         decision, reason = "NEEDS_BASE_REFRESH", "current or qualification base SHA is missing or malformed"
     elif snapshot_base != current_main:
