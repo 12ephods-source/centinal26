@@ -166,7 +166,7 @@ write_receipt() {
     --arg payload_manifest "$run_dir/PAYLOAD_SHA256SUMS.txt" \
     --arg payload_manifest_sha256 "$manifest_sha" \
     --arg steps_sha256 "$steps_sha" \
-    '{schema:$schema,phase:$phase,observed_at:$observed_at,repository:{path:$repo_path,commit:$repo_commit},boot_epoch:{pre:$pre_boot,post:$post_boot},forensics:{workspace:$frost_workspace,package:$frost_package,package_sha256:$frost_package_sha256},centinal26:{report:$centinal_report,report_sha256:$centinal_report_sha256},evidence:{payload_manifest:$payload_manifest,payload_manifest_sha256:$payload_manifest_sha256,steps_jsonl_sha256:$steps_sha256},promotion_authority:false}' \
+    '{schema:$schema,phase:$phase,observed_at:$observed_at,repository:{path:$repo_path,commit:$repo_commit},boot_epoch:{pre:$pre_boot_id,post:$post_boot_id},forensics:{workspace:$frost_workspace,package:$frost_package,package_sha256:$frost_package_sha256},centinal26:{report:$centinal_report,report_sha256:$centinal_report_sha256},evidence:{payload_manifest:$payload_manifest,payload_manifest_sha256:$payload_manifest_sha256,steps_jsonl_sha256:$steps_sha256},promotion_authority:false}' \
     > "$run_dir/campaign_receipt.json.tmp"
   mv "$run_dir/campaign_receipt.json.tmp" "$run_dir/campaign_receipt.json"
   printf '%s  campaign_receipt.json\n' "$(sha_file "$run_dir/campaign_receipt.json")" > "$run_dir/campaign_receipt.json.sha256"
