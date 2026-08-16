@@ -397,3 +397,16 @@ def test_concurrent_mirror_edit_prevents_destructive_compensation(tmp_path: Path
 def test_wrong_repository_is_rejected_before_execution() -> None:
     with pytest.raises(ValueError, match="hard-bound"):
         replace(_provisional_spec(_record()), repository="other/repository")
+
+
+def test_provider_bridge_does_not_embed_admin_credentials() -> None:
+    source = Path("src/centinal26/provider_bridge.py").read_text(encoding="utf-8")
+    forbidden = (
+        "BASE44_ADMIN_PASSWORD",
+        "BASE44_ADMIN_EMAIL",
+        "loginViaEmailPassword",
+        "asServiceRole.entities",
+    )
+    for marker in forbidden:
+        assert marker not in source
+    assert "trusted Base44-hosted backend" in source
