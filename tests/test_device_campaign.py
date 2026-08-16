@@ -50,6 +50,8 @@ def test_campaign_fails_closed_until_real_reboot_then_verifies(tmp_path, monkeyp
     campaign, hook, prepared = _prepare(tmp_path, monkeypatch)
     assert prepared["decision"] == dc.DECISION_WAITING_FOR_REBOOT
     assert prepared["phase"] == dc.PHASE_AWAITING_REBOOT
+    assert prepared["device_validated"] is True
+    assert prepared["persistent_validated"] is False
 
     same_boot = dc.resume_device_campaign(campaign, boot_hook=hook)
     assert same_boot["decision"] == dc.DECISION_WAITING_FOR_REBOOT
@@ -58,8 +60,12 @@ def test_campaign_fails_closed_until_real_reboot_then_verifies(tmp_path, monkeyp
     monkeypatch.setattr(dc, "_read_boot_id", lambda: "boot-after")
     report = dc.resume_device_campaign(campaign, boot_hook=hook)
 
-    assert report["decision"] == dc.DECISION_DEVICE_VALIDATED
+    assert report["decision"] == dc.DECISION_PERSISTENT_VALIDATED
     assert report["phase"] == dc.PHASE_COMPLETE
+    assert report["promotion_scope"] == "PERSISTENT_VALIDATED"
+    assert report["device_validated"] is True
+    assert report["persistent_validated"] is True
+    assert report["autonomous_validated"] is False
     assert report["pre_boot_id"] == "boot-before"
     assert report["post_boot_id"] == "boot-after"
     assert report["boot_id_changed"] is True
