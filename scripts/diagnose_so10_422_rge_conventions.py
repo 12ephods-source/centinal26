@@ -24,13 +24,7 @@ core = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = core
 spec.loader.exec_module(core)
 
-# Later paper Eq. (35) boundary conditions / 2HDM low-energy regime.
-LATER_BC = {
-    "MZ": 91.2,
-    "a1": 59.0272,
-    "a2": 29.5879,
-    "a3": 8.4678,
-}
+LATER_BC = {"MZ": 91.2, "a1": 59.0272, "a2": 29.5879, "a3": 8.4678}
 
 B422_2023_PRINTED = (
     (2435.0/6.0, 105.0/2.0, 249.0/2.0),
@@ -45,18 +39,8 @@ B422_2020_PRINTED = (
 A422 = (-7.0/3.0, 2.0, 28.0/3.0)
 
 POINTS = {
-    # Later paper: 2HDM, full numerical Table 3.
-    "2023_table3_2hdm": {
-        "log_mi": 10.03,
-        "log_mu": 16.19,
-        "threshold": 91.2,
-    },
-    # Older paper: SM below MI, quoted direct two-loop no-threshold result.
-    "2020_sm_result": {
-        "mi": 2.64e9,
-        "mu": 3.72e16,
-        "threshold": float("inf"),
-    },
+    "2023_table3_2hdm": {"log_mi": 10.03, "log_mu": 16.19, "threshold": 91.2},
+    "2020_sm_result": {"mi": 2.64e9, "mu": 3.72e16, "threshold": float("inf")},
 }
 
 
@@ -90,14 +74,18 @@ def main():
     }
     results = {}
     for pname, p in POINTS.items():
-        mi = p.get("mi", 10.0**p["log_mi"])
-        mu = p.get("mu", 10.0**p["log_mu"])
+        if "mi" in p:
+            mi = p["mi"]
+            mu = p["mu"]
+        else:
+            mi = 10.0**p["log_mi"]
+            mu = 10.0**p["log_mu"]
         results[pname] = {
             mname: residual_at(mi, mu, p["threshold"], matrix)
             for mname, matrix in matrices.items()
         }
     print(json.dumps({
-        "schema": "SO10-422-COEFFICIENT-SOURCE-AUDIT-v0.2",
+        "schema": "SO10-422-COEFFICIENT-SOURCE-AUDIT-v0.3",
         "note": "reports both primary-source coefficient sets; does not promote either by proximity",
         "results": results,
     }, indent=2, sort_keys=True))
