@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-"""FToE L1 operator/symmetry closure gate.
+r"""FToE L1 operator/symmetry closure gate.
 
 This module does not pretend to enumerate SO(10) tensor contractions from first
-principles.  It certifies the selection-rule statements that *can* be proved
+principles. It certifies the selection-rule statements that *can* be proved
 from charges alone and fails closed on the genuinely group-theoretic pieces.
 
 Scientific purpose:
@@ -21,7 +20,6 @@ import json
 import math
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
 
 MP = 1.22089e19
 MU_I = 9.54e3
@@ -34,24 +32,14 @@ def neutral_bilinear_charge(q: int, n: int) -> int:
     return (-q + q) % n
 
 
-def same_higgs_no_go(n: int, q16: int) -> Dict[str, int | bool]:
-    """Charge-algebra no-go with conventional shared Yukawa Higgs fields.
-
-    Assumptions, modulo N:
-      16_F 16_F 10_H allowed          -> h = -2 x
-      16_F 16_F bar126_H allowed      -> dbar = -2 x
-      126_H bar126_H allowed          -> d = 2 x
-      210_H^2 and 210_H^3 allowed     -> p = 0
-
-    Then q(10_H 126_H 210_H)=h+d+p=0 for every N and x.
-    """
+def same_higgs_no_go(n: int, q16: int) -> dict[str, int | bool]:
+    """Charge-algebra no-go with conventional shared Yukawa Higgs fields."""
     if n < 2:
         raise ValueError("N must be >= 2")
     x = q16 % n
-    h = (-2*x) % n
-    dbar = (-2*x) % n
-    d = (2*x) % n
-    # 2p=3p=0 mod N implies p=0 since gcd(2,3)=1.
+    h = (-2 * x) % n
+    dbar = (-2 * x) % n
+    d = (2 * x) % n
     p = 0
     cubic = (h + d + p) % n
     return {
@@ -66,22 +54,22 @@ def same_higgs_no_go(n: int, q16: int) -> Dict[str, int | bool]:
     }
 
 
-def first_allowed_spurion_power(n: int, q_b: int, q_s: int, max_k: int = 64) -> Optional[int]:
+def first_allowed_spurion_power(
+    n: int,
+    q_b: int,
+    q_s: int,
+    max_k: int = 64,
+) -> int | None:
     if n < 2:
         raise ValueError("N must be >= 2")
     for k in range(max_k + 1):
-        if (q_b + k*q_s) % n == 0:
+        if (q_b + k * q_s) % n == 0:
             return k
     return None
 
 
-def selector_search(target_dimension: int, n_max: int = 64) -> List[Dict[str, int]]:
-    """Find Z_N selectors for B_3 S^k with first allowed dimension target_dimension.
-
-    B_3 has dimension 3 and S has dimension 1, so k=target_dimension-3.
-    We require no earlier k>=0 member of this *specific spurion tower* to be
-    neutral.  This is not an exhaustive SO(10)-invariant enumeration.
-    """
+def selector_search(target_dimension: int, n_max: int = 64) -> list[dict[str, int]]:
+    """Find Z_N selectors for B_3 S^k first allowed at target_dimension."""
     target_k = target_dimension - 3
     if target_k < 0:
         raise ValueError("target dimension must be >= 3")
@@ -89,23 +77,46 @@ def selector_search(target_dimension: int, n_max: int = 64) -> List[Dict[str, in
     for n in range(2, n_max + 1):
         for qb in range(1, n):
             for qs in range(1, n):
-                first = first_allowed_spurion_power(n, qb, qs, max_k=max(target_k, n + 2))
+                first = first_allowed_spurion_power(
+                    n,
+                    qb,
+                    qs,
+                    max_k=max(target_k, n + 2),
+                )
                 if first == target_k:
-                    rows.append({"N": n, "q_B3": qb, "q_S": qs, "first_allowed_k": first, "dimension": first + 3})
-    rows.sort(key=lambda r: (r["N"], r["q_B3"], r["q_S"]))
+                    rows.append(
+                        {
+                            "N": n,
+                            "q_B3": qb,
+                            "q_S": qs,
+                            "first_allowed_k": first,
+                            "dimension": first + 3,
+                        }
+                    )
+    rows.sort(key=lambda row: (row["N"], row["q_B3"], row["q_S"]))
     return rows
 
 
-def hierarchy_scan(m_u: float, n_min: int = 1, n_max: int = 12) -> List[Dict[str, float | int]]:
-    if not (0.0 < m_u < MP):
+def hierarchy_scan(
+    m_u: float,
+    n_min: int = 1,
+    n_max: int = 12,
+) -> list[dict[str, float | int]]:
+    if not 0.0 < m_u < MP:
         raise ValueError("M_U must lie between 0 and M_P")
-    target = (MU_I/m_u)**2
-    ratio = m_u/MP
+    target = (MU_I / m_u) ** 2
+    ratio = m_u / MP
     rows = []
     for power in range(n_min, n_max + 1):
-        coeff = target/(ratio**power)
-        rows.append({"power": power, "operator_dimension_if_mass_bilinear_plus_insertions": power + 4,
-                     "coefficient_times_Ceff": coeff, "log10_abs_coefficient": math.log10(abs(coeff))})
+        coeff = target / ratio**power
+        rows.append(
+            {
+                "power": power,
+                "operator_dimension_if_mass_bilinear_plus_insertions": power + 4,
+                "coefficient_times_Ceff": coeff,
+                "log10_abs_coefficient": math.log10(abs(coeff)),
+            }
+        )
     return rows
 
 
@@ -117,35 +128,50 @@ class GateResult:
     preferred_power: int
     preferred_operator_dimension: int
     preferred_coefficient_times_Ceff: float
-    smallest_selector: Dict[str, int]
-    gates: Dict[str, str]
+    smallest_selector: dict[str, int]
+    gates: dict[str, str]
     scientific_status: str
-    notes: List[str]
+    notes: list[str]
 
 
 def calculate(m_u: float) -> GateResult:
     scan = hierarchy_scan(m_u)
-    best = min(scan, key=lambda r: abs(r["log10_abs_coefficient"]))
+    best = min(scan, key=lambda row: abs(row["log10_abs_coefficient"]))
     target_dim = int(best["operator_dimension_if_mass_bilinear_plus_insertions"])
     selectors = selector_search(target_dim)
     smallest = selectors[0] if selectors else {}
 
-    # Algebraic checks over several moduli make the universal no-go executable.
-    no_go_ok = all(same_higgs_no_go(n, x)["cubic_forced_allowed"] for n in range(2, 33) for x in range(n))
-    bilinear_ok = all(neutral_bilinear_charge(q, n) == 0 for n in range(2, 33) for q in range(n))
+    no_go_ok = all(
+        same_higgs_no_go(n, x)["cubic_forced_allowed"]
+        for n in range(2, 33)
+        for x in range(n)
+    )
+    bilinear_ok = all(
+        neutral_bilinear_charge(q, n) == 0
+        for n in range(2, 33)
+        for q in range(n)
+    )
 
     coeff = float(best["coefficient_times_Ceff"])
     hierarchy_natural = 0.1 <= abs(coeff) <= 10.0
     gates = {
-        "ordinary_phase_symmetry_cannot_forbid_RdaggerR": "PASS" if bilinear_ok else "FAIL",
+        "ordinary_phase_symmetry_cannot_forbid_RdaggerR": (
+            "PASS" if bilinear_ok else "FAIL"
+        ),
         "same_higgs_Yukawa_compatible_ZN_no_go": "PASS" if no_go_ok else "FAIL",
-        "preferred_suppression_has_order_one_effective_coefficient": "PASS" if hierarchy_natural else "REVIEW",
-        "cyclic_selector_exists_for_specific_B3_Sk_tower": "PASS" if smallest else "FAIL",
+        "preferred_suppression_has_order_one_effective_coefficient": (
+            "PASS" if hierarchy_natural else "REVIEW"
+        ),
+        "cyclic_selector_exists_for_specific_B3_Sk_tower": (
+            "PASS" if smallest else "FAIL"
+        ),
         "separate_informational_multiplets_required_by_no_go": "DERIVED",
         "explicit_SO10_tensor_contraction_at_preferred_dimension": "NOT_TESTED",
         "actual_Clebsch_factor_Ceff": "NOT_TESTED",
         "exhaustive_lower_dimension_SO10_invariant_exclusion": "NOT_TESTED",
-        "protecting_continuous_or_accidental_symmetry_realized_in_full_potential": "NOT_TESTED",
+        "protecting_continuous_or_accidental_symmetry_realized_in_full_potential": (
+            "NOT_TESTED"
+        ),
     }
     scientific_status = "FAIL" if "FAIL" in gates.values() else "REVIEW"
     return GateResult(
@@ -160,18 +186,23 @@ def calculate(m_u: float) -> GateResult:
         scientific_status=scientific_status,
         notes=[
             "A Z_N phase symmetry cannot protect a scalar quadratic norm R^dagger R.",
-            "With conventional shared 10_H/bar126_H Yukawas plus 126_H bar126_H and 210_H^2,210_H^3, the 10_H 126_H 210_H charge is forced neutral.",
-            "The selector PASS applies only to the chosen B_3 S^k spurion tower; it is not an exhaustive tensor-invariant proof.",
-            "The hierarchy coefficient is c*C_eff.  C_eff remains uncomputed until an explicit SO(10) contraction and pNGB eigenvector are fixed.",
+            "Shared conventional Yukawa/Higgs charges force 10_H 126_H 210_H neutral.",
+            "Selector PASS covers only the chosen B_3 S^k tower, not all invariants.",
+            "The hierarchy coefficient is c*C_eff; C_eff remains uncomputed.",
         ],
     )
 
 
 def main() -> None:
-    p = argparse.ArgumentParser()
-    p.add_argument("--MU", type=float, default=2.04990990688745e16, help="Unification scale in GeV")
-    p.add_argument("--json", type=Path)
-    args = p.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--MU",
+        type=float,
+        default=2.04990990688745e16,
+        help="Unification scale in GeV",
+    )
+    parser.add_argument("--json", type=Path)
+    args = parser.parse_args()
     result = calculate(args.MU)
     text = json.dumps(asdict(result), indent=2, sort_keys=True)
     print(text)
