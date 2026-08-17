@@ -1,0 +1,36 @@
+name: FToE SO10 422 Gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/ftoe_so10_422_gate.py'
+      - 'tests/test_ftoe_so10_422_gate.py'
+      - 'docs/physics/FTOE_SO10_422_CLOSURE.md'
+      - '.github/workflows/ftoe-so10-422-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  closure-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run deterministic gate tests
+        run: python -m unittest tests.test_ftoe_so10_422_gate -v
+      - name: Generate machine-readable closure state
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_422_gate.py --json artifacts/ftoe-so10-422/closure_state.json
+          sha256sum artifacts/ftoe-so10-422/closure_state.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
+      - name: Upload closure artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-so10-422-closure
+          path: artifacts/ftoe-so10-422/
