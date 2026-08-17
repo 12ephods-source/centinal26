@@ -19,6 +19,7 @@ dev = ["pytest>=8", "ruff>=0.6"]
 centinal26 = "centinal26.cli:main"
 centinal26-intelligence = "frost_core.intelligence_cli:main"
 centinal26-fleet = "frost_core.fleet_cli:main"
+centinal26-conversation = "frost_core.conversation_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -35,4 +36,7 @@ target-version = "py311"
 # failures into diagnostic records instead of allowing plugin failures to escape.
 "deploy/hermes-c05/hermes_c05_bridge.py" = ["EXE001", "TRY004", "BLE001"]
 "deploy/hermes-c05/plugin/frost_orchestrator/tools.py" = ["I001", "PLW1510", "BLE001"]
+# The conversation CLI is a process boundary: all uncaught domain/provider failures
+# must become structured JSON errors for the Base44 worker rather than escape to stdout.
+"src/frost_core/conversation_cli.py" = ["BLE001"]
 "tests/test_hermes_c05_adapter.py" = ["I001"]
