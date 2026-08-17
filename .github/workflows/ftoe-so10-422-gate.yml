@@ -13,6 +13,7 @@ on:
       - 'scripts/ftoe_so10_threshold_gate.py'
       - 'scripts/ftoe_so10_threshold_stress.py'
       - 'scripts/ftoe_so10_parametric_survival.py'
+      - 'scripts/ftoe_so10_conditioning_continuation.py'
       - 'scripts/diagnose_so10_422_rge_conventions.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'tests/test_ftoe_so10_uv_closure.py'
@@ -46,6 +47,10 @@ jobs:
         run: |
           mkdir -p artifacts/ftoe-so10-422
           python scripts/ftoe_so10_parametric_survival.py --json artifacts/ftoe-so10-422/parametric_survival.json
+      - name: Run conditioning and adaptive continuation
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_conditioning_continuation.py --json artifacts/ftoe-so10-422/conditioning_continuation.json
       - name: Generate machine-readable closure artifacts
         run: |
           mkdir -p artifacts/ftoe-so10-422
