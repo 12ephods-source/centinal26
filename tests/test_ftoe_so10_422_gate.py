@@ -14,16 +14,16 @@ def load_module(name, path):
     return module
 
 mod = load_module("ftoe_so10_422_gate", ROOT / "scripts" / "ftoe_so10_422_gate.py")
-scan = load_module("ftoe_so10_422_branch_scan", ROOT / "scripts" / "ftoe_so10_422_branch_scan.py")
+roots2d = load_module("ftoe_so10_422_2d_roots", ROOT / "scripts" / "ftoe_so10_422_2d_roots.py")
 
 mod.MZ = 91.2
 mod.ALPHA1_INV_MZ = 59.0272
 mod.ALPHA2_INV_MZ = 29.5879
 mod.ALPHA3_INV_MZ = 8.4678
-scan.core.MZ = mod.MZ
-scan.core.ALPHA1_INV_MZ = mod.ALPHA1_INV_MZ
-scan.core.ALPHA2_INV_MZ = mod.ALPHA2_INV_MZ
-scan.core.ALPHA3_INV_MZ = mod.ALPHA3_INV_MZ
+roots2d.core.MZ = mod.MZ
+roots2d.core.ALPHA1_INV_MZ = mod.ALPHA1_INV_MZ
+roots2d.core.ALPHA2_INV_MZ = mod.ALPHA2_INV_MZ
+roots2d.core.ALPHA3_INV_MZ = mod.ALPHA3_INV_MZ
 
 
 class FToE422GateTests(unittest.TestCase):
@@ -47,23 +47,23 @@ class FToE422GateTests(unittest.TestCase):
         self.assertGreater(alpha_u, 0.0)
         self.assertLess(max(inverse.values()) - min(inverse.values()), 1e-8)
 
-    def test_reference_2hdm_scan_contains_published_branch(self):
-        rows = scan.solve_branches(threshold=scan.core.MZ, samples=160)
-        self.assertGreaterEqual(len(rows), 1)
-        matches = [r for r in rows if abs(r["log10_MI"] - 10.03) < 0.35 and abs(r["log10_MU"] - 16.19) < 0.35]
-        self.assertTrue(matches, f"branches={[(r['log10_MI'], r['log10_MU']) for r in rows]}")
+    def test_reference_2hdm_2d_solver_reproduces_published_branch(self):
+        roots = roots2d.solve_all(threshold=roots2d.core.MZ, nx=7, ny=7)
+        self.assertGreaterEqual(len(roots), 1)
+        matches = [r for r in roots if abs(r["log10_MI"] - 10.03) < 0.25 and abs(r["log10_MU"] - 16.19) < 0.25]
+        self.assertTrue(matches, f"roots={[(r['log10_MI'], r['log10_MU']) for r in roots]}")
         branch = min(matches, key=lambda r: abs(r["log10_MI"]-10.03)+abs(r["log10_MU"]-16.19))
         self.assertTrue(0.02 < branch["alpha_U"] < 0.05)
-        self.assertLess(branch["max_spread"], 5e-3)
+        self.assertLess(branch["max_spread"], 1e-4)
 
-    def test_ftoe_threshold_scan_is_explicit_and_finite(self):
-        rows = scan.solve_branches(threshold=scan.core.M_I_PHYS, samples=160)
-        for row in rows:
+    def test_ftoe_threshold_2d_roots_are_explicit_and_finite(self):
+        roots = roots2d.solve_all(threshold=roots2d.core.M_I_PHYS, nx=7, ny=7)
+        for row in roots:
             self.assertGreater(row["MI_GeV"], 0.0)
             self.assertGreater(row["MU_GeV"], row["MI_GeV"])
             self.assertLess(row["MU_GeV"], 1e19)
             self.assertTrue(0.0 < row["alpha_U"] < 0.1)
-            self.assertLess(row["max_spread"], 5e-3)
+            self.assertLess(row["max_spread"], 1e-4)
 
     def test_beta_tail_reproduces_target_order(self):
         lambda_x, beta = mod.beta_tail()
