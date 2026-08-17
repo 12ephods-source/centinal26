@@ -96,7 +96,8 @@ def main() -> int:
 
     for item in sorted(branches, key=lambda b: b["name"]):
         name = item["name"]
-        cmp = compare(name)
+        branch_sha = item["commit"]["sha"]
+        cmp = compare(branch_sha)
         prs = branch_prs(owner, name)
         state = classify(cmp, prs)
         rows.append(
