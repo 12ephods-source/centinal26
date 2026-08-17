@@ -4,6 +4,14 @@
 The search solves both unification residuals simultaneously in x=ln(MI),
 y=ln(MU). Coarse Newton iterations use a cheaper RK4 grid; every accepted
 candidate is then polished and certified with a high-resolution integration.
+
+Coefficient provenance note
+---------------------------
+The 2020 primary calculation arXiv:1911.11411 prints b_(2L,4)=525/2.  The 2023
+paper arXiv:2212.11315 prints 525/3 at the same matrix entry.  A deterministic
+source audit on this branch found that 525/2 reproduces both publications'
+quoted two-loop benchmark points far more closely.  This solver therefore uses
+525/2, while the diagnostic preserves both printed variants explicitly.
 """
 from __future__ import annotations
 
@@ -27,6 +35,14 @@ core.ALPHA1_INV_MZ = 59.0272
 core.ALPHA2_INV_MZ = 29.5879
 core.ALPHA3_INV_MZ = 8.4678
 
+# Independently corroborated matrix entry from arXiv:1911.11411.
+BIJ_422_VALIDATED = (
+    (2435.0/6.0, 105.0/2.0, 249.0/2.0),
+    (525.0/2.0, 73.0, 48.0),
+    (1245.0/2.0, 48.0, 835.0/3.0),
+)
+COEFFICIENT_PROVENANCE = "1911.11411:525/2; 2212.11315 prints 525/3; branch audit favors 525/2"
+
 
 def residual_xy(x: float, y: float, threshold: float, steps_per_log: int = 24):
     mi, mu = math.exp(x), math.exp(y)
@@ -35,7 +51,10 @@ def residual_xy(x: float, y: float, threshold: float, steps_per_log: int = 24):
     low = core.low_energy_couplings_two_loop(mi, threshold=threshold)
     a4, aL = low["3"], low["2"]
     aR = (5.0/3.0)*low["1"] - (2.0/3.0)*a4
-    inv = core.evolve_two_loop((a4, aL, aR), mi, mu, core.A_422, core.BIJ_422, steps_per_log=steps_per_log)
+    inv = core.evolve_two_loop(
+        (a4, aL, aR), mi, mu, core.A_422, BIJ_422_VALIDATED,
+        steps_per_log=steps_per_log,
+    )
     return inv[0]-inv[1], inv[2]-inv[1], inv
 
 
@@ -60,7 +79,6 @@ def newton(seed_x: float, seed_y: float, threshold: float):
     xmin, xmax = math.log(1e5), math.log(1e14)
     ymax = math.log(1e19)
 
-    # Cheap basin-finding phase.
     for _ in range(18):
         if not (xmin <= x <= xmax and x + 0.05 < y <= ymax):
             return None
@@ -73,7 +91,6 @@ def newton(seed_x: float, seed_y: float, threshold: float):
     else:
         return None
 
-    # High-resolution polishing/certification phase.
     for _ in range(7):
         if not (xmin <= x <= xmax and x + 0.05 < y <= ymax):
             return None
@@ -114,7 +131,11 @@ def solve_all(threshold: float, nx: int = 5, ny: int = 5):
             root = newton(x, y, threshold)
             if root is None or root["max_spread"] > 1e-5:
                 continue
-            if not any(abs(root["log10_MI"]-old["log10_MI"]) < 1e-4 and abs(root["log10_MU"]-old["log10_MU"]) < 1e-4 for old in roots):
+            if not any(
+                abs(root["log10_MI"]-old["log10_MI"]) < 1e-4
+                and abs(root["log10_MU"]-old["log10_MU"]) < 1e-4
+                for old in roots
+            ):
                 roots.append(root)
     roots.sort(key=lambda r: (r["MI_GeV"], r["MU_GeV"]))
     return roots
@@ -128,9 +149,10 @@ def main():
     threshold = core.MZ if args.threshold == "reference" else core.M_I_PHYS
     roots = solve_all(threshold)
     payload = {
-        "schema": "FTOE-SO10-422-2D-ROOTS-v0.2",
+        "schema": "FTOE-SO10-422-2D-ROOTS-v0.3",
         "mode": args.threshold,
         "threshold_GeV": threshold,
+        "coefficient_provenance": COEFFICIENT_PROVENANCE,
         "root_count": len(roots),
         "roots": roots,
     }
