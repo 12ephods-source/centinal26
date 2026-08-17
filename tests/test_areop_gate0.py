@@ -34,6 +34,25 @@ class Gate0Tests(unittest.TestCase):
         self.assertEqual(state_hash(a), state_hash(b))
         self.assertEqual(gate0(S0, events, a)["status"], "PASS")
 
+    def test_gate0_nonempty_persisted_reconstruction(self):
+        events = seal_events([
+            ev(1, "E1", "SET_OBJECTIVE", {"objective": "gate0-fixture"}),
+            ev(2, "E2", "SET_BOTTLENECK", {"value": "deterministic replay"}),
+        ])
+        expected = replay(S0, events, require_chain=True)
+        persisted = "\n".join(
+            json.dumps(event, sort_keys=True, separators=(",", ":"))
+            for event in events
+        ) + "\n"
+
+        with tempfile.TemporaryDirectory() as td:
+            ledger_path = Path(td) / "evidence.jsonl"
+            ledger_path.write_text(persisted, encoding="utf-8")
+            loaded_events = load_ledger(ledger_path)
+            recovered = replay(S0, loaded_events, require_chain=True)
+            self.assertEqual(state_hash(recovered), state_hash(expected))
+            self.assertEqual(gate0(S0, loaded_events, expected)["status"], "PASS")
+
     def test_duplicate_event_id_fails_closed(self):
         events = [ev(1, "E1", "SET_OBJECTIVE", {"objective": "x"}), ev(2, "E1", "SET_BOTTLENECK", {"value": "y"})]
         with self.assertRaisesRegex(ValueError, "duplicate event_id"):
