@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 """Enumerate all gauge-only two-loop G422 shooting branches.
 
-This companion avoids selecting the first residual zero.  Every sign-change root
-in the requested MI interval is refined independently and retained.  Scientific
+This companion avoids selecting the first residual zero. Every sign-change root
+in the requested MI interval is refined independently and retained. Scientific
 selection among branches must be made by explicit external gates, never by
 choosing the root closest to a desired answer.
 """
@@ -12,8 +11,8 @@ import argparse
 import importlib.util
 import json
 import math
-from pathlib import Path
 import sys
+from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 GATE_PATH = HERE / "ftoe_so10_422_gate.py"
@@ -28,7 +27,7 @@ def sign_change_brackets(fn, lo: float, hi: float, samples: int = 320):
     if lo <= 0 or hi <= lo:
         raise ValueError("invalid interval")
     l0, l1 = math.log(lo), math.log(hi)
-    xs = [math.exp(l0 + (l1-l0)*i/samples) for i in range(samples+1)]
+    xs = [math.exp(l0 + (l1 - l0) * i / samples) for i in range(samples + 1)]
     vals = []
     for x in xs:
         try:
@@ -41,45 +40,73 @@ def sign_change_brackets(fn, lo: float, hi: float, samples: int = 320):
             continue
         if f0 == 0.0:
             brackets.append((x0, x0))
-        elif f0*f1 < 0.0:
+        elif f0 * f1 < 0.0:
             brackets.append((x0, x1))
     if vals[-1] == 0.0:
         brackets.append((xs[-1], xs[-1]))
     return brackets
 
 
-def solve_branches(threshold: float, lo: float = 1e6, hi: float = 1e14, samples: int = 320):
+def solve_branches(
+    threshold: float,
+    lo: float = 1e6,
+    hi: float = 1e14,
+    samples: int = 320,
+):
     fn = lambda x: core.two_loop_mi_residual(x, threshold=threshold)
     rows = []
-    for blo, bhi in sign_change_brackets(fn, lo, hi, samples=samples):
-        mi = blo if blo == bhi else core.bisect_log_root(fn, blo, bhi, iterations=90, tol=2e-6)
-        mu, residual, inverse = core.shoot_422_two_loop(mi, threshold=threshold, step_log=0.0015)
-        spread = max(inverse.values()) - min(inverse.values())
-        alpha_u = 1.0/(sum(inverse.values())/3.0)
+    for bracket_lo, bracket_hi in sign_change_brackets(
+        fn,
+        lo,
+        hi,
+        samples=samples,
+    ):
+        mi = (
+            bracket_lo
+            if bracket_lo == bracket_hi
+            else core.bisect_log_root(
+                fn,
+                bracket_lo,
+                bracket_hi,
+                iterations=90,
+                tol=2e-6,
+            )
+        )
+        mu, residual, inverse = core.shoot_422_two_loop(
+            mi,
+            threshold=threshold,
+            step_log=0.0015,
+        )
         row = {
             "MI_GeV": mi,
             "MU_GeV": mu,
             "log10_MI": math.log10(mi),
             "log10_MU": math.log10(mu),
-            "alpha_U": alpha_u,
+            "alpha_U": 1.0 / (sum(inverse.values()) / 3.0),
             "R_minus_4_residual": residual,
             "inverse_couplings": inverse,
-            "max_spread": spread,
+            "max_spread": max(inverse.values()) - min(inverse.values()),
         }
-        if not any(abs(math.log10(row["MI_GeV"]/old["MI_GeV"])) < 1e-5 for old in rows):
+        duplicate = any(
+            abs(math.log10(row["MI_GeV"] / old["MI_GeV"])) < 1e-5
+            for old in rows
+        )
+        if not duplicate:
             rows.append(row)
     rows.sort(key=lambda row: row["MI_GeV"])
     return rows
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--threshold", choices=("reference", "ftoe"), default="ftoe")
+    parser.add_argument(
+        "--threshold",
+        choices=("reference", "ftoe"),
+        default="ftoe",
+    )
     parser.add_argument("--json", type=Path)
     args = parser.parse_args()
 
-    # Paper Eq. (35) boundary conditions are used for both regression and the
-    # FToE threshold comparison so that the threshold is the controlled change.
     core.MZ = 91.2
     core.ALPHA1_INV_MZ = 59.0272
     core.ALPHA2_INV_MZ = 29.5879
