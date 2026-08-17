@@ -29,6 +29,10 @@ nat = load(
     "ftoe_so10_naturalness_gate_test",
     ROOT / "scripts" / "ftoe_so10_naturalness_gate.py",
 )
+rad = load(
+    "ftoe_so10_radiative_protection_gate_test",
+    ROOT / "scripts" / "ftoe_so10_radiative_protection_gate.py",
+)
 
 
 class OperatorGateTests(unittest.TestCase):
@@ -91,6 +95,28 @@ class NaturalnessGateTests(unittest.TestCase):
             result.gates["radiative_stability_of_protection"],
             "NOT_TESTED",
         )
+
+
+class RadiativeProtectionGateTests(unittest.TestCase):
+    def test_single_spurion_gut_scale_pngb_fails_by_many_orders(self):
+        result = rad.calculate(
+            2.04990990688745e16,
+            9.54e3,
+            0.032067325570772874,
+        )
+        self.assertEqual(result.single_spurion_GUT_scale_pNGB_status, "FAIL")
+        self.assertGreater(result.one_loop_gauge_spurion, 1e-4)
+        self.assertLess(result.target_mass_squared_ratio, 3e-25)
+        self.assertGreater(result.reference_one_loop_mass_over_mu_I, 1e9)
+        self.assertGreaterEqual(result.minimum_equal_spurion_loop_order, 9)
+        self.assertEqual(result.collective_or_sequestered_branch_status, "REVIEW")
+
+    def test_loop_order_is_monotonic_and_fail_closed(self):
+        target = 2e-25
+        weak = rad.minimum_loop_order(1e-2, target)
+        strong = rad.minimum_loop_order(1e-3, target)
+        self.assertGreaterEqual(weak, strong)
+        self.assertGreater(strong, 1)
 
 
 class ThresholdGateTests(unittest.TestCase):
