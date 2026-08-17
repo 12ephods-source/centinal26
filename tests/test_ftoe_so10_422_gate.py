@@ -1,12 +1,14 @@
 import importlib.util
 import math
 from pathlib import Path
+import sys
 import unittest
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "ftoe_so10_422_gate.py"
 spec = importlib.util.spec_from_file_location("ftoe_so10_422_gate", MODULE_PATH)
-mod = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
+mod = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 
