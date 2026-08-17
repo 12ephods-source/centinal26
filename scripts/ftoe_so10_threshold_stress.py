@@ -1,17 +1,17 @@
 """Adversarial threshold/alpha_s stress harness for the FToE SO(10)->G422 branch.
 
 This attack does not fabricate a proton lifetime before the model-specific
-heavy spectrum and decay normalization are frozen.  Instead it re-solves the
+heavy spectrum and decay normalization are frozen. Instead it re-solves the
 validated gauge branch over a pre-declared input grid and maps the exact
 experimental exclusion boundary onto the unresolved dimension-6 decay
 prefactor K in
 
     Gamma(p -> e+ pi0) = K * alpha_U^2 / M_X^4,
 
-with M_X = r_X * M_U.  K has units GeV^5 and intentionally absorbs the
+with M_X = r_X * M_U. K has units GeV^5 and intentionally absorbs the
 operator normalization, group/flavor factors, short/long-distance running and
 hadronic matrix elements that must later be derived from the same frozen
-spectrum.  A point is excluded only after an independently frozen model value
+spectrum. A point is excluded only after an independently frozen model value
 of K is supplied; this script never tunes K to force survival.
 """
 from __future__ import annotations
@@ -42,6 +42,20 @@ REFERENCE_ALPHA3_INV = 8.4678
 REFERENCE_ALPHA_S = 1.0 / REFERENCE_ALPHA3_INV
 DEFAULT_ALPHA_S_VALUES = (0.1170, REFERENCE_ALPHA_S, 0.1192)
 DEFAULT_THRESHOLD_FACTORS = (0.5, 1.0, 2.0)
+
+# Must match the independently audited convention used by
+# ftoe_so10_422_2d_roots.py. The historical core retains the conflicting
+# 525/3 literature value for provenance, so the attack must set this
+# explicitly rather than silently inheriting the stale convention.
+BIJ_422_VALIDATED = (
+    (2435.0 / 6.0, 105.0 / 2.0, 249.0 / 2.0),
+    (525.0 / 2.0, 73.0, 48.0),
+    (1245.0 / 2.0, 48.0, 835.0 / 3.0),
+)
+COEFFICIENT_PROVENANCE = (
+    "1911.11411:525/2; 2212.11315 prints 525/3; branch source audit and "
+    "validated 2D solver use 525/2"
+)
 
 
 def decay_prefactor_limit_geV5(
@@ -75,6 +89,7 @@ def _solve_point(alpha_s: float, threshold_gev: float):
     core.ALPHA1_INV_MZ = REFERENCE_ALPHA1_INV
     core.ALPHA2_INV_MZ = REFERENCE_ALPHA2_INV
     core.ALPHA3_INV_MZ = 1.0 / alpha_s
+    core.BIJ_422 = BIJ_422_VALIDATED
     return core.solve_two_loop_422(threshold=threshold_gev)
 
 
@@ -138,8 +153,9 @@ def run_sweep(
             )
 
     return {
-        "schema": "FTOE-SO10-THRESHOLD-STRESS-v0.1",
+        "schema": "FTOE-SO10-THRESHOLD-STRESS-v0.2",
         "attack_vector": "THRESHOLD_MATCHING_STRESS_TEST",
+        "coefficient_provenance": COEFFICIENT_PROVENANCE,
         "input_contract": {
             "alpha_s_values": list(alpha_s_values),
             "alpha_s_grid_semantics": "predeclared adversarial envelope around the branch reference input; not a claim of a new world average",
@@ -156,7 +172,7 @@ def run_sweep(
             "K_units": "GeV^5",
             "interpretation": "K is unresolved until derived from the frozen heavy spectrum, operator normalization, flavor structure, RG factors and hadronic matrix elements.",
         },
-        "root_selection": "validated principal gauge root from solve_two_loop_422; exhaustive multi-root enumeration remains a separate mandatory scientific gate",
+        "root_selection": "validated principal gauge root with explicitly aligned 525/2 G422 coefficient; exhaustive multi-root enumeration remains a separate mandatory scientific gate",
         "point_count": len(rows),
         "failure_count": len(failures),
         "baseline": baseline,
@@ -164,7 +180,7 @@ def run_sweep(
         "failures": failures,
         "gate": "PASS_STRESS_EXECUTION" if rows and not failures else "FAIL_STRESS_EXECUTION",
         "scientific_status": "REVIEW",
-        "proton_decay_status": "BOUNDARY_MAPPED_PREFATOR_UNRESOLVED",
+        "proton_decay_status": "BOUNDARY_MAPPED_PREFACTOR_UNRESOLVED",
         "stop_condition": "Do not classify any point excluded or allowed until K and M_X/M_U are frozen independently from the same heavy spectrum.",
     }
 
