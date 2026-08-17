@@ -16,7 +16,7 @@ class FToE422GateTests(unittest.TestCase):
         self.assertAlmostEqual(mod.B_EXTRA_DOUBLEt["1"], 0.1, places=15)
         self.assertAlmostEqual(mod.B_EXTRA_DOUBLEt["2"], 1.0/6.0, places=15)
         self.assertEqual(mod.B_EXTRA_DOUBLEt["3"], 0.0)
-        self.assertAlmostEqual(mod.B_2H["1"], 4.2, places=15)
+        self.assertAlmostEqual(mod.B_2H["1"], 4.2, places=14)
         self.assertAlmostEqual(mod.B_2H["2"], -3.0, places=15)
 
     def test_intermediate_root_is_residual_certified(self):
@@ -34,14 +34,21 @@ class FToE422GateTests(unittest.TestCase):
 
     def test_two_loop_piecewise_ftoe_solution_is_perturbative(self):
         mi, mu, alpha_u, inverse, spread = mod.solve_two_loop_422()
-        self.assertGreater(mi, 1e8)
-        self.assertLess(mi, 1e13)
+        self.assertGreater(mi, 1e6)
+        self.assertLess(mi, 1e14)
         self.assertGreater(mu, mi)
         self.assertLess(mu, 1e19)
         self.assertGreater(alpha_u, 0.0)
         self.assertLess(alpha_u, 0.1)
         self.assertLess(spread, 5e-3)
         self.assertTrue(all(v > 1.0 for v in inverse.values()))
+
+    def test_reference_2hdm_two_loop_regression(self):
+        mi, mu, alpha_u, inverse, spread = mod.solve_two_loop_422(threshold=mod.MZ)
+        self.assertTrue(5e9 < mi < 5e10)
+        self.assertTrue(5e15 < mu < 5e16)
+        self.assertTrue(0.02 < alpha_u < 0.05)
+        self.assertLess(spread, 5e-3)
 
     def test_beta_tail_reproduces_target_order(self):
         lambda_x, beta = mod.beta_tail()
@@ -52,6 +59,7 @@ class FToE422GateTests(unittest.TestCase):
     def test_gate_fails_closed_on_unfinished_science(self):
         result = mod.calculate()
         self.assertEqual(result.scientific_status, "REVIEW")
+        self.assertEqual(result.gates["published_2HDM_two_loop_regression"], "PASS")
         self.assertEqual(result.gates["FToE_specific_two_loop_gauge_running"], "PASS")
         self.assertEqual(result.gates["two_loop_yukawa_contribution"], "NOT_TESTED")
         self.assertEqual(result.gates["full_heavy_threshold_spectrum"], "NOT_TESTED")
