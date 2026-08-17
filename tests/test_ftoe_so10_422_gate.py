@@ -1,5 +1,4 @@
 import importlib.util
-import math
 from pathlib import Path
 import sys
 import unittest
@@ -33,6 +32,17 @@ class FToE422GateTests(unittest.TestCase):
         self.assertGreater(alpha_u, 0.0)
         self.assertLess(max(inverse.values()) - min(inverse.values()), 1e-8)
 
+    def test_two_loop_piecewise_ftoe_solution_is_perturbative(self):
+        mi, mu, alpha_u, inverse, spread = mod.solve_two_loop_422()
+        self.assertGreater(mi, 1e8)
+        self.assertLess(mi, 1e13)
+        self.assertGreater(mu, mi)
+        self.assertLess(mu, 1e19)
+        self.assertGreater(alpha_u, 0.0)
+        self.assertLess(alpha_u, 0.1)
+        self.assertLess(spread, 5e-3)
+        self.assertTrue(all(v > 1.0 for v in inverse.values()))
+
     def test_beta_tail_reproduces_target_order(self):
         lambda_x, beta = mod.beta_tail()
         self.assertGreater(lambda_x, 1e11)
@@ -42,7 +52,8 @@ class FToE422GateTests(unittest.TestCase):
     def test_gate_fails_closed_on_unfinished_science(self):
         result = mod.calculate()
         self.assertEqual(result.scientific_status, "REVIEW")
-        self.assertEqual(result.gates["FToE_specific_two_loop_running"], "NOT_TESTED")
+        self.assertEqual(result.gates["FToE_specific_two_loop_gauge_running"], "PASS")
+        self.assertEqual(result.gates["two_loop_yukawa_contribution"], "NOT_TESTED")
         self.assertEqual(result.gates["full_heavy_threshold_spectrum"], "NOT_TESTED")
         self.assertEqual(result.gates["proton_decay_from_frozen_spectrum"], "NOT_TESTED")
 
