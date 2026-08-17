@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Branch-complete 2D root solver for two-loop G422 gauge unification.
 
-Solves the simultaneous equations
-  alpha4^-1(MU) - alphaL^-1(MU) = 0
-  alphaR^-1(MU) - alphaL^-1(MU) = 0
-for x=ln(MI), y=ln(MU), rather than nesting a first-crossing search.
+The search solves both unification residuals simultaneously in x=ln(MI),
+y=ln(MU). Coarse Newton iterations use a cheaper RK4 grid; every accepted
+candidate is then polished and certified with a high-resolution integration.
 """
 from __future__ import annotations
 
@@ -23,38 +22,66 @@ core = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = core
 spec.loader.exec_module(core)
 
-# Reproduce the primary-paper boundary conditions exactly.
 core.MZ = 91.2
 core.ALPHA1_INV_MZ = 59.0272
 core.ALPHA2_INV_MZ = 29.5879
 core.ALPHA3_INV_MZ = 8.4678
 
 
-def residual_xy(x: float, y: float, threshold: float):
+def residual_xy(x: float, y: float, threshold: float, steps_per_log: int = 24):
     mi, mu = math.exp(x), math.exp(y)
     if mu <= mi or mi <= core.MZ:
         raise ValueError("invalid scale ordering")
     low = core.low_energy_couplings_two_loop(mi, threshold=threshold)
-    a4 = low["3"]
-    aL = low["2"]
+    a4, aL = low["3"], low["2"]
     aR = (5.0/3.0)*low["1"] - (2.0/3.0)*a4
-    inv = core.evolve_two_loop((a4, aL, aR), mi, mu, core.A_422, core.BIJ_422, steps_per_log=72)
+    inv = core.evolve_two_loop((a4, aL, aR), mi, mu, core.A_422, core.BIJ_422, steps_per_log=steps_per_log)
     return inv[0]-inv[1], inv[2]-inv[1], inv
 
 
-def newton(seed_x: float, seed_y: float, threshold: float, max_iter: int = 32, tol: float = 2e-7):
+def _newton_step(x: float, y: float, threshold: float, steps_per_log: int):
+    f1, f2, inv = residual_xy(x, y, threshold, steps_per_log)
+    h = 4e-4
+    fx = residual_xy(x+h, y, threshold, steps_per_log)
+    fy = residual_xy(x, y+h, threshold, steps_per_log)
+    j11, j21 = (fx[0]-f1)/h, (fx[1]-f2)/h
+    j12, j22 = (fy[0]-f1)/h, (fy[1]-f2)/h
+    det = j11*j22 - j12*j21
+    if abs(det) < 1e-12:
+        raise ValueError("singular Jacobian")
+    dx = (-f1*j22 + j12*f2)/det
+    dy = (j21*f1 - j11*f2)/det
+    scale = max(1.0, abs(dx)/1.5, abs(dy)/1.5)
+    return x + dx/scale, y + dy/scale, max(abs(f1), abs(f2)), inv
+
+
+def newton(seed_x: float, seed_y: float, threshold: float):
     x, y = float(seed_x), float(seed_y)
     xmin, xmax = math.log(1e5), math.log(1e14)
     ymax = math.log(1e19)
-    for _ in range(max_iter):
+
+    # Cheap basin-finding phase.
+    for _ in range(18):
         if not (xmin <= x <= xmax and x + 0.05 < y <= ymax):
             return None
         try:
-            f1, f2, inv = residual_xy(x, y, threshold)
+            x, y, norm, _inv = _newton_step(x, y, threshold, 24)
         except ValueError:
             return None
-        norm = max(abs(f1), abs(f2))
-        if norm < tol:
+        if norm < 3e-5:
+            break
+    else:
+        return None
+
+    # High-resolution polishing/certification phase.
+    for _ in range(7):
+        if not (xmin <= x <= xmax and x + 0.05 < y <= ymax):
+            return None
+        try:
+            f1, f2, inv = residual_xy(x, y, threshold, 120)
+        except ValueError:
+            return None
+        if max(abs(f1), abs(f2)) < 2e-7:
             spread = max(inv)-min(inv)
             return {
                 "MI_GeV": math.exp(x),
@@ -67,32 +94,14 @@ def newton(seed_x: float, seed_y: float, threshold: float, max_iter: int = 32, t
                 "F2_R_minus_L": f2,
                 "max_spread": spread,
             }
-        # Central finite-difference Jacobian in logarithmic variables.
-        h = 2e-4
         try:
-            fxp = residual_xy(x+h, y, threshold)
-            fxm = residual_xy(x-h, y, threshold)
-            fyp = residual_xy(x, y+h, threshold)
-            fym = residual_xy(x, y-h, threshold)
+            x, y, _norm, _ = _newton_step(x, y, threshold, 120)
         except ValueError:
             return None
-        j11 = (fxp[0]-fxm[0])/(2*h)
-        j21 = (fxp[1]-fxm[1])/(2*h)
-        j12 = (fyp[0]-fym[0])/(2*h)
-        j22 = (fyp[1]-fym[1])/(2*h)
-        det = j11*j22 - j12*j21
-        if abs(det) < 1e-12:
-            return None
-        dx = (-f1*j22 + j12*f2)/det
-        dy = (j21*f1 - j11*f2)/det
-        # Damped Newton protects against jumping out of the physical domain.
-        scale = max(1.0, abs(dx)/1.5, abs(dy)/1.5)
-        x += dx/scale
-        y += dy/scale
     return None
 
 
-def solve_all(threshold: float, nx: int = 8, ny: int = 8):
+def solve_all(threshold: float, nx: int = 5, ny: int = 5):
     x0, x1 = math.log(1e6), math.log(1e14)
     y0, y1 = math.log(1e14), math.log(1e18)
     roots = []
@@ -103,9 +112,7 @@ def solve_all(threshold: float, nx: int = 8, ny: int = 8):
             if y <= x + 0.1:
                 continue
             root = newton(x, y, threshold)
-            if root is None:
-                continue
-            if root["max_spread"] > 1e-4:
+            if root is None or root["max_spread"] > 1e-5:
                 continue
             if not any(abs(root["log10_MI"]-old["log10_MI"]) < 1e-4 and abs(root["log10_MU"]-old["log10_MU"]) < 1e-4 for old in roots):
                 roots.append(root)
@@ -121,7 +128,7 @@ def main():
     threshold = core.MZ if args.threshold == "reference" else core.M_I_PHYS
     roots = solve_all(threshold)
     payload = {
-        "schema": "FTOE-SO10-422-2D-ROOTS-v0.1",
+        "schema": "FTOE-SO10-422-2D-ROOTS-v0.2",
         "mode": args.threshold,
         "threshold_GeV": threshold,
         "root_count": len(roots),
