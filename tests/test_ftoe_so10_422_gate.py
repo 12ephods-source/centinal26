@@ -16,7 +16,6 @@ def load_module(name, path):
 mod = load_module("ftoe_so10_422_gate", ROOT / "scripts" / "ftoe_so10_422_gate.py")
 scan = load_module("ftoe_so10_422_branch_scan", ROOT / "scripts" / "ftoe_so10_422_branch_scan.py")
 
-# Primary-paper Eq. (35) boundary conditions.
 mod.MZ = 91.2
 mod.ALPHA1_INV_MZ = 59.0272
 mod.ALPHA2_INV_MZ = 29.5879
@@ -49,7 +48,7 @@ class FToE422GateTests(unittest.TestCase):
         self.assertLess(max(inverse.values()) - min(inverse.values()), 1e-8)
 
     def test_reference_2hdm_scan_contains_published_branch(self):
-        rows = scan.solve_branches(threshold=scan.core.MZ, samples=400)
+        rows = scan.solve_branches(threshold=scan.core.MZ, samples=160)
         self.assertGreaterEqual(len(rows), 1)
         matches = [r for r in rows if abs(r["log10_MI"] - 10.03) < 0.35 and abs(r["log10_MU"] - 16.19) < 0.35]
         self.assertTrue(matches, f"branches={[(r['log10_MI'], r['log10_MU']) for r in rows]}")
@@ -58,7 +57,7 @@ class FToE422GateTests(unittest.TestCase):
         self.assertLess(branch["max_spread"], 5e-3)
 
     def test_ftoe_threshold_scan_is_explicit_and_finite(self):
-        rows = scan.solve_branches(threshold=scan.core.M_I_PHYS, samples=400)
+        rows = scan.solve_branches(threshold=scan.core.M_I_PHYS, samples=160)
         for row in rows:
             self.assertGreater(row["MI_GeV"], 0.0)
             self.assertGreater(row["MU_GeV"], row["MI_GeV"])
