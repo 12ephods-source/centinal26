@@ -94,9 +94,35 @@ Keeping `mu_I = 9.54 TeV` at the verified `M_U` requires approximately
 
 Therefore the branch in which `I` is merely a conventionally embedded light component of `10_H`, `126_H`, or another ordinary GUT scalar with no stronger protection is **FAIL** on technical naturalness grounds.
 
-The surviving branch must demonstrate an exact or collective Goldstone/shift symmetry, sequestering, or an equivalently explicit mechanism that removes the renormalizable mass and portal terms and keeps them radiatively stable. `scripts/ftoe_so10_naturalness_gate.py` encodes this distinction. Its gauge-loop estimate `g_U^4/(16 pi^2)` is used only as an order-of-magnitude stability diagnostic, not as an exact mass correction.
+The surviving branch must demonstrate an exact or collective Goldstone/shift symmetry, sequestering, or an equivalently explicit mechanism that removes the renormalizable mass and portal terms and keeps them radiatively stable. `scripts/ftoe_so10_naturalness_gate.py` encodes this distinction.
 
-This conclusion is consistent with standard SO(10) Higgs-sector analyses: conventional `10` and `126` electroweak doublets mix through a GUT-scale `210` VEV and require light-doublet fine tuning in the minimal renormalizable construction; nonsupersymmetric SO(10) pseudo-Goldstone directions can receive loop corrections of order `M_G^2/(16 pi^2)` when the relevant accidental symmetry is explicitly broken.
+## Radiative pNGB protection obstruction
+
+Calling `I` a pseudo-Goldstone is not by itself sufficient. If its protecting global symmetry is already explicitly broken by ordinary SO(10) gauge interactions at a decay constant or symmetry-breaking scale `f ~ M_U`, the generic one-loop scaling is
+
+\[
+\delta m_I^2\sim C\,\frac{g_U^2}{16\pi^2}f^2,
+\]
+
+where `C` is representation dependent. The executable gate therefore uses `C=1` only as a reference scale and never as an exact mass prediction.
+
+At the current gauge solution, `g_U ~= 0.635` and
+
+\[
+\frac{g_U^2}{16\pi^2}\approx2.55\times10^{-3},
+\]
+
+while the target hierarchy is only
+
+\[
+\frac{\mu_I^2}{M_U^2}\approx2.17\times10^{-25}.
+\]
+
+Thus the reference one-loop pNGB mass is of order `10^15 GeV`, more than eleven orders of magnitude above `mu_I`. Repeating an equal `g_U^2/(16 pi^2)` suppression would require roughly ten powers before reaching the target hierarchy. This loop-count is a diagnostic, not a proposed mechanism.
+
+Accordingly, the **single-spurion GUT-scale pNGB branch is FAIL**. A surviving protected branch must instead exhibit a concrete collective-breaking structure, exact sequestering, supersymmetric/nonrenormalization protection, a substantially lower protection scale, or another mechanism whose absence of lower-order mass operators can be demonstrated explicitly. `scripts/ftoe_so10_radiative_protection_gate.py` encodes this narrower falsification gate.
+
+This is consistent with explicit nonsupersymmetric SO(10) calculations in which pseudo-Goldstone directions acquire one-loop masses when accidental symmetries are explicitly broken. It does not imply that every possible SO(10) pNGB construction fails.
 
 ## Selection-rule gate
 
@@ -130,7 +156,8 @@ This arithmetic is not a first-principles prediction until `mu_I` survives the n
 The implementation remains **REVIEW** while any of these remain unresolved:
 
 - exact protected informational multiplet and symmetry realization;
-- radiative stability of that protection;
+- explicit collective/sequestered/etc. protection stronger than a single GUT-scale gauge spurion;
+- representation-specific radiative mass calculation demonstrating stability at `mu_I`;
 - explicit SO(10)-singlet mass-generating operator and Clebsch factor;
 - exhaustive exclusion or suppression of lower-dimensional breaking operators;
 - full heavy threshold spectrum derived from the same scalar potential;
@@ -144,9 +171,10 @@ A software PASS must never be interpreted as a scientific PASS.
 - Historical direct unification: **FAIL**.
 - Intermediate non-D-parity 422 gauge branch: **PASS as gauge-only calculation / REVIEW as theory**.
 - Simple embedded informational doublet without extra protection: **FAIL**.
-- Protected pNGB/sequestered informational branch: **ACTIVE / REVIEW**.
+- Single-spurion GUT-scale pNGB protection: **FAIL**.
+- Collective/sequestered/exactly protected informational branch: **ACTIVE / REVIEW**.
 - Dimension-13 hierarchy: **candidate only**.
-- L1 informational-mass derivation: **REVIEW with the unprotected branch excluded**.
+- L1 informational-mass derivation: **REVIEW with two naive branches excluded**.
 - L3 threshold/unification closure: **REVIEW**.
 - Proton-decay point prediction: **BLOCKED**.
 
