@@ -1,0 +1,41 @@
+name: AREOP Gate-0
+
+on:
+  pull_request:
+    paths:
+      - 'areop/**'
+      - 'tests/test_areop_gate0.py'
+      - '.github/workflows/areop-gate0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Gate-0 tests
+        run: python -m unittest tests.test_areop_gate0 -v
+      - name: Replay empty canonical ledger
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from areop.controller import gate0, load_json, load_ledger
+          s0 = load_json('areop/state.json')
+          events = load_ledger('areop/evidence.jsonl')
+          result = gate0(s0, events, s0)
+          print(json.dumps(result, sort_keys=True))
+          if result['status'] != 'PASS':
+              raise SystemExit(1)
+          Path('areop_gate0_receipt.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: areop-gate0-receipt
+          path: areop_gate0_receipt.json
