@@ -1,0 +1,10 @@
+{
+  "schema_version": "AREOP-1.0",
+  "revision": 0,
+  "objective": null,
+  "claims": {},
+  "artifacts": {},
+  "active_bottleneck": null,
+  "next_decisive_test": "GATE-0 deterministic evidence replay",
+  "terminal_state": null
+}
