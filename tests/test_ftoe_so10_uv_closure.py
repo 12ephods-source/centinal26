@@ -25,6 +25,10 @@ th = load(
     "ftoe_so10_threshold_gate_test",
     ROOT / "scripts" / "ftoe_so10_threshold_gate.py",
 )
+nat = load(
+    "ftoe_so10_naturalness_gate_test",
+    ROOT / "scripts" / "ftoe_so10_naturalness_gate.py",
+)
 
 
 class OperatorGateTests(unittest.TestCase):
@@ -57,6 +61,36 @@ class OperatorGateTests(unittest.TestCase):
         self.assertTrue(0.1 < result.preferred_coefficient_times_Ceff < 10.0)
         self.assertEqual(result.scientific_status, "REVIEW")
         self.assertEqual(result.gates["actual_Clebsch_factor_Ceff"], "NOT_TESTED")
+
+
+class NaturalnessGateTests(unittest.TestCase):
+    def test_generic_portal_requires_extreme_suppression(self):
+        result = nat.calculate(
+            2.04990990688745e16,
+            9.54e3,
+            0.032067325570772874,
+        )
+        self.assertLess(result.required_portal_max, 3e-25)
+        self.assertGreater(result.required_portal_max, 1e-25)
+        self.assertGreater(result.tuning_inverse, 1e24)
+        self.assertEqual(result.simple_embedded_doublet_status, "FAIL")
+        self.assertEqual(
+            result.protected_pNGB_or_sequestered_branch_status,
+            "REVIEW",
+        )
+
+    def test_gauge_loop_proxy_is_far_above_required_portal(self):
+        result = nat.calculate(
+            2.04990990688745e16,
+            9.54e3,
+            0.032067325570772874,
+        )
+        self.assertGreater(result.gauge_loop_proxy, 1e-4)
+        self.assertGreater(result.loop_proxy_over_required_portal, 1e20)
+        self.assertEqual(
+            result.gates["radiative_stability_of_protection"],
+            "NOT_TESTED",
+        )
 
 
 class ThresholdGateTests(unittest.TestCase):
