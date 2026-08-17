@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/ftoe_so10_422_gate.py'
+      - 'scripts/ftoe_so10_422_branch_scan.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'docs/physics/FTOE_SO10_422_CLOSURE.md'
       - '.github/workflows/ftoe-so10-422-gate.yml'
@@ -24,11 +25,12 @@ jobs:
           python-version: '3.12'
       - name: Run deterministic gate tests
         run: python -m unittest tests.test_ftoe_so10_422_gate -v
-      - name: Generate machine-readable closure state
+      - name: Generate machine-readable branch scans
         run: |
           mkdir -p artifacts/ftoe-so10-422
-          python scripts/ftoe_so10_422_gate.py --json artifacts/ftoe-so10-422/closure_state.json
-          sha256sum artifacts/ftoe-so10-422/closure_state.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
+          python scripts/ftoe_so10_422_branch_scan.py --threshold reference --json artifacts/ftoe-so10-422/reference_2hdm_branches.json
+          python scripts/ftoe_so10_422_branch_scan.py --threshold ftoe --json artifacts/ftoe-so10-422/ftoe_threshold_branches.json
+          sha256sum artifacts/ftoe-so10-422/*.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
       - name: Upload closure artifacts
         uses: actions/upload-artifact@v4
         with:
