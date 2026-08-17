@@ -9,6 +9,7 @@ on:
       - 'scripts/ftoe_so10_422_postprocess.py'
       - 'scripts/ftoe_so10_operator_gate.py'
       - 'scripts/ftoe_so10_naturalness_gate.py'
+      - 'scripts/ftoe_so10_radiative_protection_gate.py'
       - 'scripts/ftoe_so10_threshold_gate.py'
       - 'scripts/diagnose_so10_422_rge_conventions.py'
       - 'tests/test_ftoe_so10_422_gate.py'
@@ -44,6 +45,7 @@ jobs:
           python scripts/ftoe_so10_422_postprocess.py > artifacts/ftoe-so10-422/ftoe_postprocess.json
           python scripts/ftoe_so10_operator_gate.py --MU 2.04990990688745e16 --json artifacts/ftoe-so10-422/operator_gate.json
           python scripts/ftoe_so10_naturalness_gate.py --MU 2.04990990688745e16 --muI 9.54e3 --alphaU 0.032067325570772874 --json artifacts/ftoe-so10-422/naturalness_gate.json
+          python scripts/ftoe_so10_radiative_protection_gate.py --f 2.04990990688745e16 --muI 9.54e3 --alphaU 0.032067325570772874 --json artifacts/ftoe-so10-422/radiative_protection_gate.json
           python scripts/diagnose_so10_422_rge_conventions.py > artifacts/ftoe-so10-422/coefficient_source_audit.json
           sha256sum artifacts/ftoe-so10-422/*.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
       - name: Upload closure artifacts
