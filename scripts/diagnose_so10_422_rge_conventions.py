@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-"""Diagnose convention-level causes of the 2212.11315 G422 benchmark mismatch.
+"""Cross-check published G422 two-loop coefficient sets against their benchmarks.
 
-This script does not alter the physics model and does not choose a convention to
-fit the published answer.  It evaluates the published Table-2 point under every
-permutation of the printed G422 coefficient ordering, and under the printed
-matrix versus its transpose, then reports residuals.  The intended use is to
-locate a convention/transcription/source inconsistency before any FToE-specific
-result is trusted.
+Primary-source discrepancy under test:
+- Meloni/Ohlsson/Pernow (arXiv:1911.11411) prints b_L4 = 525/2.
+- Djouadi/Fonseca/Ouyang/Raidal (arXiv:2212.11315 / EPJC 83,529) prints b_L4 = 525/3.
+
+The script evaluates each matrix at both publications' quoted no-threshold
+(two-loop) scale points. It does not select a matrix by desired fit; it reports
+all residuals for provenance/audit.
 """
 from __future__ import annotations
 
 import importlib.util
-import itertools
 import json
-import math
 from pathlib import Path
 import sys
 
@@ -25,61 +24,82 @@ core = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = core
 spec.loader.exec_module(core)
 
-core.MZ = 91.2
-core.ALPHA1_INV_MZ = 59.0272
-core.ALPHA2_INV_MZ = 29.5879
-core.ALPHA3_INV_MZ = 8.4678
+# Later paper Eq. (35) boundary conditions / 2HDM low-energy regime.
+LATER_BC = {
+    "MZ": 91.2,
+    "a1": 59.0272,
+    "a2": 29.5879,
+    "a3": 8.4678,
+}
 
-TABLE2_LOG_MI = 10.133
-TABLE2_LOG_MU = 16.346
-TABLE3_LOG_MI = 10.03
-TABLE3_LOG_MU = 16.19
+B422_2023_PRINTED = (
+    (2435.0/6.0, 105.0/2.0, 249.0/2.0),
+    (525.0/3.0, 73.0, 48.0),
+    (1245.0/2.0, 48.0, 835.0/3.0),
+)
+B422_2020_PRINTED = (
+    (2435.0/6.0, 105.0/2.0, 249.0/2.0),
+    (525.0/2.0, 73.0, 48.0),
+    (1245.0/2.0, 48.0, 835.0/3.0),
+)
+A422 = (-7.0/3.0, 2.0, 28.0/3.0)
+
+POINTS = {
+    # Later paper: 2HDM, full numerical Table 3.
+    "2023_table3_2hdm": {
+        "log_mi": 10.03,
+        "log_mu": 16.19,
+        "threshold": 91.2,
+    },
+    # Older paper: SM below MI, quoted direct two-loop no-threshold result.
+    "2020_sm_result": {
+        "mi": 2.64e9,
+        "mu": 3.72e16,
+        "threshold": float("inf"),
+    },
+}
 
 
-def transpose(m):
-    return tuple(tuple(m[j][i] for j in range(len(m))) for i in range(len(m)))
+def set_bc():
+    core.MZ = LATER_BC["MZ"]
+    core.ALPHA1_INV_MZ = LATER_BC["a1"]
+    core.ALPHA2_INV_MZ = LATER_BC["a2"]
+    core.ALPHA3_INV_MZ = LATER_BC["a3"]
 
 
-def residual_at(log_mi, log_mu, labels, matrix):
-    mi, mu = 10.0**log_mi, 10.0**log_mu
-    low = core.low_energy_couplings_two_loop(mi, threshold=core.MZ)
-    physical = {
-        "4": low["3"],
-        "L": low["2"],
-        "R": (5.0/3.0)*low["1"] - (2.0/3.0)*low["3"],
-    }
-    a_phys = {"4": -7.0/3.0, "L": 2.0, "R": 28.0/3.0}
-    # Printed table coordinates are interpreted according to `labels`.
-    inv0 = tuple(physical[label] for label in labels)
-    avec = tuple(a_phys[label] for label in labels)
-    inv = core.evolve_two_loop(inv0, mi, mu, avec, matrix, steps_per_log=180)
-    out = {label: inv[i] for i, label in enumerate(labels)}
+def residual_at(mi, mu, threshold, matrix):
+    low = core.low_energy_couplings_two_loop(mi, threshold=threshold)
+    a4 = low["3"]
+    aL = low["2"]
+    aR = (5.0/3.0)*low["1"] - (2.0/3.0)*a4
+    inv = core.evolve_two_loop((a4, aL, aR), mi, mu, A422, matrix, steps_per_log=220)
+    out = {"4": inv[0], "L": inv[1], "R": inv[2]}
     return {
-        "spread": max(out.values())-min(out.values()),
-        "4_minus_L": out["4"]-out["L"],
-        "R_minus_L": out["R"]-out["L"],
+        "spread": max(inv)-min(inv),
+        "4_minus_L": inv[0]-inv[1],
+        "R_minus_L": inv[2]-inv[1],
         "inverse": out,
     }
 
 
 def main():
-    rows = []
-    printed = core.BIJ_422
-    for matrix_name, matrix in (("printed", printed), ("transpose", transpose(printed))):
-        for labels in itertools.permutations(("4", "L", "R")):
-            r2 = residual_at(TABLE2_LOG_MI, TABLE2_LOG_MU, labels, matrix)
-            r3 = residual_at(TABLE3_LOG_MI, TABLE3_LOG_MU, labels, matrix)
-            rows.append({
-                "matrix": matrix_name,
-                "printed_index_labels": labels,
-                "table2": r2,
-                "table3": r3,
-            })
-    rows.sort(key=lambda r: r["table2"]["spread"])
+    set_bc()
+    matrices = {
+        "2020_printed_525_over_2": B422_2020_PRINTED,
+        "2023_printed_525_over_3": B422_2023_PRINTED,
+    }
+    results = {}
+    for pname, p in POINTS.items():
+        mi = p.get("mi", 10.0**p["log_mi"])
+        mu = p.get("mu", 10.0**p["log_mu"])
+        results[pname] = {
+            mname: residual_at(mi, mu, p["threshold"], matrix)
+            for mname, matrix in matrices.items()
+        }
     print(json.dumps({
-        "schema": "SO10-422-RGE-CONVENTION-DIAGNOSTIC-v0.1",
-        "note": "diagnostic only; no convention is promoted by proximity to target",
-        "rows": rows,
+        "schema": "SO10-422-COEFFICIENT-SOURCE-AUDIT-v0.2",
+        "note": "reports both primary-source coefficient sets; does not promote either by proximity",
+        "results": results,
     }, indent=2, sort_keys=True))
 
 
