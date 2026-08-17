@@ -1,9 +1,9 @@
 import importlib.util
 import json
-from pathlib import Path
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,8 +17,14 @@ def load(name, path):
     return module
 
 
-op = load("ftoe_so10_operator_gate_test", ROOT / "scripts" / "ftoe_so10_operator_gate.py")
-th = load("ftoe_so10_threshold_gate_test", ROOT / "scripts" / "ftoe_so10_threshold_gate.py")
+op = load(
+    "ftoe_so10_operator_gate_test",
+    ROOT / "scripts" / "ftoe_so10_operator_gate.py",
+)
+th = load(
+    "ftoe_so10_threshold_gate_test",
+    ROOT / "scripts" / "ftoe_so10_threshold_gate.py",
+)
 
 
 class OperatorGateTests(unittest.TestCase):
@@ -34,13 +40,17 @@ class OperatorGateTests(unittest.TestCase):
                 self.assertTrue(row["cubic_forced_allowed"])
                 self.assertEqual(row["q_10_126_210"], 0)
 
-    def test_Z11_selector_delays_B3_Sk_tower_to_dimension_13(self):
-        # q(B3)=q(S)=1 -> 1+k=0 mod 11 first at k=10 -> dimension 13.
+    def test_z11_selector_delays_b3_sk_tower_to_dimension_13(self):
         self.assertEqual(op.first_allowed_spurion_power(11, 1, 1), 10)
         rows = op.selector_search(13, n_max=11)
-        self.assertTrue(any(r["N"] == 11 and r["q_B3"] == 1 and r["q_S"] == 1 for r in rows))
+        self.assertTrue(
+            any(
+                row["N"] == 11 and row["q_B3"] == 1 and row["q_S"] == 1
+                for row in rows
+            )
+        )
 
-    def test_current_two_loop_MU_prefers_order_one_n9(self):
+    def test_current_two_loop_mu_prefers_order_one_n9(self):
         result = op.calculate(2.04990990688745e16)
         self.assertEqual(result.preferred_power, 9)
         self.assertEqual(result.preferred_operator_dimension, 13)
@@ -51,35 +61,75 @@ class OperatorGateTests(unittest.TestCase):
 
 class ThresholdGateTests(unittest.TestCase):
     def test_zero_log_thresholds_leave_couplings_unchanged(self):
-        with tempfile.TemporaryDirectory() as td:
-            p = Path(td) / "spectrum.json"
-            p.write_text(json.dumps({"multiplets": [
-                {"name": "A", "mass_GeV": 1e16, "beta": {"4": 1.0, "L": 2.0, "R": 3.0}}
-            ]}))
-            spectrum = th.load_spectrum(p)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "spectrum.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "multiplets": [
+                            {
+                                "name": "A",
+                                "mass_GeV": 1e16,
+                                "beta": {"4": 1.0, "L": 2.0, "R": 3.0},
+                            }
+                        ]
+                    }
+                )
+            )
+            spectrum = th.load_spectrum(path)
             delta = th.threshold_corrections(spectrum, 1e16)
             for value in delta.values():
                 self.assertAlmostEqual(value, 0.0, places=15)
 
     def test_synthetic_frozen_spectrum_correction_is_deterministic(self):
-        with tempfile.TemporaryDirectory() as td:
-            p = Path(td) / "spectrum.json"
-            p.write_text(json.dumps({"multiplets": [
-                {"name": "A", "mass_GeV": 2e16, "beta": {"4": 1.0, "L": 0.0, "R": -1.0}},
-                {"name": "B", "mass_GeV": 0.5e16, "beta": {"4": -0.5, "L": 1.0, "R": 0.0}}
-            ]}))
-            a = th.threshold_corrections(th.load_spectrum(p), 1e16)
-            b = th.threshold_corrections(th.load_spectrum(p), 1e16)
-            self.assertEqual(a, b)
-            self.assertEqual(set(a), {"4", "L", "R"})
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "spectrum.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "multiplets": [
+                            {
+                                "name": "A",
+                                "mass_GeV": 2e16,
+                                "beta": {"4": 1.0, "L": 0.0, "R": -1.0},
+                            },
+                            {
+                                "name": "B",
+                                "mass_GeV": 0.5e16,
+                                "beta": {"4": -0.5, "L": 1.0, "R": 0.0},
+                            },
+                        ]
+                    }
+                )
+            )
+            first = th.threshold_corrections(th.load_spectrum(path), 1e16)
+            second = th.threshold_corrections(th.load_spectrum(path), 1e16)
+            self.assertEqual(first, second)
+            self.assertEqual(set(first), {"4", "L", "R"})
 
-    def test_threshold_gate_does_not_promote_scientific_PASS(self):
-        with tempfile.TemporaryDirectory() as td:
-            p = Path(td) / "spectrum.json"
-            p.write_text(json.dumps({"multiplets": [
-                {"name": "degenerate", "mass_GeV": 1e16, "beta": {"4": 1.0, "L": 1.0, "R": 1.0}}
-            ]}))
-            result = th.calculate(p, 1e16, {"4": 31.0, "L": 31.0, "R": 31.0}, {}, 1e-8)
+    def test_threshold_gate_does_not_promote_scientific_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "spectrum.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "multiplets": [
+                            {
+                                "name": "degenerate",
+                                "mass_GeV": 1e16,
+                                "beta": {"4": 1.0, "L": 1.0, "R": 1.0},
+                            }
+                        ]
+                    }
+                )
+            )
+            result = th.calculate(
+                path,
+                1e16,
+                {"4": 31.0, "L": 31.0, "R": 31.0},
+                {},
+                1e-8,
+            )
             self.assertEqual(result["gate"], "PASS")
             self.assertEqual(result["scientific_status"], "REVIEW")
 
