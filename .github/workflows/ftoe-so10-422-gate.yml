@@ -6,6 +6,7 @@ on:
       - 'scripts/ftoe_so10_422_gate.py'
       - 'scripts/ftoe_so10_422_branch_scan.py'
       - 'scripts/ftoe_so10_422_2d_roots.py'
+      - 'scripts/diagnose_so10_422_rge_conventions.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'docs/physics/FTOE_SO10_422_CLOSURE.md'
       - '.github/workflows/ftoe-so10-422-gate.yml'
@@ -24,6 +25,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Diagnose printed RGE conventions
+        run: python scripts/diagnose_so10_422_rge_conventions.py
       - name: Run deterministic gate tests
         run: python -m unittest tests.test_ftoe_so10_422_gate -v
       - name: Generate machine-readable two-scale roots
