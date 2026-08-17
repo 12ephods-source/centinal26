@@ -21,17 +21,37 @@ jobs:
           python-version: '3.12'
       - name: Run Gate-0 tests
         run: python -m unittest tests.test_areop_gate0 -v
-      - name: Replay empty canonical ledger
+      - name: Replay non-empty persisted canonical ledger
         run: |
           python - <<'PY'
+          import copy
           import json
           from pathlib import Path
-          from areop.controller import gate0, load_json, load_ledger
+          from areop.controller import canonical_json, gate0, load_json, load_ledger, seal_events
+
+          def ev(seq, event_id, kind, payload):
+              return {"seq": seq, "event_id": event_id, "kind": kind, "payload": payload}
+
           s0 = load_json('areop/state.json')
-          events = load_ledger('areop/evidence.jsonl')
-          result = gate0(s0, events, s0)
+          events = seal_events([
+              ev(1, 'G0-E1', 'SET_OBJECTIVE', {'objective': 'gate0-ci-fixture'}),
+              ev(2, 'G0-E2', 'SET_BOTTLENECK', {'value': 'deterministic persisted replay'}),
+          ])
+
+          ledger_path = Path('areop_gate0_fixture.jsonl')
+          ledger_path.write_text(''.join(canonical_json(event) + '\n' for event in events), encoding='utf-8')
+          loaded = load_ledger(ledger_path)
+
+          expected = copy.deepcopy(s0)
+          expected['objective'] = 'gate0-ci-fixture'
+          expected['active_bottleneck'] = 'deterministic persisted replay'
+          expected['revision'] = 2
+
+          result = gate0(s0, loaded, expected)
+          result['event_count'] = len(loaded)
+          result['fixture'] = 'non-empty-persisted-ledger'
           print(json.dumps(result, sort_keys=True))
-          if result['status'] != 'PASS':
+          if result['status'] != 'PASS' or result['event_count'] != 2:
               raise SystemExit(1)
           Path('areop_gate0_receipt.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
           PY
