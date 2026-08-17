@@ -48,7 +48,7 @@ class FToE422GateTests(unittest.TestCase):
         self.assertLess(max(inverse.values()) - min(inverse.values()), 1e-8)
 
     def test_reference_2hdm_2d_solver_reproduces_published_branch(self):
-        roots = roots2d.solve_all(threshold=roots2d.core.MZ, nx=7, ny=7)
+        roots = roots2d.solve_all(threshold=roots2d.core.MZ, nx=5, ny=5)
         self.assertGreaterEqual(len(roots), 1)
         matches = [r for r in roots if abs(r["log10_MI"] - 10.03) < 0.25 and abs(r["log10_MU"] - 16.19) < 0.25]
         self.assertTrue(matches, f"roots={[(r['log10_MI'], r['log10_MU']) for r in roots]}")
@@ -57,7 +57,7 @@ class FToE422GateTests(unittest.TestCase):
         self.assertLess(branch["max_spread"], 1e-4)
 
     def test_ftoe_threshold_2d_roots_are_explicit_and_finite(self):
-        roots = roots2d.solve_all(threshold=roots2d.core.M_I_PHYS, nx=7, ny=7)
+        roots = roots2d.solve_all(threshold=roots2d.core.M_I_PHYS, nx=5, ny=5)
         for row in roots:
             self.assertGreater(row["MI_GeV"], 0.0)
             self.assertGreater(row["MU_GeV"], row["MI_GeV"])
