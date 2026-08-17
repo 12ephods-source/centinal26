@@ -12,6 +12,7 @@ on:
       - 'scripts/ftoe_so10_radiative_protection_gate.py'
       - 'scripts/ftoe_so10_threshold_gate.py'
       - 'scripts/ftoe_so10_threshold_stress.py'
+      - 'scripts/ftoe_so10_parametric_survival.py'
       - 'scripts/diagnose_so10_422_rge_conventions.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'tests/test_ftoe_so10_uv_closure.py'
@@ -41,6 +42,10 @@ jobs:
         run: python -m unittest tests.test_ftoe_so10_uv_closure -v
       - name: Run adversarial threshold-stress regression tests
         run: python -m unittest tests.test_ftoe_so10_threshold_stress -v
+      - name: Map parametric survival boundary
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_parametric_survival.py --json artifacts/ftoe-so10-422/parametric_survival.json
       - name: Generate machine-readable closure artifacts
         run: |
           mkdir -p artifacts/ftoe-so10-422
@@ -54,7 +59,9 @@ jobs:
           python scripts/diagnose_so10_422_rge_conventions.py > artifacts/ftoe-so10-422/coefficient_source_audit.json
           sha256sum artifacts/ftoe-so10-422/*.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
       - name: Upload closure artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ftoe-so10-422-closure
           path: artifacts/ftoe-so10-422/
+          if-no-files-found: error
