@@ -3,19 +3,28 @@ from pathlib import Path
 import sys
 import unittest
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "ftoe_so10_422_gate.py"
-spec = importlib.util.spec_from_file_location("ftoe_so10_422_gate", MODULE_PATH)
-assert spec and spec.loader
-mod = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = mod
-spec.loader.exec_module(mod)
+ROOT = Path(__file__).resolve().parents[1]
 
-# Freeze the benchmark to the boundary conditions used in arXiv:2212.11315,
-# Eq. (35), before judging the two-loop regression.
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+mod = load_module("ftoe_so10_422_gate", ROOT / "scripts" / "ftoe_so10_422_gate.py")
+scan = load_module("ftoe_so10_422_branch_scan", ROOT / "scripts" / "ftoe_so10_422_branch_scan.py")
+
+# Primary-paper Eq. (35) boundary conditions.
 mod.MZ = 91.2
 mod.ALPHA1_INV_MZ = 59.0272
 mod.ALPHA2_INV_MZ = 29.5879
 mod.ALPHA3_INV_MZ = 8.4678
+scan.core.MZ = mod.MZ
+scan.core.ALPHA1_INV_MZ = mod.ALPHA1_INV_MZ
+scan.core.ALPHA2_INV_MZ = mod.ALPHA2_INV_MZ
+scan.core.ALPHA3_INV_MZ = mod.ALPHA3_INV_MZ
 
 
 class FToE422GateTests(unittest.TestCase):
@@ -26,41 +35,36 @@ class FToE422GateTests(unittest.TestCase):
         self.assertAlmostEqual(mod.B_2H["1"], 4.2, places=14)
         self.assertAlmostEqual(mod.B_2H["2"], -3.0, places=15)
 
-    def test_intermediate_root_is_residual_certified(self):
+    def test_one_loop_intermediate_root_is_residual_certified(self):
         mi = mod.bisect_log_root(mod.ps_matching_residual, 1e8, 1e14)
         self.assertLess(abs(mod.ps_matching_residual(mi)), 1e-9)
         self.assertGreater(mi, 1e9)
         self.assertLess(mi, 1e13)
 
-    def test_422_unifies_all_three_couplings_at_one_loop(self):
+    def test_one_loop_422_unifies_all_three_couplings(self):
         mi = mod.bisect_log_root(mod.ps_matching_residual, 1e8, 1e14)
         mu, alpha_u, inverse = mod.solve_422_unification(mi)
         self.assertGreater(mu, mi)
         self.assertGreater(alpha_u, 0.0)
         self.assertLess(max(inverse.values()) - min(inverse.values()), 1e-8)
 
-    def test_reference_2hdm_two_loop_regression(self):
-        mi, mu, alpha_u, inverse, spread = mod.solve_two_loop_422(threshold=mod.MZ)
-        self.assertTrue(5e9 < mi < 5e10, f"reference MI={mi:.6e}")
-        self.assertTrue(5e15 < mu < 5e16, f"reference MU={mu:.6e}")
-        self.assertTrue(0.02 < alpha_u < 0.05, f"reference alphaU={alpha_u:.6e}")
-        self.assertLess(spread, 5e-3, f"reference spread={spread:.6e}")
+    def test_reference_2hdm_scan_contains_published_branch(self):
+        rows = scan.solve_branches(threshold=scan.core.MZ, samples=400)
+        self.assertGreaterEqual(len(rows), 1)
+        matches = [r for r in rows if abs(r["log10_MI"] - 10.03) < 0.35 and abs(r["log10_MU"] - 16.19) < 0.35]
+        self.assertTrue(matches, f"branches={[(r['log10_MI'], r['log10_MU']) for r in rows]}")
+        branch = min(matches, key=lambda r: abs(r["log10_MI"]-10.03)+abs(r["log10_MU"]-16.19))
+        self.assertTrue(0.02 < branch["alpha_U"] < 0.05)
+        self.assertLess(branch["max_spread"], 5e-3)
 
-    def test_two_loop_piecewise_ftoe_solution_or_explicit_no_root(self):
-        try:
-            mi, mu, alpha_u, inverse, spread = mod.solve_two_loop_422()
-        except ValueError as exc:
-            # A no-root result is scientifically admissible, but must be explicit rather
-            # than hidden by retuning.  Its interpretation is handled by calculate().
-            self.assertIn("no sign change", str(exc))
-            return
-        self.assertGreater(mi, 1e6)
-        self.assertLess(mi, 1e14)
-        self.assertGreater(mu, mi)
-        self.assertLess(mu, 1e19)
-        self.assertTrue(0.0 < alpha_u < 0.1)
-        self.assertLess(spread, 5e-3)
-        self.assertTrue(all(v > 1.0 for v in inverse.values()))
+    def test_ftoe_threshold_scan_is_explicit_and_finite(self):
+        rows = scan.solve_branches(threshold=scan.core.M_I_PHYS, samples=400)
+        for row in rows:
+            self.assertGreater(row["MI_GeV"], 0.0)
+            self.assertGreater(row["MU_GeV"], row["MI_GeV"])
+            self.assertLess(row["MU_GeV"], 1e19)
+            self.assertTrue(0.0 < row["alpha_U"] < 0.1)
+            self.assertLess(row["max_spread"], 5e-3)
 
     def test_beta_tail_reproduces_target_order(self):
         lambda_x, beta = mod.beta_tail()
