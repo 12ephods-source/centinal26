@@ -24,6 +24,7 @@ jobs:
         run: python -m pip install --upgrade pip numpy torch
       - name: Run symbolic matched experiment
         run: |
+          set -o pipefail
           python experiments/geometric_symbolic/geometric_symbolic_pairs.py \
             --steps 500 \
             --seeds 3 \
@@ -31,10 +32,12 @@ jobs:
             | tee experiments/geometric_symbolic/ci_stdout.log
       - name: Apply preregistered checks
         run: |
+          set -o pipefail
           python experiments/geometric_symbolic/check_symbolic_results.py \
             experiments/geometric_symbolic/ci_results.json \
             | tee experiments/geometric_symbolic/ci_verdict.json
       - name: Hash evidence
+        if: always()
         run: |
           sha256sum \
             experiments/geometric_symbolic/geometric_symbolic_pairs.py \
