@@ -147,6 +147,8 @@ def _result_digest(row) -> str | None:
 def _authorization_mode(
     capability: str,
     authorization_modes: dict[str, str] | None,
+    *,
+    task: dict[str, Any],
 ) -> str:
     mode = (authorization_modes or {}).get(
         capability,
@@ -154,6 +156,8 @@ def _authorization_mode(
     )
     if mode not in VALID_AUTHORIZATION_MODES:
         raise ValueError(f"invalid authorization mode for {capability}: {mode}")
+    if task.get("authority") == "authorization_required" and mode == AUTO_SAFE:
+        return EXPLICIT
     return mode
 
 
@@ -296,7 +300,7 @@ def advance_until_idle(
                 )
                 continue
 
-            mode = _authorization_mode(capability, authorization_modes)
+            mode = _authorization_mode(capability, authorization_modes, task=task)
             if mode == EFFECT_PROTOCOL:
                 blockers[task_id] = "EFFECT_PROTOCOL_REQUIRED"
                 _record_blocker_once(
@@ -314,7 +318,7 @@ def advance_until_idle(
                     state,
                     task_id,
                     "APPROVAL_REQUIRED",
-                    "capability policy requires explicit execution authorization",
+                    "capability policy or task provenance requires explicit authorization",
                 )
                 continue
             try:
