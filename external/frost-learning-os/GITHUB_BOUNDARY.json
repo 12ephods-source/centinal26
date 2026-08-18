@@ -1,0 +1,10 @@
+{
+  "project": "Frost Learning OS",
+  "snapshot": "v1.4",
+  "status": "HOST_VALIDATED_REFERENCE_SNAPSHOT",
+  "automation_runtime_owner": false,
+  "temporary_storage_repository": "12ephods-source/centinal26",
+  "canonical_automation_product": "Wazoo26",
+  "merge_policy": "DO_NOT_MERGE_INTO_AUTOMATION_RUNTIME_WITHOUT_EXPLICIT_REHOMING_DECISION",
+  "empirical_gate": "REAL_DELAYED_RETENTION_DATA_REQUIRED"
+}
