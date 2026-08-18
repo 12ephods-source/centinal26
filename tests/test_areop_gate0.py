@@ -22,8 +22,10 @@ S0 = {
     "next_decisive_test": "GATE-0 deterministic evidence replay", "terminal_state": None,
 }
 
+
 def ev(seq, event_id, kind, payload):
     return {"seq": seq, "event_id": event_id, "kind": kind, "payload": payload}
+
 
 class Gate0Tests(unittest.TestCase):
     def test_empty_replay_is_initial_state(self):
@@ -69,6 +71,22 @@ class Gate0Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "sequence mismatch"):
             replay(S0, [ev(2, "E2", "SET_OBJECTIVE", {"objective": "x"})])
 
+    def test_boolean_sequence_fails_closed(self):
+        with self.assertRaisesRegex(TypeError, "seq must be an integer"):
+            replay(S0, [ev(True, "E1", "SET_OBJECTIVE", {"objective": "x"})])
+
+    def test_invalid_initial_claim_status_fails_closed(self):
+        events = [
+            ev(
+                1,
+                "E1",
+                "UPSERT_CLAIM",
+                {"claim_id": "C1", "claim": "x", "status": "NOT_A_STATE"},
+            )
+        ]
+        with self.assertRaisesRegex(ValueError, "unknown claim status"):
+            replay(S0, events)
+
     def test_illegal_promotion_jump_fails_closed(self):
         events = [ev(1, "E1", "UPSERT_CLAIM", {"claim_id": "C1", "claim": "x", "status": "UNKNOWN"}), ev(2, "E2", "SET_CLAIM_STATUS", {"claim_id": "C1", "status": "TESTED"})]
         with self.assertRaisesRegex(ValueError, "illegal promotion jump"):
@@ -99,6 +117,19 @@ class Gate0Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hash mismatch"):
             verify_chain(events)
 
+    def test_append_rejects_preexisting_invalid_sequence(self):
+        with tempfile.TemporaryDirectory() as td:
+            ledger = Path(td) / "evidence.jsonl"
+            invalid_history = seal_events([
+                ev(2, "E1", "SET_OBJECTIVE", {"objective": "invalid-sequence"})
+            ])
+            ledger.write_text(
+                json.dumps(invalid_history[0], sort_keys=True, separators=(",", ":")) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "sequence mismatch"):
+                append_event(ledger, ev(2, "E2", "SET_BOTTLENECK", {"value": "must-not-append"}))
+
     def test_durable_append_and_restart_recovery(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -115,6 +146,7 @@ class Gate0Tests(unittest.TestCase):
             self.assertEqual(state_hash(restarted), expected_hash)
             atomic_write_state(materialized, restarted)
             self.assertEqual(state_hash(json.loads(materialized.read_text())), expected_hash)
+
 
 if __name__ == "__main__":
     unittest.main()
