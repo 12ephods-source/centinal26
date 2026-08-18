@@ -20,8 +20,9 @@ centinal26 = "centinal26.cli:main"
 centinal26-intelligence = "frost_core.intelligence_cli:main"
 centinal26-fleet = "frost_core.fleet_cli:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+packages = ["centinal26", "frost_core", "wordbook", "areop"]
+package-dir = {centinal26 = "src/centinal26", frost_core = "src/frost_core", wordbook = "src/wordbook", areop = "areop"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
