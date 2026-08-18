@@ -1,0 +1,45 @@
+{
+  "schema": "FTOE-PROTECTED-I-CANDIDATE-v0.1",
+  "status": "PROPOSED_NOT_ADMITTED",
+  "scientific_status": "REVIEW",
+  "mechanism_class": "nonlinear_composite_pNGB",
+  "global_symmetry_breaking": "SO(5) -> SO(4)",
+  "candidate_identification": {
+    "I_role": "one complex electroweak doublet arising from the four SO(5)/SO(4) Goldstone coordinates",
+    "sm_quantum_numbers": "(1,2,+1/2)",
+    "so10_embedding": "NONE_FROZEN; candidate is a lower-scale sector coupled to the SO(10) branch rather than an elementary GUT irrep",
+    "reason_for_testing": "The ordinary embedded doublet, ordinary linear internal-symmetry protection, and single-spurion GUT-scale pNGB branches are already FAIL. A lower-scale nonlinear sector remains an admitted REVIEW class."
+  },
+  "reference_naturalness_bound": {
+    "mu_I_GeV": 9540.0,
+    "alpha_reference": 0.032067325570772874,
+    "coefficient_C_reference": 1.0,
+    "spurion_per_C_reference": 0.002551849970937,
+    "break_even_f_GeV_reference": 188838.0,
+    "break_even_f_TeV_reference": 188.838,
+    "qualification": "DERIVED reference bound from delta m^2 = C*alpha/(4*pi)*f^2. C=1 and alpha_reference are not representation-specific predictions."
+  },
+  "mandatory_admission_gates": {
+    "explicit_nonlinear_coset": "PROPOSED_SO5_OVER_SO4",
+    "I_doublet_identification": "PROPOSED",
+    "gauge_embedding_and_hypercharge": "NOT_DERIVED",
+    "collective_or_other_radiative_protection": "NOT_DERIVED",
+    "representation_specific_C": "NOT_DERIVED",
+    "renormalizable_SO10_portal_suppression": "NOT_PROVED",
+    "strong_sector_resonance_spectrum": "NOT_ENUMERATED",
+    "beta_function_backreaction": "NOT_TESTED",
+    "electroweak_precision_constraints": "NOT_TESTED",
+    "matching_to_existing_mu_I_and_G422_branch": "NOT_TESTED"
+  },
+  "hard_falsifiers": [
+    "FAIL if the derived radiative correction exceeds mu_I^2 without a symmetry-enforced or collective cancellation.",
+    "FAIL if an allowed SO(10)-sector portal regenerates an O(M_U^2) contribution to the I mass.",
+    "FAIL if required partner/resonance states invalidate the currently frozen gauge-running branch and no revised consistent running solution exists.",
+    "FAIL if the mechanism needs post-result parameter tuning comparable to the original hierarchy it was introduced to protect."
+  ],
+  "primary_mechanism_precedent": [
+    "arXiv:hep-ph/0412089 (Agashe, Contino, Pomarol), Minimal Composite Higgs Model; SO(5)/SO(4) pNGB Higgs mechanism precedent only, not an FToE/SO(10) completion.",
+    "arXiv:0902.1483 (Gripaios, Pomarol, Riva, Serra), confirms the minimal SO(5)/SO(4) coset contains a unique Higgs doublet; mechanism precedent only."
+  ],
+  "epistemic_note": "This file converts an abstract surviving mechanism class into a falsifiable candidate. It does not close the protected-I sector, does not modify the frozen UV contract, and must not be read as evidence that the candidate is compatible with SO(10)."
+}
