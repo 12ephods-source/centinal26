@@ -1,26 +1,27 @@
-#!/usr/bin/env python3
 import json
 import sys
 
-with open(sys.argv[1], encoding="utf-8") as f:
-    s = json.load(f)["summary"]
 
-def avg(mode, key):
-    return float(s[mode][key]["mean"])
+def avg(summary, mode, key):
+    return float(summary[mode][key]["mean"])
 
-b_mse = avg("baseline", "ood16_mse")
-g_mse = avg("correct_geo", "ood16_mse")
-w_mse = avg("wrong_geo", "ood16_mse")
-b_exact = avg("baseline", "exact16")
-g_exact = avg("correct_geo", "exact16")
-b_cv = avg("baseline", "delta_cv")
-g_cv = avg("correct_geo", "delta_cv")
+
+with open(sys.argv[1], encoding="utf-8") as file_handle:
+    summary = json.load(file_handle)["summary"]
+
+baseline_mse = avg(summary, "baseline", "ood16_mse")
+correct_mse = avg(summary, "correct_geo", "ood16_mse")
+wrong_mse = avg(summary, "wrong_geo", "ood16_mse")
+baseline_exact = avg(summary, "baseline", "exact16")
+correct_exact = avg(summary, "correct_geo", "exact16")
+baseline_cv = avg(summary, "baseline", "delta_cv")
+correct_cv = avg(summary, "correct_geo", "delta_cv")
 
 checks = {
-    "correct_mse": g_mse < 0.80 * b_mse,
-    "correct_exact": g_exact > b_exact + 0.20,
-    "correct_cv": g_cv < b_cv,
-    "wrong_mse": w_mse > 1.05 * b_mse,
+    "correct_mse": correct_mse < 0.80 * baseline_mse,
+    "correct_exact": correct_exact > baseline_exact + 0.20,
+    "correct_cv": correct_cv < baseline_cv,
+    "wrong_mse": wrong_mse > 1.05 * baseline_mse,
 }
 print(json.dumps({"checks": checks, "pass": all(checks.values())}, indent=2))
 sys.exit(0 if all(checks.values()) else 1)
