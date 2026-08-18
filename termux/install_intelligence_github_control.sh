@@ -77,7 +77,21 @@ if [ -f "$CFGDIR/config.json" ]; then
   DEVICE_ID="$(jq -r 'select(.schema == "centinal26-github-worker-config-v1" and .github_repo == "12ephods-source/centinal26") | .automation_device_id // empty' "$CFGDIR/config.json" 2>/dev/null || true)"
 fi
 if ! [[ "$DEVICE_ID" =~ ^[A-Za-z0-9._:-]{1,128}$ ]]; then
-  DEVICE_ID="android-$(uname -m)-$(date +%s)"
+  # A fleet may contain multiple phones with the same CPU architecture and may
+  # be installed within the same second. Use a persisted random UUID rather
+  # than architecture/time alone so physical evidence cannot collide across
+  # devices. The generated identity is written to config.json and reused on
+  # every subsequent install/boot.
+  if [ -r /proc/sys/kernel/random/uuid ]; then
+    DEVICE_UUID="$(cat /proc/sys/kernel/random/uuid)"
+  else
+    DEVICE_UUID="$(python - <<'PY'
+import uuid
+print(uuid.uuid4())
+PY
+)"
+  fi
+  DEVICE_ID="android-$(uname -m)-${DEVICE_UUID}"
 fi
 # shellcheck disable=SC1090
 source "$RUNTIME_CONFIG"
@@ -134,6 +148,10 @@ EOF_REPORT
 chmod 700 "$HOME/.termux/boot/centinal26-intelligence-report.sh"
 
 echo "Centinal26 Termux node v2 + Automation v1 finalizer installed for device $DEVICE_ID."
+# Keep first-run identity identical to the persisted reboot identity. Without
+# this export the initial node status can fall back to android-$(uname -m),
+# conflating same-architecture phones until the next boot.
+export AUTOMATION_DEVICE_ID="$DEVICE_ID"
 "$NODE" start >/dev/null
 "$NODE" doctor
 
