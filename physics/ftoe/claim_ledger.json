@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-CLAIM-LEDGER-v1",
+  "schema": "FTOE-CLAIM-LEDGER-v2",
   "policy": {
     "allowed_statuses": ["VERIFIED", "DERIVED", "REPORTED", "PROPOSED", "REVIEW", "FAIL", "SUPERSEDED"],
     "promotion_requires_evidence_refs": true,
@@ -18,6 +18,30 @@
         "tests/test_ftoe_so10_group_theory_gate.py"
       ],
       "limitations": ["Does not by itself prove that the frozen survival spectrum follows from a complete FToE scalar potential."]
+    },
+    {
+      "id": "FTOE-SPLIT-AUTHORITY-ORCHESTRATOR",
+      "claim": "The supported PR #108 architecture separates a long-lived deterministic supervisor from a one-shot provider credential/network broker, and validates provider output as untrusted data before arbitration.",
+      "status": "DERIVED",
+      "scope": "software/security architecture",
+      "evidence_refs": [
+        "scripts/ftoe_secure_supervisor.py",
+        "scripts/ftoe_provider_broker.py",
+        "tests/test_ftoe_split_authority.py",
+        "termux/install_ftoe_research_daemon.sh"
+      ],
+      "limitations": [
+        "Not yet authorized for phone deployment.",
+        "Same-UID Termux processes do not provide hard OS privilege isolation."
+      ]
+    },
+    {
+      "id": "FTOE-TERMUX-DEPLOYMENT-READY",
+      "claim": "PR #108 is ready to deploy to the Android/Termux device with provider credentials.",
+      "status": "REVIEW",
+      "scope": "deployment/security gate",
+      "evidence_refs": ["physics/ftoe/publication_gate.json", "docs/physics/FTOE_AUTONOMOUS_RESEARCH_ORCHESTRATOR.md"],
+      "limitations": ["PR remains draft and the complete repository-level check set must pass before deployment authorization."]
     },
     {
       "id": "FTOE-PUBLICATION-READY",
