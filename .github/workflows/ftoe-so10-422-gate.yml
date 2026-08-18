@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p artifacts/ftoe-so10-422
           python scripts/ftoe_so10_protected_i_candidate_gate.py --json artifacts/ftoe-so10-422/protected_i_candidate_gate.json
-          python -m pytest -q tests/test_ftoe_so10_protected_i_candidate_gate.py
+          python -m unittest tests.test_ftoe_so10_protected_i_candidate_gate -v
       - name: Derive lower-scale single-spurion protection bound
         run: |
           mkdir -p artifacts/ftoe-so10-422
