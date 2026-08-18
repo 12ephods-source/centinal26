@@ -1,0 +1,28 @@
+{
+  "schema": "FTOE-AGENT-PANEL-v1",
+  "gateway_base_url": "https://ai-gateway.vercel.sh/v1",
+  "providers": ["anthropic", "openai", "google", "xai", "deepseek", "alibaba"],
+  "roles": [
+    {"name":"uv_theorist","instruction":"Construct the smallest explicit UV completion consistent with the frozen FToE gates. Do not add fields unless a failed gate forces it."},
+    {"name":"adversarial_referee","instruction":"Try to falsify the active branch. Identify hidden tuning, circularity, forbidden operators, missing thresholds, or unsupported publication claims."},
+    {"name":"group_theory_auditor","instruction":"Audit representation decompositions, invariants, Dynkin indices, Casimirs, beta coefficients, and Clebsch factors."},
+    {"name":"phenomenology_auditor","instruction":"Audit proton decay, direct detection, cosmology, neutrino, collider, and EFT constraints downstream of the frozen UV spectrum."},
+    {"name":"reproducibility_editor","instruction":"Assess whether claims are reproducible and publication-ready. Require exact equations, code paths, provenance, caveats, and falsification gates."},
+    {"name":"implementation_reviewer","instruction":"Review the repository implementation, tests, numerical conditioning, deterministic artifacts, and failure handling."}
+  ],
+  "max_models": 6,
+  "max_models_per_provider": 1,
+  "preferred_tags": ["reasoning", "tool-use"],
+  "publication_required_gates": [
+    "group_theory",
+    "two_loop_rge",
+    "protected_scalar_mechanism",
+    "vacuum_and_mass_spectrum",
+    "lower_operator_exclusion",
+    "heavy_thresholds",
+    "proton_decay",
+    "beta_chain_non_circular",
+    "reproducibility",
+    "manuscript_consistency"
+  ]
+}
