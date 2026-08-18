@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """One-shot provider broker for the FToE research supervisor.
 
 Security boundary:
