@@ -8,6 +8,7 @@ on:
       - 'scripts/ftoe_so10_group_theory_gate.py'
       - 'scripts/ftoe_so10_linear_symmetry_no_go.py'
       - 'scripts/ftoe_so10_exact_shift_no_go.py'
+      - 'scripts/ftoe_so10_collective_admission_gate.py'
       - 'scripts/ftoe_so10_422_gate.py'
       - 'scripts/ftoe_so10_422_branch_scan.py'
       - 'scripts/ftoe_so10_422_2d_roots.py'
@@ -23,6 +24,7 @@ on:
       - 'tests/test_ftoe_so10_group_theory_gate.py'
       - 'tests/test_ftoe_so10_linear_symmetry_no_go.py'
       - 'tests/test_ftoe_so10_exact_shift_no_go.py'
+      - 'tests/test_ftoe_so10_collective_admission_gate.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'tests/test_ftoe_so10_uv_closure.py'
       - 'tests/test_ftoe_so10_threshold_stress.py'
@@ -59,6 +61,11 @@ jobs:
           mkdir -p artifacts/ftoe-so10-422
           python scripts/ftoe_so10_exact_shift_no_go.py --json artifacts/ftoe-so10-422/exact_shift_no_go.json
           python -m unittest tests.test_ftoe_so10_exact_shift_no_go -v
+      - name: Enforce collective/sequestered protection admission contract
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_collective_admission_gate.py --json artifacts/ftoe-so10-422/collective_admission_gate.json
+          python -m unittest tests.test_ftoe_so10_collective_admission_gate -v
       - name: Audit published G422 coefficient discrepancy
         run: python scripts/diagnose_so10_422_rge_conventions.py
       - name: Run deterministic gauge tests
@@ -85,6 +92,7 @@ jobs:
           python scripts/ftoe_so10_naturalness_gate.py --MU 2.04990990688745e16 --muI 9.54e3 --alphaU 0.032067325570772874 --json artifacts/ftoe-so10-422/naturalness_gate.json
           python scripts/ftoe_so10_radiative_protection_gate.py --f 2.04990990688745e16 --muI 9.54e3 --alphaU 0.032067325570772874 --json artifacts/ftoe-so10-422/radiative_protection_gate.json
           python scripts/ftoe_so10_exact_shift_no_go.py --json artifacts/ftoe-so10-422/exact_shift_no_go.json
+          python scripts/ftoe_so10_collective_admission_gate.py --json artifacts/ftoe-so10-422/collective_admission_gate.json
           python scripts/ftoe_so10_threshold_stress.py --json artifacts/ftoe-so10-422/threshold_stress.json
           python scripts/diagnose_so10_422_rge_conventions.py > artifacts/ftoe-so10-422/coefficient_source_audit.json
           sha256sum artifacts/ftoe-so10-422/*.json > artifacts/ftoe-so10-422/SHA256SUMS.txt
