@@ -1,0 +1,31 @@
+{
+  "schema": "FTOE-CLAIM-LEDGER-v1",
+  "policy": {
+    "allowed_statuses": ["VERIFIED", "DERIVED", "REPORTED", "PROPOSED", "REVIEW", "FAIL", "SUPERSEDED"],
+    "promotion_requires_evidence_refs": true,
+    "llm_consensus_is_not_evidence": true,
+    "superseded_claims_are_retained": true
+  },
+  "claims": [
+    {
+      "id": "G422-BETA-FROZEN-SPECTRUM",
+      "claim": "The frozen G422 survival spectrum algebraically yields a_i=(-7/3,2,28/3) and the implemented two-loop coefficient matrix including b_(2L,4)=525/2.",
+      "status": "VERIFIED",
+      "scope": "group-theory/RGE engineering gate",
+      "evidence_refs": [
+        "physics/ftoe/g422_spectrum_registry.json",
+        "scripts/ftoe_so10_group_theory_gate.py",
+        "tests/test_ftoe_so10_group_theory_gate.py"
+      ],
+      "limitations": ["Does not by itself prove that the frozen survival spectrum follows from a complete FToE scalar potential."]
+    },
+    {
+      "id": "FTOE-PUBLICATION-READY",
+      "claim": "FToE is ready for publication as a closed theory of everything.",
+      "status": "REVIEW",
+      "scope": "global scientific claim",
+      "evidence_refs": ["physics/ftoe/publication_gate.json"],
+      "limitations": ["Mandatory UV, naturalness, spectrum, threshold, proton-decay, dark-sector, inflation, L4, claim-audit and reproducibility gates remain non-PASS."]
+    }
+  ]
+}
