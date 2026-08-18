@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-SO10-UV-MODEL-CONTRACT-v1",
+  "schema": "FTOE-SO10-UV-MODEL-CONTRACT-v1.1",
   "status": "FROZEN_PENDING_SCALAR_POTENTIAL",
   "breaking_chain": [
     "SO(10)",
@@ -10,7 +10,8 @@
   "required_so10_representations": {
     "210_H": {
       "role": "SO(10) -> G422 breaking at M_U",
-      "required_by_current_rge_interval": false
+      "required_by_current_rge_interval": false,
+      "scalar_potential_inventory_status": "NOT_YET_ENUMERATED_IN_CURRENT_BRANCH"
     },
     "45_H": {
       "role": "Pati-Salam/PQ-breaking option; supplies the surviving (1,1,3) needed by the verified G422 beta coefficients",
@@ -20,24 +21,33 @@
     "126bar_H": {
       "role": "G422 -> SM breaking at M_I and Yukawa sector",
       "required_by_current_rge_interval": true,
-      "surviving_g422_components": [["15", "2", "2"], ["10", "1", "3"]]
+      "surviving_g422_components": [["15", "2", "2"], ["10", "1", "3"]],
+      "field_reality_note": "implemented as the complex self-dual 126 tensor with its complex conjugate appearing in the potential"
     },
-    "10_H": {
-      "role": "electroweak Higgs/Yukawa sector",
+    "10C_H": {
+      "role": "complex SO(10) 10 required for a realistic renormalizable Yukawa sector; supplies the electroweak bidoublet",
       "required_by_current_rge_interval": true,
-      "surviving_g422_component": ["1", "2", "2"]
+      "surviving_g422_component": ["1", "2", "2"],
+      "field_reality_note": "complex 10, equivalent to two copies of a real 10; this is consistent with treating the surviving (1,2,2) as a complex scalar in the beta-function registry"
     },
     "protected_I_sector": {
       "role": "generate the informational (1,2,+1/2) state near 13.49 TeV without the excluded unprotected GUT portal",
       "status": "NOT_YET_CONSTRUCTED"
     }
   },
+  "scalar_potential_provenance": {
+    "45_126_10C_complete_renormalizable_reference": "arXiv:2304.14227, Eqs. (2)-(7), with completeness cross-check by Hilbert-series counting",
+    "210_extension": "OPEN: must be enumerated explicitly before the UV action can be called frozen",
+    "protected_I_extension": "OPEN: must be specified together with an exact/collective/sequestered protection symmetry and all renormalizable portals"
+  },
   "hard_invariants": [
     "The scalar potential must contain every representation whose surviving component is used by the verified beta-function registry.",
     "Removing 45_H or its (1,1,3) state invalidates the current G422 coefficient matrix and forces a fresh RGE derivation.",
+    "The electroweak/Yukawa 10 must be complex if the branch claims the standard realistic renormalizable 10+126 Yukawa structure.",
     "No heavy threshold mass may be chosen after inspecting gauge unification; masses must be outputs of the frozen potential.",
     "No new SO(10) representation may be added unless an existing hard gate fails and the branch state is explicitly revised.",
-    "The protected informational sector must remove or symmetry-suppress the renormalizable I mass and norm portals; the ordinary embedded-doublet branch is already FAIL."
+    "The protected informational sector must remove or symmetry-suppress the renormalizable I mass and norm portals; the ordinary embedded-doublet branch is already FAIL.",
+    "The known complete 45+126+10C renormalizable potential is a core sub-potential only; adding 210_H and a protected I sector creates additional invariants that must be exhaustively enumerated rather than assumed absent."
   ],
   "current_verified_gauge_target": {
     "M_I_GeV": 7.0374912e9,
@@ -45,5 +55,5 @@
     "alpha_U": 0.03206733,
     "qualification": "gauge-only two-loop EFT target before derived heavy thresholds"
   },
-  "next_gate": "write an explicit renormalizable scalar-potential invariant inventory for 210_H + 45_H + 126bar_H (+ conjugate/real structure as required) + 10_H + protected_I_sector, then derive its vacuum and Hessian rather than assuming survival masses"
+  "next_gate": "enumerate the complete renormalizable invariant basis for 210_H + 45_H + 126bar_H + 10C_H + protected_I_sector, then derive the vacuum and Hessian; the 45+126+10C core is source-complete, but 210 and I-sector invariants remain open"
 }
