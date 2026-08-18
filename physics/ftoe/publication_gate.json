@@ -1,0 +1,19 @@
+{
+  "schema": "FTOE-PUBLICATION-GATE-v1",
+  "status": "REVIEW",
+  "mandatory": {
+    "frozen_uv_action": "REVIEW",
+    "independent_group_theory_coefficients": "PASS",
+    "vacuum_and_mass_spectrum": "REVIEW",
+    "radiative_naturalness": "FAIL",
+    "operator_basis_and_C_eff": "REVIEW",
+    "two_loop_rge_with_derived_thresholds": "REVIEW",
+    "proton_decay_from_frozen_spectrum": "REVIEW",
+    "dark_sector_joint_viability": "REVIEW",
+    "inflation_joint_likelihood": "REVIEW",
+    "microscopic_L4_derivation": "REVIEW",
+    "manuscript_claim_audit": "REVIEW",
+    "reproducibility_bundle": "REVIEW"
+  },
+  "rule": "Publication-ready requires status PASS and every mandatory gate PASS. FAIL gates must be resolved by a new derivation or the affected claim/branch must be removed; they may not be relabeled by LLM consensus."
+}
