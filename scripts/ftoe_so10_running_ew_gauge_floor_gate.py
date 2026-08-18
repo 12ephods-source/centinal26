@@ -29,12 +29,10 @@ import math
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from scripts.ftoe_so10_422_gate import (
-    MZ,
-    M_I_PHYS,
-    MU_I,
-    low_energy_couplings,
-)
+try:
+    from scripts.ftoe_so10_422_gate import MZ, M_I_PHYS, MU_I, low_energy_couplings
+except ModuleNotFoundError:  # direct execution: python scripts/<this_file>.py
+    from ftoe_so10_422_gate import MZ, M_I_PHYS, MU_I, low_energy_couplings
 
 GUT_SCALE_REFERENCE_GEV = 2.04990990688745e16
 
