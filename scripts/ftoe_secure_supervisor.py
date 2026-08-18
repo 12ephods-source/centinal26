@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Split-authority FToE research supervisor.
 
 The long-lived supervisor owns deterministic local gates and research-state
