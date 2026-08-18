@@ -9,7 +9,6 @@ from pathlib import Path
 from .advance import advance_until_idle, build_advance_engine
 from .event_state import EventStore, state_summary
 
-
 _OPERATOR_ALIASES = {
     "proceed": "PROCEED",
     "continue": "PROCEED",
