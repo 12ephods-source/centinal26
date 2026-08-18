@@ -1,0 +1,49 @@
+{
+  "schema": "FTOE-SO10-UV-MODEL-CONTRACT-v1",
+  "status": "FROZEN_PENDING_SCALAR_POTENTIAL",
+  "breaking_chain": [
+    "SO(10)",
+    "SU(4)_C x SU(2)_L x SU(2)_R",
+    "SU(3)_C x SU(2)_L x U(1)_Y",
+    "SU(3)_C x U(1)_em"
+  ],
+  "required_so10_representations": {
+    "210_H": {
+      "role": "SO(10) -> G422 breaking at M_U",
+      "required_by_current_rge_interval": false
+    },
+    "45_H": {
+      "role": "Pati-Salam/PQ-breaking option; supplies the surviving (1,1,3) needed by the verified G422 beta coefficients",
+      "required_by_current_rge_interval": true,
+      "surviving_g422_component": ["1", "1", "3"]
+    },
+    "126bar_H": {
+      "role": "G422 -> SM breaking at M_I and Yukawa sector",
+      "required_by_current_rge_interval": true,
+      "surviving_g422_components": [["15", "2", "2"], ["10", "1", "3"]]
+    },
+    "10_H": {
+      "role": "electroweak Higgs/Yukawa sector",
+      "required_by_current_rge_interval": true,
+      "surviving_g422_component": ["1", "2", "2"]
+    },
+    "protected_I_sector": {
+      "role": "generate the informational (1,2,+1/2) state near 13.49 TeV without the excluded unprotected GUT portal",
+      "status": "NOT_YET_CONSTRUCTED"
+    }
+  },
+  "hard_invariants": [
+    "The scalar potential must contain every representation whose surviving component is used by the verified beta-function registry.",
+    "Removing 45_H or its (1,1,3) state invalidates the current G422 coefficient matrix and forces a fresh RGE derivation.",
+    "No heavy threshold mass may be chosen after inspecting gauge unification; masses must be outputs of the frozen potential.",
+    "No new SO(10) representation may be added unless an existing hard gate fails and the branch state is explicitly revised.",
+    "The protected informational sector must remove or symmetry-suppress the renormalizable I mass and norm portals; the ordinary embedded-doublet branch is already FAIL."
+  ],
+  "current_verified_gauge_target": {
+    "M_I_GeV": 7.0374912e9,
+    "M_U_GeV": 2.0499099e16,
+    "alpha_U": 0.03206733,
+    "qualification": "gauge-only two-loop EFT target before derived heavy thresholds"
+  },
+  "next_gate": "write an explicit renormalizable scalar-potential invariant inventory for 210_H + 45_H + 126bar_H (+ conjugate/real structure as required) + 10_H + protected_I_sector, then derive its vacuum and Hessian rather than assuming survival masses"
+}
