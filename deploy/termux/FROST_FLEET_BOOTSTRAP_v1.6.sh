@@ -21,16 +21,19 @@ case "${PREFIX:-}" in
   *) die "Run this inside Termux on any Android phone." ;;
 esac
 command -v pkg >/dev/null 2>&1 || die "Termux pkg is unavailable."
-for c in curl git; do
-  command -v "$c" >/dev/null 2>&1 || pkg install -y "$c" || die "Could not install $c."
-done
+missing=()
+command -v curl >/dev/null 2>&1 || missing+=(curl)
+command -v sha1sum >/dev/null 2>&1 || missing+=(coreutils)
+if ((${#missing[@]})); then
+  pkg install -y "${missing[@]}" || die "Could not install bootstrap verification tools."
+fi
 mkdir -p "$TMP_ROOT"
 
 verify_git_blob(){
-  local file="$1" expected="$2" size oid
+  local file="$1" expected="$2" size actual
   size="$(wc -c < "$file" | tr -d '[:space:]')"
-  oid="$({ printf 'blob %s\0' "$size"; cat "$file"; } | git hash-object --stdin)"
-  [[ "$oid" == "$expected" ]] || die "Content identity mismatch for $(basename "$file"): got $oid expected $expected"
+  actual="$( { printf 'blob %s\0' "$size"; cat "$file"; } | sha1sum | awk '{print $1}')"
+  [[ "$actual" == "$expected" ]] || die "Git blob identity mismatch for $(basename "$file"): expected=$expected actual=$actual"
 }
 
 fetch_verified(){
@@ -63,6 +66,7 @@ fi
 cat <<'EOF'
 
 FROST FLEET BOOTSTRAP v1.6 COMPLETE
+source integrity: immutable commit + expected Git blob identity verified before execution
 routing: conversations/jobs -> required capability -> any eligible phone
 remote bootstrap operations:
   system.health
