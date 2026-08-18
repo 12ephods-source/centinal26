@@ -25,7 +25,11 @@ from .qualification import assess_bundle, run_qualification, verify_bundle
 
 
 def state_home() -> Path:
-    return Path(os.environ.get("CENTINAL26_HOME", "~/.local/state/centinal26")).expanduser()
+    value = os.environ.get(
+        "WAZOO26_HOME",
+        os.environ.get("CENTINAL26_HOME", "~/.local/state/centinal26"),
+    )
+    return Path(value).expanduser()
 
 
 def event_store() -> EventStore:
@@ -79,7 +83,7 @@ def short_grant(capability: str) -> Grant:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="centinal26")
+    parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init")
     sub.add_parser("demo")
@@ -216,7 +220,7 @@ def main() -> None:
         if args.command == "auto-demo":
             intent = Intent(
                 "system.echo",
-                {"message": "Centinal26 automated vertical slice online"},
+                {"message": "Wazoo26 automated vertical slice online"},
             )
             job_id = runtime.submit(intent, short_grant(intent.capability))
             runtime.run_once()
@@ -279,7 +283,7 @@ def main() -> None:
         print(json.dumps({"initialized": str(state_home())}))
     elif args.command == "demo":
         grant = short_grant("system.echo")
-        job_id = runtime.submit("system.echo", {"message": "Centinal26 online"}, grant)
+        job_id = runtime.submit("system.echo", {"message": "Wazoo26 online"}, grant)
         runtime.run_once()
         print(json.dumps({"job_id": job_id, "state": "verified"}))
     elif args.command == "run-once":
