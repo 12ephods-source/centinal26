@@ -1,0 +1,54 @@
+name: geometric-symbolic-pairs
+
+on:
+  pull_request:
+    paths:
+      - "experiments/geometric_symbolic/**"
+      - ".github/workflows/geometric-symbolic-pairs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  symbolic-pair-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy torch
+      - name: Run symbolic matched experiment
+        run: |
+          python experiments/geometric_symbolic/geometric_symbolic_pairs.py \
+            --steps 500 \
+            --seeds 3 \
+            --out experiments/geometric_symbolic/ci_results.json \
+            | tee experiments/geometric_symbolic/ci_stdout.log
+      - name: Apply preregistered checks
+        run: |
+          python experiments/geometric_symbolic/check_symbolic_results.py \
+            experiments/geometric_symbolic/ci_results.json \
+            | tee experiments/geometric_symbolic/ci_verdict.json
+      - name: Hash evidence
+        run: |
+          sha256sum \
+            experiments/geometric_symbolic/geometric_symbolic_pairs.py \
+            experiments/geometric_symbolic/check_symbolic_results.py \
+            experiments/geometric_symbolic/ci_results.json \
+            experiments/geometric_symbolic/ci_verdict.json \
+            > experiments/geometric_symbolic/ci_sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometric-symbolic-evidence
+          path: |
+            experiments/geometric_symbolic/ci_results.json
+            experiments/geometric_symbolic/ci_stdout.log
+            experiments/geometric_symbolic/ci_verdict.json
+            experiments/geometric_symbolic/ci_sha256.txt
