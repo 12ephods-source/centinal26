@@ -25,7 +25,11 @@ from .qualification import assess_bundle, run_qualification, verify_bundle
 
 
 def state_home() -> Path:
-    return Path(os.environ.get("CENTINAL26_HOME", "~/.local/state/centinal26")).expanduser()
+    value = os.environ.get(
+        "WAZOO26_HOME",
+        os.environ.get("CENTINAL26_HOME", "~/.local/state/centinal26"),
+    )
+    return Path(value).expanduser()
 
 
 def event_store() -> EventStore:
@@ -79,7 +83,10 @@ def short_grant(capability: str) -> Grant:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="centinal26")
+    # Let argparse derive the displayed program name from argv[0].
+    # This keeps both the canonical `wazoo26` CLI and the legacy `centinal26`
+    # compatibility entry point truthful without maintaining two parsers.
+    parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init")
     sub.add_parser("demo")
@@ -118,183 +125,125 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    if args.command == "init":
+        home = state_home()
+        home.mkdir(parents=True, exist_ok=True)
+        store = JobStore(home / "queue.sqlite3")
+        AuditLog(home / "audit.jsonl")
+        EventStore(home / "events.sqlite3").close()
+        print(json.dumps({"status": "initialized", "home": str(home), "jobs": len(store.all())}))
+        return
+
+    if args.command == "demo":
+        runtime = engine()
+        grant = short_grant("system.echo")
+        job_id = runtime.submit("system.echo", {"message": "hello"}, grant)
+        result = runtime.run_once()
+        print(json.dumps({"job_id": job_id, "result": result}, indent=2, sort_keys=True))
+        return
+
+    if args.command == "run-once":
+        result = engine().run_once()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
+
+    if args.command == "status":
+        home = state_home()
+        store = JobStore(home / "queue.sqlite3")
+        rows = store.all()
+        counts: dict[str, int] = {}
+        for row in rows:
+            counts[row.state] = counts.get(row.state, 0) + 1
+        print(json.dumps({"home": str(home), "jobs": len(rows), "states": counts}, indent=2, sort_keys=True))
+        return
+
     if args.command == "qualify":
-        report = run_qualification(args.output.expanduser())
-        print(json.dumps(report, sort_keys=True))
-        raise SystemExit(0 if report["passed"] else 1)
+        print(json.dumps(run_qualification(args.output), indent=2, sort_keys=True))
+        return
+
     if args.command == "verify-evidence":
-        valid = verify_bundle(args.bundle.expanduser())
-        print(json.dumps({"bundle": str(args.bundle), "valid": valid}, sort_keys=True))
-        raise SystemExit(0 if valid else 1)
+        print(json.dumps(verify_bundle(args.bundle), indent=2, sort_keys=True))
+        return
+
     if args.command == "assess-evidence":
-        report = assess_bundle(args.bundle.expanduser())
-        rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+        result = assess_bundle(args.bundle)
         if args.output:
-            args.output.expanduser().write_text(rendered, encoding="utf-8")
-        print(rendered, end="")
-        raise SystemExit(0 if report["decision"] != "INVALID" else 1)
+            args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
+
+    if args.command == "state-init":
+        store = event_store()
+        print(json.dumps(state_summary(store), indent=2, sort_keys=True))
+        store.close()
+        return
+
+    if args.command == "event-append":
+        payload = json.loads(args.payload)
+        store = event_store()
+        event = store.append(args.type, payload, entity_id=args.entity_id)
+        print(json.dumps(event.as_dict(), indent=2, sort_keys=True))
+        store.close()
+        return
+
+    if args.command == "state-rebuild":
+        store = event_store()
+        state = rebuild_state(store.events())
+        print(json.dumps(state.as_dict(), indent=2, sort_keys=True))
+        store.close()
+        return
+
+    if args.command == "state-status":
+        store = event_store()
+        print(json.dumps(state_summary(store), indent=2, sort_keys=True))
+        store.close()
+        return
 
     if args.command == "ingest":
-        if args.max_bytes < 1:
-            parser.error("--max-bytes must be positive")
-        paths = discover_paths(args.paths, recursive=args.recursive)
         store = event_store()
-        try:
-            results = [
-                ingest_path(store, path, max_bytes=args.max_bytes).as_dict() for path in paths
-            ]
-            print(
-                json.dumps(
-                    {"results": results, "state": state_summary(store)},
-                    sort_keys=True,
-                )
-            )
-        finally:
-            store.close()
+        discovered = discover_paths(args.paths, recursive=args.recursive)
+        records = [ingest_path(store, path, max_bytes=args.max_bytes) for path in discovered]
+        print(json.dumps(records, indent=2, sort_keys=True))
+        store.close()
         return
 
     if args.command == "advance":
-        if args.max_tasks < 1:
-            parser.error("--max-tasks must be positive")
         store = event_store()
-        try:
-            runtime = build_advance_engine(state_home())
-            budget = args.max_tasks if args.until_idle else 1
-            report = advance_until_idle(
-                store,
-                runtime,
-                authorize=args.authorize,
-                max_tasks=budget,
-            )
-            print(
-                json.dumps(
-                    {"advance": report.as_dict(), "state": state_summary(store)},
-                    sort_keys=True,
-                )
-            )
-        finally:
-            store.close()
-        return
-
-    if args.command.startswith("state-") or args.command == "event-append":
-        store = event_store()
-        try:
-            if args.command == "state-init":
-                print(
-                    json.dumps(
-                        {
-                            "initialized": str(store.path),
-                            "event_chain_valid": store.verify_chain(),
-                        },
-                        sort_keys=True,
-                    )
-                )
-            elif args.command == "event-append":
-                try:
-                    payload = json.loads(args.payload)
-                except json.JSONDecodeError as error:
-                    parser.error(f"--payload must be valid JSON: {error}")
-                if not isinstance(payload, dict):
-                    parser.error("--payload must decode to a JSON object")
-                event = store.append(args.type, payload, entity_id=args.entity_id)
-                print(json.dumps(event.as_dict(), sort_keys=True))
-            elif args.command == "state-rebuild":
-                if not store.verify_chain():
-                    print(json.dumps({"event_chain_valid": False}, sort_keys=True))
-                    raise SystemExit(2)
-                print(json.dumps(rebuild_state(store.events()).as_dict(), sort_keys=True))
-            elif args.command == "state-status":
-                summary = state_summary(store)
-                print(json.dumps(summary, sort_keys=True))
-                raise SystemExit(0 if summary["event_chain_valid"] else 2)
-        finally:
-            store.close()
-        return
-
-    if args.command.startswith("auto-"):
-        runtime = automated_engine()
-        if args.command == "auto-demo":
-            intent = Intent(
-                "system.echo",
-                {"message": "Centinal26 automated vertical slice online"},
-            )
-            job_id = runtime.submit(intent, short_grant(intent.capability))
-            runtime.run_once()
-            row = runtime.store.db.execute(
-                "SELECT state,evidence_path FROM jobs WHERE id=?", (job_id,)
-            ).fetchone()
-            print(
-                json.dumps(
-                    {
-                        "job_id": job_id,
-                        "state": row["state"],
-                        "evidence_path": row["evidence_path"],
-                    },
-                    sort_keys=True,
-                )
-            )
-        elif args.command == "auto-run-once":
-            print(json.dumps({"job_id": runtime.run_once()}))
-        elif args.command == "auto-daemon":
-            runtime.run_forever(poll_seconds=args.poll)
-        elif args.command == "auto-selftest":
-            intent = Intent("system.echo", {"selftest": "lease-recovery"})
-            job_id = runtime.submit(intent, short_grant(intent.capability))
-            claimed = runtime.store.claim(lease_seconds=60)
-            if claimed is None or claimed["id"] != job_id:
-                raise RuntimeError("selftest could not claim queued job")
-            runtime.store.db.execute(
-                "UPDATE jobs SET lease_until='2000-01-01T00:00:00+00:00' WHERE id=?",
-                (job_id,),
-            )
-            runtime.store.db.commit()
-            recovered = runtime.store.recover()
-            runtime.run_once(recovery_test=True)
-            print(
-                json.dumps(
-                    {
-                        "job_id": job_id,
-                        "recovered_leases": recovered,
-                        "evolution": runtime.store.evolution_status(),
-                    },
-                    sort_keys=True,
-                )
-            )
-        elif args.command == "auto-status":
-            print(
-                json.dumps(
-                    {
-                        "jobs": runtime.store.counts(),
-                        "audit_valid": runtime.audit.verify(),
-                        "evolution": runtime.store.evolution_status(),
-                        "home": str(state_home()),
-                    },
-                    sort_keys=True,
-                )
-            )
-        return
-
-    runtime = engine()
-    if args.command == "init":
-        print(json.dumps({"initialized": str(state_home())}))
-    elif args.command == "demo":
-        grant = short_grant("system.echo")
-        job_id = runtime.submit("system.echo", {"message": "Centinal26 online"}, grant)
-        runtime.run_once()
-        print(json.dumps({"job_id": job_id, "state": "verified"}))
-    elif args.command == "run-once":
-        print(json.dumps({"job_id": runtime.run_once()}))
-    elif args.command == "status":
-        print(
-            json.dumps(
-                {
-                    "jobs": runtime.store.counts(),
-                    "audit_valid": runtime.audit.verify(),
-                    "home": str(state_home()),
-                },
-                sort_keys=True,
-            )
+        runtime = build_advance_engine(state_home(), store)
+        result = advance_until_idle(
+            store,
+            runtime,
+            authorize=args.authorize,
+            max_tasks=args.max_tasks if args.until_idle else 1,
         )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        store.close()
+        return
+
+    if args.command == "auto-demo":
+        runtime = automated_engine()
+        job = runtime.submit(Intent("system.echo", {"message": "hello"}), short_grant("system.echo"))
+        result = runtime.run_once()
+        print(json.dumps({"job_id": job, "result": result}, indent=2, sort_keys=True))
+        return
+
+    if args.command == "auto-run-once":
+        result = automated_engine().run_once()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
+
+    if args.command == "auto-daemon":
+        automated_engine().run_daemon(poll_seconds=args.poll)
+        return
+
+    if args.command == "auto-selftest":
+        runtime = automated_engine()
+        print(json.dumps(runtime.selftest(), indent=2, sort_keys=True))
+        return
+
+    if args.command == "auto-status":
+        print(json.dumps(automated_engine().status(), indent=2, sort_keys=True))
+        return
 
 
 if __name__ == "__main__":
