@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-LLM-PROVIDER-REGISTRY-v2",
+  "schema": "FTOE-LLM-PROVIDER-REGISTRY-v3",
   "policy": {
     "keys_from_environment_only": true,
     "skip_unconfigured_providers": true,
@@ -7,18 +7,87 @@
     "no_provider_can_publish_or_merge": true,
     "all_claims_require_local_gate_evidence": true,
     "model_discovery_when_supported": true,
+    "capability_filter_discovered_models": true,
+    "one_provider_per_cycle_before_reuse": true,
     "preserve_disagreement": true,
+    "pass_without_evidence_is_review": true,
+    "single_provider_pass_is_review": true,
+    "plateau_detection": true,
     "max_calls_per_cycle_env": "FTOE_MAX_LLM_CALLS_PER_CYCLE"
   },
   "providers": {
-    "openai": {"api_key_env":"OPENAI_API_KEY","model_env":"OPENAI_MODEL","default_model":"gpt-5","preferred_models":["gpt-5","gpt-5.1","gpt-5-pro"],"mode":"responses","priority":10},
-    "anthropic": {"api_key_env":"ANTHROPIC_API_KEY","model_env":"ANTHROPIC_MODEL","default_model":"claude-sonnet-4-5","preferred_models":["claude-opus-4-1","claude-sonnet-4-5"],"mode":"messages","priority":20},
-    "gemini": {"api_key_env":"GEMINI_API_KEY","model_env":"GEMINI_MODEL","default_model":"gemini-3.6-flash","preferred_models":["gemini-3.6-flash","gemini-3.5-flash","gemini-3.1-pro"],"mode":"generateContent","priority":30},
-    "deepseek": {"api_key_env":"DEEPSEEK_API_KEY","model_env":"DEEPSEEK_MODEL","default_model":"deepseek-v4-pro","preferred_models":["deepseek-v4-pro","deepseek-v4-flash"],"mode":"openai-chat","priority":40},
-    "xai": {"api_key_env":"XAI_API_KEY","model_env":"XAI_MODEL","default_model":"grok-4.5","preferred_models":["grok-4.5","latest"],"mode":"openai-chat","priority":50},
-    "mistral": {"api_key_env":"MISTRAL_API_KEY","model_env":"MISTRAL_MODEL","default_model":"mistral-large-latest","preferred_models":["mistral-large-latest"],"mode":"openai-chat","priority":60},
-    "cohere": {"api_key_env":"COHERE_API_KEY","model_env":"COHERE_MODEL","default_model":"command-a","preferred_models":["command-a"],"mode":"cohere-chat","priority":70}
+    "openai": {
+      "api_key_env":"OPENAI_API_KEY",
+      "model_env":"OPENAI_MODEL",
+      "default_model":"gpt-5.2",
+      "preferred_models":["gpt-5.2","gpt-5","gpt-5-pro"],
+      "mode":"responses",
+      "discovery":"GET /v1/models",
+      "priority":10
+    },
+    "anthropic": {
+      "api_key_env":"ANTHROPIC_API_KEY",
+      "model_env":"ANTHROPIC_MODEL",
+      "default_model":"claude-opus-4-1",
+      "preferred_models":["claude-opus-4-1","claude-sonnet-4"],
+      "mode":"messages",
+      "discovery":"best-effort GET /v1/models; override supported",
+      "priority":20
+    },
+    "gemini": {
+      "api_key_env":"GEMINI_API_KEY",
+      "model_env":"GEMINI_MODEL",
+      "default_model":"gemini-3.6-flash",
+      "preferred_models":["gemini-3.6-flash","gemini-3.5-flash"],
+      "mode":"generateContent",
+      "discovery":"GET /v1beta/models + generateContent capability filter",
+      "priority":30
+    },
+    "deepseek": {
+      "api_key_env":"DEEPSEEK_API_KEY",
+      "model_env":"DEEPSEEK_MODEL",
+      "default_model":"deepseek-v4-pro",
+      "preferred_models":["deepseek-v4-pro","deepseek-v4-flash"],
+      "mode":"openai-chat",
+      "discovery":"GET /models",
+      "priority":40
+    },
+    "xai": {
+      "api_key_env":"XAI_API_KEY",
+      "model_env":"XAI_MODEL",
+      "default_model":"grok-4.3",
+      "preferred_models":["grok-4.3","grok-420-reasoning","latest"],
+      "mode":"openai-chat",
+      "discovery":"GET /v1/language-models; response key=models",
+      "priority":50
+    },
+    "mistral": {
+      "api_key_env":"MISTRAL_API_KEY",
+      "model_env":"MISTRAL_MODEL",
+      "default_model":"mistral-medium-latest",
+      "preferred_models":["mistral-medium-latest","mistral-large-latest"],
+      "mode":"openai-chat",
+      "discovery":"GET /v1/models + completion_chat capability filter",
+      "priority":60
+    },
+    "cohere": {
+      "api_key_env":"COHERE_API_KEY",
+      "model_env":"COHERE_MODEL",
+      "default_model":"command-a",
+      "preferred_models":["command-a"],
+      "mode":"cohere-chat",
+      "discovery":"override/default only",
+      "priority":70
+    }
   },
-  "roles": ["theorist","group_theory_auditor","phenomenology_auditor","numerical_verifier","adversarial_referee","literature_synthesizer","manuscript_editor"],
-  "publication_rule": "Models may propose, criticize, cross-check, and draft. Disagreement is preserved and escalated. Only deterministic local gates plus explicit publication-readiness checks can mark a result publishable."
+  "roles": [
+    "theorist",
+    "group_theory_auditor",
+    "phenomenology_auditor",
+    "numerical_verifier",
+    "adversarial_referee",
+    "literature_synthesizer",
+    "manuscript_editor"
+  ],
+  "publication_rule": "Models may propose, criticize, cross-check and draft. Provider agreement is advisory only. A PASS must cite supplied local evidence, and one provider cannot constitute independent confirmation. Only deterministic gates plus the explicit publication-readiness contract can mark a result publishable."
 }
