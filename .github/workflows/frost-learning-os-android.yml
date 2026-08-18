@@ -1,0 +1,42 @@
+name: Frost Learning OS Android APK
+
+on:
+  pull_request:
+    paths:
+      - 'external/frost-learning-os/android-v1.4/**'
+      - '.github/workflows/frost-learning-os-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-frost-learning-os:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: external/frost-learning-os/android-v1.4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Frozen v1.4 controller tests
+        run: node test_core.js
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify APK exists
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Hash APK
+        run: sha256sum app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frost-learning-os-v1.4-debug-apk
+          path: |
+            external/frost-learning-os/android-v1.4/app/build/outputs/apk/debug/app-debug.apk
+            external/frost-learning-os/android-v1.4/app/build/outputs/apk/debug/app-debug.apk.sha256
+          if-no-files-found: error
