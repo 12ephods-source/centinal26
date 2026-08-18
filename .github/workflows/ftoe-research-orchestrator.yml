@@ -4,12 +4,15 @@ on:
   pull_request:
     paths:
       - 'scripts/ftoe_research_daemon.py'
+      - 'scripts/ftoe_secure_supervisor.py'
+      - 'scripts/ftoe_provider_broker.py'
       - 'termux/install_ftoe_research_daemon.sh'
       - 'physics/ftoe/llm_provider_registry.json'
       - 'physics/ftoe/publication_gate.json'
       - 'physics/ftoe/autonomous_research_state.json'
       - 'physics/ftoe/claim_ledger.json'
       - 'tests/test_ftoe_research_daemon.py'
+      - 'tests/test_ftoe_split_authority.py'
       - '.github/workflows/ftoe-research-orchestrator.yml'
   workflow_dispatch:
 
@@ -26,7 +29,7 @@ jobs:
           python-version: '3.12'
       - name: Syntax and state schemas
         run: |
-          python -m py_compile scripts/ftoe_research_daemon.py tests/test_ftoe_research_daemon.py
+          python -m py_compile scripts/ftoe_research_daemon.py scripts/ftoe_secure_supervisor.py scripts/ftoe_provider_broker.py tests/test_ftoe_research_daemon.py tests/test_ftoe_split_authority.py
           bash -n termux/install_ftoe_research_daemon.sh
           python -m json.tool physics/ftoe/llm_provider_registry.json >/dev/null
           python -m json.tool physics/ftoe/publication_gate.json >/dev/null
@@ -41,14 +44,11 @@ jobs:
           DEEPSEEK_API_KEY: ''
           MISTRAL_API_KEY: ''
           COHERE_API_KEY: ''
-        run: python -m unittest tests.test_ftoe_research_daemon -v
-      - name: One-shot dry cycle
+        run: |
+          python -m unittest tests.test_ftoe_research_daemon -v
+          python -m unittest tests.test_ftoe_split_authority -v
+      - name: Split-authority dry cycle
         env:
-          OPENAI_API_KEY: ''
-          ANTHROPIC_API_KEY: ''
-          GEMINI_API_KEY: ''
-          XAI_API_KEY: ''
-          DEEPSEEK_API_KEY: ''
-          MISTRAL_API_KEY: ''
-          COHERE_API_KEY: ''
-        run: python scripts/ftoe_research_daemon.py --once
+          FTOE_PROVIDER_SECRETS: /tmp/nonexistent-ftoe-provider-secrets
+          FTOE_MAX_LLM_CALLS_PER_CYCLE: '2'
+        run: python scripts/ftoe_secure_supervisor.py --once
