@@ -70,7 +70,7 @@ def test_proceed_is_explicit_authorization_for_exactly_one_task(
     assert len(completed) == 1
 
 
-def test_autopilot_without_authorize_fails_closed(
+def test_autopilot_without_broad_authorize_runs_auto_safe_capability(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -80,14 +80,18 @@ def test_autopilot_without_authorize_fails_closed(
 
     result = run_operator("AUTOPILOT", authorize=False)
 
-    assert result["advance"]["executed"] == []
-    assert result["advance"]["stop_reason"] == "APPROVAL_REQUIRED"
+    assert result["advance"]["executed"] == ["t1"]
+    assert result["advance"]["completed"] == ["t1"]
+    assert result["advance"]["stop_reason"] == "COMPLETE"
     assert result["authorization_source"] is None
 
     state_store = EventStore(tmp_path / "events.sqlite3")
-    state = rebuild_state(state_store.events())
+    events = state_store.events()
+    state = rebuild_state(events)
     state_store.close()
-    assert state.tasks["t1"]["status"] == "DISCOVERED"
+    assert state.tasks["t1"]["status"] == "COMPLETE"
+    authorized = [event for event in events if event.type == "TASK_AUTHORIZED"]
+    assert authorized[0].payload["authorization_source"] == "capability_policy_auto_safe"
 
 
 def test_authorized_autopilot_completes_dependency_chain(
