@@ -1,0 +1,72 @@
+{
+  "schema": "FTOE-G422-SPECTRUM-v1",
+  "status": "FROZEN_FOR_RGE_DERIVATION",
+  "gauge_group_order": ["SU4C", "SU2L", "SU2R"],
+  "regime": "M_I < mu < M_U",
+  "assumptions": {
+    "survival_hypothesis": true,
+    "yukawa_terms_in_gauge_beta": "neglected to match the cited gauge-only two-loop calculation",
+    "scalar_reality": "all listed active scalar multiplets are treated as complex, as required to reproduce the cited one-loop coefficients"
+  },
+  "fields": [
+    {
+      "name": "16F_left",
+      "kind": "weyl_fermion",
+      "multiplicity": 3,
+      "so10_parent": "16_F",
+      "g422": ["4", "2", "1"]
+    },
+    {
+      "name": "16F_right",
+      "kind": "weyl_fermion",
+      "multiplicity": 3,
+      "so10_parent": "16_F",
+      "g422": ["4bar", "1", "2"]
+    },
+    {
+      "name": "Phi",
+      "kind": "complex_scalar",
+      "multiplicity": 1,
+      "so10_parent": "10_H",
+      "g422": ["1", "2", "2"]
+    },
+    {
+      "name": "T",
+      "kind": "complex_scalar",
+      "multiplicity": 1,
+      "so10_parent": "126_H",
+      "g422": ["15", "2", "2"]
+    },
+    {
+      "name": "Delta_R",
+      "kind": "complex_scalar",
+      "multiplicity": 1,
+      "so10_parent": "126_H",
+      "g422": ["10", "1", "3"]
+    },
+    {
+      "name": "kappa_R",
+      "kind": "complex_scalar",
+      "multiplicity": 1,
+      "so10_parent": "45_H",
+      "g422": ["1", "1", "3"]
+    }
+  ],
+  "expected_gauge_only_coefficients": {
+    "one_loop": ["-7/3", "2", "28/3"],
+    "two_loop_2020": [
+      ["2435/6", "105/2", "249/2"],
+      ["525/2", "73", "48"],
+      ["1245/2", "48", "835/3"]
+    ],
+    "later_print_discrepancy": {
+      "entry": "b_SU2L_SU4C",
+      "printed_value": "525/3",
+      "status": "SOURCE_DISCREPANCY_DO_NOT_USE_AS_DERIVATION_TARGET"
+    }
+  },
+  "provenance": [
+    "Meloni, Ohlsson, Pernow, Eur.Phys.J.C 80 (2020) 840, arXiv:1911.11411, Eqs. (2)-(5), Appendix A Table 2, Appendix B Table 4",
+    "Djouadi et al., Eur.Phys.J.C 83 (2023) 529, arXiv:2212.11315, Appendix A (records the 525/3 discrepancy)"
+  ]
+}
