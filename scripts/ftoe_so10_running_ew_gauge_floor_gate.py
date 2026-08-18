@@ -3,7 +3,7 @@
 This removes the fixed-coupling approximation from ftoe_so10_ew_gauge_floor_gate.py.
 It uses the already frozen one-loop low-energy running in ftoe_so10_422_gate.py:
 SM beta coefficients below m_I=sqrt(2)*mu_I and SM+I coefficients above that
-threshold.  The break-even cutoff Lambda_* is defined implicitly by
+threshold. The break-even cutoff Lambda_* is defined implicitly by
 
     Lambda_*^2 C_gauge(Lambda_*)/(16 pi^2) = mu_I^2,
     C_gauge(mu) = (9/4) g_2(mu)^2 + (3/4) g_Y(mu)^2.
@@ -18,7 +18,7 @@ Primary sources / calculation basis:
   sensitivity and gauge contribution (9/4)g^2+(3/4)g'^2.
 
 This remains a Wilsonian naturalness diagnostic, not a regulator-independent
-no-go theorem.  A future explicit collective/SUSY/composite/sequestered branch
+no-go theorem. A future explicit collective/SUSY/composite/sequestered branch
 must compute its own cancellations and cannot be promoted by this gate.
 """
 from __future__ import annotations
@@ -30,9 +30,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 try:
-    from scripts.ftoe_so10_422_gate import MZ, M_I_PHYS, MU_I, low_energy_couplings
+    from scripts.ftoe_so10_422_gate import M_I_PHYS, MU_I, MZ, low_energy_couplings
 except ModuleNotFoundError:  # direct execution: python scripts/<this_file>.py
-    from ftoe_so10_422_gate import MZ, M_I_PHYS, MU_I, low_energy_couplings
+    from ftoe_so10_422_gate import M_I_PHYS, MU_I, MZ, low_energy_couplings
 
 GUT_SCALE_REFERENCE_GEV = 2.04990990688745e16
 
@@ -66,7 +66,7 @@ def gauge_coefficient(mu: float) -> tuple[float, float, float, float, float]:
     a_inv = low_energy_couplings(mu)
     alpha1 = 1.0 / a_inv["1"]
     alpha2 = 1.0 / a_inv["2"]
-    alpha_y = (3.0 / 5.0) * alpha1  # alpha_1=(5/3)alpha_Y
+    alpha_y = (3.0 / 5.0) * alpha1
     g2 = math.sqrt(4.0 * math.pi * alpha2)
     gy = math.sqrt(4.0 * math.pi * alpha_y)
     coeff = (9.0 / 4.0) * g2 * g2 + (3.0 / 4.0) * gy * gy
@@ -97,12 +97,11 @@ def solve_break_even(
     if flo * fhi > 0.0:
         raise ValueError("break-even root is not bracketed")
 
-    # Bisect in log(mu), appropriate for scale equations spanning decades.
     xlo, xhi = math.log(lo), math.log(hi)
     for _ in range(iterations):
         xm = 0.5 * (xlo + xhi)
-        m = math.exp(xm)
-        fm = residual(m, mu_i)
+        midpoint = math.exp(xm)
+        fm = residual(midpoint, mu_i)
         if flo * fm <= 0.0:
             xhi = xm
         else:
@@ -120,7 +119,6 @@ def calculate(
     cutoff = solve_break_even(mu_i=mu_i)
     a1i, a2i, g2, gy, coeff = gauge_coefficient(cutoff)
 
-    # Previous frozen-MZ-coupling result, retained only as a regression reference.
     mz_coeff = gauge_coefficient(MZ)[-1]
     fixed_cutoff = 4.0 * math.pi * mu_i / math.sqrt(mz_coeff)
     rg_shift = 100.0 * (cutoff / fixed_cutoff - 1.0)
