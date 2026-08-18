@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail-closed radiative-protection gate for the informational scalar.
 
 This is a scaling/naturalness test, not a representation-specific mass calculation.
