@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Deterministic no-go for exact additive-shift protection of the frozen linear I doublet.
 
 Scope
