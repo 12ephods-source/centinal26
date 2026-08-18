@@ -1,0 +1,21 @@
+{
+  "schema": "FTOE-LLM-PROVIDER-REGISTRY-v1",
+  "policy": {
+    "keys_from_environment_only": true,
+    "skip_unconfigured_providers": true,
+    "no_key_logging": true,
+    "no_provider_can_publish_or_merge": true,
+    "all_claims_require_local_gate_evidence": true
+  },
+  "providers": {
+    "openai": {"api_key_env":"OPENAI_API_KEY","model_env":"OPENAI_MODEL","default_model":"gpt-5","mode":"responses"},
+    "anthropic": {"api_key_env":"ANTHROPIC_API_KEY","model_env":"ANTHROPIC_MODEL","default_model":"claude-fable-5","mode":"messages"},
+    "gemini": {"api_key_env":"GEMINI_API_KEY","model_env":"GEMINI_MODEL","default_model":"gemini-3.6-flash","mode":"generateContent"},
+    "xai": {"api_key_env":"XAI_API_KEY","model_env":"XAI_MODEL","default_model":"grok-4.5","mode":"openai-chat"},
+    "deepseek": {"api_key_env":"DEEPSEEK_API_KEY","model_env":"DEEPSEEK_MODEL","default_model":"deepseek-v4-pro","mode":"openai-chat"},
+    "mistral": {"api_key_env":"MISTRAL_API_KEY","model_env":"MISTRAL_MODEL","default_model":"mistral-large-latest","mode":"openai-chat"},
+    "cohere": {"api_key_env":"COHERE_API_KEY","model_env":"COHERE_MODEL","default_model":"command-a-plus-05-2026","mode":"cohere-chat"}
+  },
+  "roles": ["theorist","group_theory_auditor","phenomenology_auditor","numerical_verifier","adversarial_referee","literature_synthesizer","manuscript_editor"],
+  "publication_rule": "Models may propose, criticize, cross-check, and draft. Only deterministic local gates plus explicit publication-readiness checks can mark a result publishable."
+}
