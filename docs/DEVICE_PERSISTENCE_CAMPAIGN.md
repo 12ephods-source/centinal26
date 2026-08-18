@@ -18,7 +18,7 @@ Each phone uses its own default campaign slot:
 
 and its own history directory. Therefore an incomplete campaign on Phone A does not block Phone B or Phone C from accepting capability-compatible work or beginning their own physical campaign.
 
-Persistence evidence itself remains device-specific because a reboot claim must prove continuity of the same executing phone. A campaign prepared on one device identity cannot be used as reboot evidence for another device.
+The only same-phone requirement is the reboot proof itself. A pre-reboot persistence campaign must resume on the same Termux identity because otherwise a different handset's boot ID could be misclassified as a reboot. This evidence constraint does **not** prevent the conversation or other jobs from moving to another capable phone; another phone simply uses its own campaign slot.
 
 ## Mainline integration boundary
 
@@ -49,7 +49,7 @@ Reboot the phone that produced Phase 1 evidence once. Termux:Boot runs the dedic
 Promotion requires all of the following:
 
 - the runtime is still physical Android/Termux;
-- the same persisted `device_id` is present;
+- the same persisted `device_id` is present for this reboot proof;
 - the source checkout is still at the recorded commit and clean;
 - `/proc/sys/kernel/random/boot_id` differs from the pre-reboot value;
 - the dedicated Termux:Boot campaign hook path and SHA-256 are unchanged;
@@ -70,7 +70,7 @@ This campaign therefore does not claim unattended long-duration autonomy. That r
 
 ## One-command start
 
-From the intended Centinal26 checkout in Termux on **any** of the three phones:
+From the intended Centinal26 checkout in Termux on **any** available phone:
 
 ```sh
 bash scripts/device-validation-termux.sh
@@ -78,7 +78,7 @@ bash scripts/device-validation-termux.sh
 
 The launcher installs missing Termux package prerequisites and automatically chooses that phone's local campaign slot. It does not require a conversation to be assigned to that handset.
 
-After the pre-reboot phase reports PASS, reboot that same Android phone once. Termux:Boot performs the post-reboot resume automatically.
+After the pre-reboot phase reports PASS, reboot that same Android phone once to finish **that phone's** persistence proof. Meanwhile, other phones remain available for other capability-compatible work.
 
 After boot, independently inspect the final campaign by first discovering the local identity and using its campaign slot:
 
