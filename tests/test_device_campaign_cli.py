@@ -1,3 +1,5 @@
+import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -46,3 +48,16 @@ def test_campaign_binding_rejects_other_phone_identity(tmp_path, monkeypatch):
 
     with pytest.raises(DeviceCampaignError, match="different physical Termux identity"):
         cli._verify_device_binding(campaign, "android-phone-b")
+
+
+def test_identity_command_exposes_local_executor_without_pinning_work(
+    tmp_path, monkeypatch, capsys
+):
+    _isolate_home(tmp_path, monkeypatch)
+    monkeypatch.setenv("AUTOMATION_DEVICE_ID", "android-phone-b")
+    monkeypatch.setattr(sys, "argv", ["device_campaign_cli", "identity"])
+
+    cli.main()
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {"device_id": "android-phone-b"}
