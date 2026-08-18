@@ -27,6 +27,12 @@ from .pipeline import (
     echo_verifier,
 )
 
+AUTO_SAFE = "AUTO_SAFE"
+EXPLICIT = "EXPLICIT"
+EFFECT_PROTOCOL = "EFFECT_PROTOCOL"
+VALID_AUTHORIZATION_MODES = {AUTO_SAFE, EXPLICIT, EFFECT_PROTOCOL}
+DEFAULT_AUTHORIZATION_MODES = {"system.echo": AUTO_SAFE}
+
 
 @dataclass
 class AdvanceReport:
@@ -138,11 +144,26 @@ def _result_digest(row) -> str | None:
     return canonical_sha256(json.loads(row["result"]))
 
 
+def _authorization_mode(
+    capability: str,
+    authorization_modes: dict[str, str] | None,
+) -> str:
+    mode = (authorization_modes or {}).get(
+        capability,
+        DEFAULT_AUTHORIZATION_MODES.get(capability, EXPLICIT),
+    )
+    if mode not in VALID_AUTHORIZATION_MODES:
+        raise ValueError(f"invalid authorization mode for {capability}: {mode}")
+    return mode
+
+
 def _run_task(
     store: EventStore,
     runtime: AutomatedEngine,
     task_id: str,
     task: dict[str, Any],
+    *,
+    authorization_source: str,
 ) -> tuple[bool, str]:
     capability = str(task["capability"])
     payload = _task_payload(task)
@@ -162,7 +183,7 @@ def _run_task(
             "capability": capability,
             "grant_id": grant.grant_id,
             "expires_at": grant.expires_at,
-            "authorization_source": "explicit_advance_invocation",
+            "authorization_source": authorization_source,
         },
         entity_id=task_id,
     )
@@ -219,17 +240,25 @@ def advance_until_idle(
     *,
     authorize: bool = False,
     max_tasks: int = 100,
+    authorization_modes: dict[str, str] | None = None,
 ) -> AdvanceReport:
     if max_tasks < 1:
         raise ValueError("max_tasks must be positive")
     if not store.verify_chain():
         raise ValueError("refusing advance because the event chain is invalid")
 
+    if authorization_modes is not None:
+        for capability, mode in authorization_modes.items():
+            if not capability.strip():
+                raise ValueError("authorization mode capability name may not be empty")
+            if mode not in VALID_AUTHORIZATION_MODES:
+                raise ValueError(f"invalid authorization mode for {capability}: {mode}")
+
     report = AdvanceReport()
     while len(report.executed) < max_tasks:
         state = rebuild_state(store.events())
         ready = derive_ready_tasks(state)
-        runnable: list[str] = []
+        runnable: list[tuple[str, str]] = []
         blockers: dict[str, str] = {}
 
         for task_id in ready:
@@ -266,14 +295,26 @@ def advance_until_idle(
                     f"capability lacks independent verification: {capability}",
                 )
                 continue
-            if not authorize:
+
+            mode = _authorization_mode(capability, authorization_modes)
+            if mode == EFFECT_PROTOCOL:
+                blockers[task_id] = "EFFECT_PROTOCOL_REQUIRED"
+                _record_blocker_once(
+                    store,
+                    state,
+                    task_id,
+                    "EFFECT_PROTOCOL_REQUIRED",
+                    "external-effect capability must use the frost-effect protocol",
+                )
+                continue
+            if not authorize and mode != AUTO_SAFE:
                 blockers[task_id] = "APPROVAL_REQUIRED"
                 _record_blocker_once(
                     store,
                     state,
                     task_id,
                     "APPROVAL_REQUIRED",
-                    "advance was invoked without explicit execution authorization",
+                    "capability policy requires explicit execution authorization",
                 )
                 continue
             try:
@@ -282,16 +323,26 @@ def advance_until_idle(
                 blockers[task_id] = "INVALID_TASK_INPUT"
                 _record_blocker_once(store, state, task_id, "INVALID_TASK_INPUT", str(error))
                 continue
-            runnable.append(task_id)
+
+            authorization_source = (
+                "explicit_advance_invocation" if authorize else "capability_policy_auto_safe"
+            )
+            runnable.append((task_id, authorization_source))
 
         report.blocked.update(blockers)
         if not runnable:
             break
 
-        task_id = runnable[0]
+        task_id, authorization_source = runnable[0]
         state = rebuild_state(store.events())
         task = state.tasks[task_id]
-        ok, _runtime_state = _run_task(store, runtime, task_id, task)
+        ok, _runtime_state = _run_task(
+            store,
+            runtime,
+            task_id,
+            task,
+            authorization_source=authorization_source,
+        )
         report.executed.append(task_id)
         if ok:
             report.completed.append(task_id)
@@ -313,6 +364,8 @@ def advance_until_idle(
         reasons.discard(None)
         if reasons == {"APPROVAL_REQUIRED"}:
             report.stop_reason = "APPROVAL_REQUIRED"
+        elif reasons == {"EFFECT_PROTOCOL_REQUIRED"}:
+            report.stop_reason = "EFFECT_PROTOCOL_REQUIRED"
         elif reasons and reasons <= {"NO_CAPABILITY", "VERIFIER_NOT_INDEPENDENT"}:
             report.stop_reason = "NO_CAPABILITY"
         else:
