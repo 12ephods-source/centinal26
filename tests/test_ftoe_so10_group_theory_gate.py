@@ -1,8 +1,8 @@
-from fractions import Fraction
 import importlib.util
-from pathlib import Path
 import sys
 import unittest
+from fractions import Fraction
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PATH = ROOT / "scripts" / "ftoe_so10_group_theory_gate.py"
