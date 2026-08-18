@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-PUBLICATION-GATE-v2",
+  "schema": "FTOE-PUBLICATION-GATE-v3",
   "status": "REVIEW",
   "mandatory": {
     "frozen_uv_action": "REVIEW",
@@ -17,8 +17,9 @@
   },
   "deployment": {
     "termux_split_authority_architecture": "REVIEW",
+    "security_attack_tree": "REVIEW",
     "phone_deployment_authorized": false,
-    "reason": "PR #108 remains draft and the full repository check set has not passed. Same-UID process separation is not a hard sandbox."
+    "reason": "PR #108 remains draft; the full repository check set and deterministic security regressions must pass. Same-UID process separation is not a hard sandbox."
   },
   "rule": "Publication-ready requires status PASS and every mandatory scientific gate PASS. Phone deployment is independently fail-closed. FAIL gates must be resolved by a new derivation or the affected claim/branch removed; LLM consensus cannot promote scientific or deployment status."
 }
