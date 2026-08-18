@@ -1,5 +1,5 @@
-from pathlib import Path
 import re
+from pathlib import Path
 
 SCRIPT = Path("deploy/termux/FROST_DEVICE_VALIDATION_ADAPTER_v1.0.sh")
 
@@ -25,7 +25,7 @@ def test_registered_operations_are_bounded():
     ):
         assert op in s
     assert "device.reboot" in s
-    assert 'deny-remote-reboot' in s
+    assert "deny-remote-reboot" in s
     assert "shell.exec" not in s
     assert "workflow.execute" not in s
 
@@ -48,7 +48,7 @@ def test_validation_adapter_never_reboots_android():
 
 def test_worker_patch_is_fail_closed_to_expected_v11_contract():
     s = text()
-    assert 'worker source is not the expected v1.1 contract' in s
+    assert "worker source is not the expected v1.1 contract" in s
     assert 'const VERSION = "centinal26-base44-fleet-worker/1.1.0";' in s
     assert 'const VERSION = "centinal26-base44-fleet-worker/1.2.0";' in s
     assert 'node --check "$WORKER"' in s
