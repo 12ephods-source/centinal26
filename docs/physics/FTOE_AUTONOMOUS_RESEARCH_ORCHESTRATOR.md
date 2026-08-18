@@ -67,7 +67,7 @@ Phone deployment is separately fail-closed in `physics/ftoe/publication_gate.jso
 
 ## Legacy path
 
-`scripts/ftoe_research_daemon.py` is retained only for historical comparison while PR #108 is draft. The installer now launches `scripts/ftoe_secure_supervisor.py`; the legacy direct-network daemon must not be used for Termux deployment.
+`scripts/ftoe_research_daemon.py` is retained only for historical comparison while PR #108 is draft. It directly owns both HTTP and provider-key access and is therefore a **blocked deployment path**. The installer launches only `scripts/ftoe_secure_supervisor.py`. Any stale service file that launches the legacy daemon is a deployment failure.
 
 ## Deployment state
 
