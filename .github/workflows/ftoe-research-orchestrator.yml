@@ -8,6 +8,7 @@ on:
       - 'physics/ftoe/llm_provider_registry.json'
       - 'physics/ftoe/publication_gate.json'
       - 'physics/ftoe/autonomous_research_state.json'
+      - 'physics/ftoe/claim_ledger.json'
       - 'tests/test_ftoe_research_daemon.py'
       - '.github/workflows/ftoe-research-orchestrator.yml'
   workflow_dispatch:
@@ -23,13 +24,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Syntax
+      - name: Syntax and state schemas
         run: |
           python -m py_compile scripts/ftoe_research_daemon.py tests/test_ftoe_research_daemon.py
           bash -n termux/install_ftoe_research_daemon.sh
           python -m json.tool physics/ftoe/llm_provider_registry.json >/dev/null
           python -m json.tool physics/ftoe/publication_gate.json >/dev/null
           python -m json.tool physics/ftoe/autonomous_research_state.json >/dev/null
+          python -m json.tool physics/ftoe/claim_ledger.json >/dev/null
       - name: Unit tests without provider keys
         env:
           OPENAI_API_KEY: ''
