@@ -3,7 +3,6 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLER = ROOT / "deploy" / "termux" / "CENTINAL26_FROST_ONE_PASTE_v1.0.sh"
 PINNED_COMMIT = "06e05e9c85c4449443e0424640cd6198cd1493a9"
