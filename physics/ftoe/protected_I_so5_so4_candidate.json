@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-PROTECTED-I-CANDIDATE-v0.1",
+  "schema": "FTOE-PROTECTED-I-CANDIDATE-v0.2",
   "status": "PROPOSED_NOT_ADMITTED",
   "scientific_status": "REVIEW",
   "mechanism_class": "nonlinear_composite_pNGB",
@@ -19,10 +19,20 @@
     "break_even_f_TeV_reference": 188.85215118535442,
     "qualification": "DERIVED reference bound from delta m^2 = C*alpha/(4*pi)*f^2. C=1 and alpha_reference are not representation-specific predictions."
   },
+  "ew_embedding_derivation": {
+    "status": "DERIVED_LOW_ENERGY_ONLY",
+    "coset_goldstones": "SO(5)/SO(4) has four Goldstone coordinates transforming as the SO(4) vector 4 ~= (2,2) of SU(2)_L x SU(2)_R",
+    "hypercharge_definition": "Y = T_R^3 + X",
+    "candidate_scalar_X": 0,
+    "decomposition": "(2,2) -> 2_{+1/2} + 2_{-1/2} under SU(2)_L x U(1)_Y",
+    "I_identification": "I is the complex Y=+1/2 doublet; the Y=-1/2 object is its conjugate charge partner, not an additional independent complex doublet",
+    "scope_limit": "This closes only the low-energy electroweak embedding. It does not derive an SO(10) embedding, UV strong sector, radiative protection, portal suppression, resonance spectrum, or backreaction on the frozen G422 running.",
+    "executable_gate": "scripts/ftoe_so10_protected_i_ew_embedding_gate.py"
+  },
   "mandatory_admission_gates": {
     "explicit_nonlinear_coset": "PROPOSED_SO5_OVER_SO4",
     "I_doublet_identification": "PROPOSED",
-    "gauge_embedding_and_hypercharge": "NOT_DERIVED",
+    "gauge_embedding_and_hypercharge": "DERIVED_LOW_ENERGY_ONLY",
     "collective_or_other_radiative_protection": "NOT_DERIVED",
     "representation_specific_C": "NOT_DERIVED",
     "renormalizable_SO10_portal_suppression": "NOT_PROVED",
@@ -41,5 +51,5 @@
     "arXiv:hep-ph/0412089 (Agashe, Contino, Pomarol), Minimal Composite Higgs Model; SO(5)/SO(4) pNGB Higgs mechanism precedent only, not an FToE/SO(10) completion.",
     "arXiv:0902.1483 (Gripaios, Pomarol, Riva, Serra), confirms the minimal SO(5)/SO(4) coset contains a unique Higgs doublet; mechanism precedent only."
   ],
-  "epistemic_note": "This file converts an abstract surviving mechanism class into a falsifiable candidate. It does not close the protected-I sector, does not modify the frozen UV contract, and must not be read as evidence that the candidate is compatible with SO(10)."
+  "epistemic_note": "This file converts an abstract surviving mechanism class into a falsifiable candidate. The v0.2 change derives only the low-energy electroweak embedding. It does not close the protected-I sector, does not modify the frozen UV contract, and must not be read as evidence that the candidate is compatible with SO(10)."
 }
