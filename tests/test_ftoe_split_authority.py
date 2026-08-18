@@ -1,5 +1,7 @@
 import ast
+import importlib.util
 import pathlib
+import sys
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -7,6 +9,12 @@ SUPERVISOR = ROOT / "scripts/ftoe_secure_supervisor.py"
 BROKER = ROOT / "scripts/ftoe_provider_broker.py"
 INSTALLER = ROOT / "termux/install_ftoe_research_daemon.sh"
 DOC = ROOT / "docs/physics/FTOE_AUTONOMOUS_RESEARCH_ORCHESTRATOR.md"
+
+spec = importlib.util.spec_from_file_location("ftoe_secure_supervisor", SUPERVISOR)
+assert spec and spec.loader
+supervisor = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = supervisor
+spec.loader.exec_module(supervisor)
 
 
 class SplitAuthorityTests(unittest.TestCase):
@@ -59,8 +67,6 @@ class SplitAuthorityTests(unittest.TestCase):
         self.assertIn("blocked deployment path", DOC.read_text())
 
     def test_unknown_evidence_refs_force_review(self):
-        namespace: dict = {}
-        exec(compile(SUPERVISOR.read_text(), str(SUPERVISOR), "exec"), namespace)
         result = {
             "status": "OK",
             "response": {
@@ -73,7 +79,7 @@ class SplitAuthorityTests(unittest.TestCase):
                 "confidence": 1.0,
             },
         }
-        checked = namespace["validate_response"](result, {"gate:0"})
+        checked = supervisor.validate_response(result, {"gate:0"})
         self.assertEqual(checked["response"]["status"], "REVIEW")
         self.assertEqual(checked["response"]["evidence_refs"], [])
 
