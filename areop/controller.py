@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from .gates import validate_claim_status_transition, validate_event
+from .gates import validate_claim_status, validate_claim_status_transition, validate_event
 
 GENESIS_HASH = "0" * 64
 
@@ -80,11 +80,18 @@ def append_event(path, event):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     existing = load_ledger(path)
+    existing_ids = set()
     if existing:
         verify_chain(existing)
+        for expected_seq, row in enumerate(existing, 1):
+            validate_event(row, expected_seq)
+            event_id = row["event_id"]
+            if event_id in existing_ids:
+                raise ValueError(f"duplicate event_id: {event_id}")
+            existing_ids.add(event_id)
     expected_seq = len(existing) + 1
     validate_event(event, expected_seq)
-    if any(row["event_id"] == event["event_id"] for row in existing):
+    if event["event_id"] in existing_ids:
         raise ValueError(f"duplicate event_id: {event['event_id']}")
     prev = existing[-1]["event_hash"] if existing else GENESIS_HASH
     sealed = seal_event(event, prev)
@@ -127,8 +134,10 @@ def apply_event(state, event):
         cid = p["claim_id"]
         if cid in nxt["claims"]:
             raise ValueError(f"claim already exists: {cid}")
+        status = p.get("status", "UNKNOWN")
+        validate_claim_status(status)
         nxt["claims"][cid] = {
-            "claim": p["claim"], "status": p.get("status", "UNKNOWN"),
+            "claim": p["claim"], "status": status,
             "dependencies": sorted(set(p.get("dependencies", []))),
             "invalidation_conditions": p.get("invalidation_conditions", []),
             "evidence_ids": [event["event_id"]],
