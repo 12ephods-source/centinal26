@@ -88,7 +88,7 @@ def trace_alpha(threshold: float, center: float = ALPHA_S_CENTER) -> list[dict]:
     rows = []
     for direction in (-1, 1):
         seed = start
-        nmax = int(round(ALPHA_MARGIN / ALPHA_STEP))
+        nmax = round(ALPHA_MARGIN / ALPHA_STEP)
         for k in range(nmax + 1):
             alpha_s = center + direction * k * ALPHA_STEP
             if direction == 1 and k == 0:
