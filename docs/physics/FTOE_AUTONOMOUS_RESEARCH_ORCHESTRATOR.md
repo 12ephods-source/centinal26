@@ -44,9 +44,11 @@ If the same gate and evidence digest persist, the controller changes strategy ra
 
 Local execution remains an explicit Python argument-vector allowlist. No arbitrary shell string, root, ADB, Android Accessibility, package-management authority, merge authority, or publication authority is exposed to an LLM.
 
-## Publication boundary
+## Publication and deployment boundaries
 
 Publication readiness is fail-closed. It requires all deterministic gates to succeed, every mandatory publication gate to be PASS, a claim ledger, and a publication draft. LLM consensus is advisory only.
+
+Phone deployment is separately fail-closed in `physics/ftoe/publication_gate.json`. A publishable physics state does not automatically authorize installing the daemon, and a secure daemon does not promote scientific claims.
 
 ## Legacy path
 
