@@ -32,6 +32,21 @@ Each cycle targets exactly one highest-priority non-PASS publication gate. Indep
 
 A FAIL is preserved. REVIEW blocks promotion. PASS requires valid local evidence identifiers from the evidence packet. Cross-model agreement cannot promote a deterministic publication gate.
 
+## Security attack tree
+
+Before phone deployment, the architecture must survive these failure classes:
+
+- credential exfiltration from environment, logs, prompts, artifacts, or shell evaluation;
+- prompt-injection attempts to obtain arbitrary execution, GitHub mutation, publication, or policy change;
+- malicious provider output containing fabricated evidence references;
+- broker compromise attempting subprocess execution;
+- supervisor compromise attempting direct outbound HTTP;
+- stale/legacy service files launching the direct-network daemon;
+- repeated network/auth failures causing uncontrolled retries or cost growth;
+- same-UID limitation being misrepresented as hard isolation.
+
+A security PASS requires deterministic regression tests for the enforceable boundaries and an explicit REVIEW/limitation record for boundaries that ordinary Termux cannot hard-enforce.
+
 ## Plateau control
 
 If the same gate and evidence digest persist, the controller changes strategy rather than repeatedly purchasing the same review:
