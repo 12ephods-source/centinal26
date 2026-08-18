@@ -43,10 +43,6 @@ REFERENCE_ALPHA_S = 1.0 / REFERENCE_ALPHA3_INV
 DEFAULT_ALPHA_S_VALUES = (0.1170, REFERENCE_ALPHA_S, 0.1192)
 DEFAULT_THRESHOLD_FACTORS = (0.5, 1.0, 2.0)
 
-# Must match the independently audited convention used by
-# ftoe_so10_422_2d_roots.py. The historical core retains the conflicting
-# 525/3 literature value for provenance, so the attack must set this
-# explicitly rather than silently inheriting the stale convention.
 BIJ_422_VALIDATED = (
     (2435.0 / 6.0, 105.0 / 2.0, 249.0 / 2.0),
     (525.0 / 2.0, 73.0, 48.0),
@@ -64,12 +60,6 @@ def decay_prefactor_limit_geV5(
     lifetime_limit_yr: float = SK_EPI0_LIMIT_YR,
     mx_over_mu: float = 1.0,
 ) -> float:
-    """Maximum K allowed by a partial-lifetime lower limit.
-
-    For Gamma = K alpha_U^2 / M_X^4 and tau = hbar/Gamma, return K_max.
-    This is an exact algebraic boundary for the declared convention, not a
-    model prediction for K or M_X/M_U.
-    """
     if min(mu_u, alpha_u, lifetime_limit_yr, mx_over_mu) <= 0.0:
         raise ValueError("all decay-boundary inputs must be positive")
     mx = mx_over_mu * mu_u
@@ -108,7 +98,7 @@ def run_sweep(
             threshold = core.M_I_PHYS * factor
             try:
                 mi, mu, alpha_u, inverse, spread = solver(alpha_s, threshold)
-            except Exception as exc:  # fail-closed evidence capture for attack grid
+            except Exception as exc:  # noqa: BLE001 - adversarial grid must preserve unexpected solver failures
                 failures.append(
                     {
                         "alpha_s_MZ": alpha_s,
