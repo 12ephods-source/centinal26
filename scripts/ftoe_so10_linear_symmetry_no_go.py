@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """General no-go certificate for linear internal-symmetry protection of a scalar norm portal.
 
 Let I and Phi transform in finite-dimensional unitary representations of any
