@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - 'physics/ftoe/g422_spectrum_registry.json'
+      - 'physics/ftoe/uv_model_contract.json'
       - 'scripts/ftoe_so10_group_theory_gate.py'
+      - 'scripts/ftoe_so10_linear_symmetry_no_go.py'
       - 'scripts/ftoe_so10_422_gate.py'
       - 'scripts/ftoe_so10_422_branch_scan.py'
       - 'scripts/ftoe_so10_422_2d_roots.py'
@@ -18,10 +20,12 @@ on:
       - 'scripts/ftoe_so10_conditioning_continuation.py'
       - 'scripts/diagnose_so10_422_rge_conventions.py'
       - 'tests/test_ftoe_so10_group_theory_gate.py'
+      - 'tests/test_ftoe_so10_linear_symmetry_no_go.py'
       - 'tests/test_ftoe_so10_422_gate.py'
       - 'tests/test_ftoe_so10_uv_closure.py'
       - 'tests/test_ftoe_so10_threshold_stress.py'
       - 'docs/physics/FTOE_SO10_422_CLOSURE.md'
+      - 'docs/physics/FTOE_SO10_SCALAR_POTENTIAL_SOURCE_AUDIT.md'
       - '.github/workflows/ftoe-so10-422-gate.yml'
   workflow_dispatch:
 
@@ -43,6 +47,11 @@ jobs:
           mkdir -p artifacts/ftoe-so10-422
           python scripts/ftoe_so10_group_theory_gate.py --json artifacts/ftoe-so10-422/group_theory_gate.json
           python -m unittest tests.test_ftoe_so10_group_theory_gate -v
+      - name: Certify ordinary linear internal-symmetry portal no-go
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_linear_symmetry_no_go.py --json artifacts/ftoe-so10-422/linear_symmetry_no_go.json
+          python -m unittest tests.test_ftoe_so10_linear_symmetry_no_go -v
       - name: Audit published G422 coefficient discrepancy
         run: python scripts/diagnose_so10_422_rge_conventions.py
       - name: Run deterministic gauge tests
