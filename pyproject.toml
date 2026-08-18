@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "centinal26"
 version = "0.1.0"
-description = "Local-first evidence-centered automation runtime"
+description = "Wazoo26 local-first evidence-centered automation runtime"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -16,6 +16,7 @@ dependencies = []
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
+wazoo26 = "centinal26.cli:main"
 centinal26 = "centinal26.cli:main"
 frost = "centinal26.frost_cli:main"
 centinal26-intelligence = "frost_core.intelligence_cli:main"
