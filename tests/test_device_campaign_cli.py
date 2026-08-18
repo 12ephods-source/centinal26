@@ -50,7 +50,7 @@ def test_campaign_binding_rejects_other_phone_identity(tmp_path, monkeypatch):
         cli._verify_device_binding(campaign, "android-phone-b")
 
 
-def test_identity_command_exposes_local_executor_without_pinning_work(
+def test_identity_command_exposes_executor_identity_for_provenance_only(
     tmp_path, monkeypatch, capsys
 ):
     _isolate_home(tmp_path, monkeypatch)
