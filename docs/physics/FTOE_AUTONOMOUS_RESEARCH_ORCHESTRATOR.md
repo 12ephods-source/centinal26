@@ -51,3 +51,7 @@ Publication readiness is fail-closed. It requires all deterministic gates to suc
 ## Legacy path
 
 `scripts/ftoe_research_daemon.py` is retained only for historical comparison while PR #108 is draft. The installer now launches `scripts/ftoe_secure_supervisor.py`; the legacy direct-network daemon must not be used for Termux deployment.
+
+## Deployment state
+
+The split-authority architecture is implemented but **not yet approved for phone deployment**. PR #108 remains draft and must have the full repository check set reviewed before installation. A green dedicated orchestrator workflow alone is insufficient.
