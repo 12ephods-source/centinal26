@@ -1,5 +1,5 @@
 {
-  "schema": "FTOE-AUTONOMOUS-RESEARCH-STATE-v4",
+  "schema": "FTOE-AUTONOMOUS-RESEARCH-STATE-v5",
   "cycle": 0,
   "publication_ready": false,
   "current_target_gate": "radiative_naturalness",
@@ -13,10 +13,13 @@
   "legacy_direct_provider_daemon": "retained_for_history_not_for_termux_deployment",
   "same_uid_hard_isolation": false,
   "scheduled_external_autopilot": "disabled",
+  "phone_deployment_authorized": false,
+  "security_attack_tree_status": "REVIEW",
   "notes": [
     "The long-lived supervisor has no HTTP client and does not parse provider secrets.",
     "The one-shot broker owns provider credentials and HTTPS but has no subprocess execution or publication authority.",
     "Provider outputs are hostile input and cannot promote deterministic scientific gates.",
+    "Sister-agent verdicts are blind until arbitration.",
     "Ordinary Termux same-UID process separation is not an OS sandbox."
   ]
 }
