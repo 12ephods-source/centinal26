@@ -138,6 +138,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m centinal26.device_campaign_cli")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    sub.add_parser("identity")
+
     prepare = sub.add_parser("prepare")
     prepare.add_argument("--campaign", type=Path, required=True)
     prepare.add_argument("--boot-hook", type=Path, required=True)
@@ -152,6 +154,9 @@ def main() -> None:
     args = parser.parse_args()
     try:
         device_id = _load_or_create_device_id()
+        if args.command == "identity":
+            print(json.dumps({"device_id": device_id}, sort_keys=True))
+            return
         if args.command == "prepare":
             report = prepare_device_campaign(args.campaign, boot_hook=args.boot_hook)
             _write_device_binding(args.campaign, device_id)
