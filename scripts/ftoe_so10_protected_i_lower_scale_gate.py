@@ -5,7 +5,10 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.ftoe_so10_low_scale_protection_bound import calculate
+try:
+    from scripts.ftoe_so10_low_scale_protection_bound import calculate
+except ModuleNotFoundError:  # direct `python scripts/...` execution
+    from ftoe_so10_low_scale_protection_bound import calculate
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = ROOT / "physics" / "ftoe" / "protected_I_lower_scale_bound_v05.json"
