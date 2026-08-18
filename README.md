@@ -243,3 +243,7 @@ Wazoo26 does not claim that:
 - A recovered or reconstructed file is byte-identical to a missing original without matching evidence.
 - Remote automation may bypass the registered capability interface and become a general-purpose shell.
 - `REVIEW` is equivalent to GA.
+
+Those distinctions are part of the architecture, not documentation caveats.
+
+© 2026 Robert Frost
