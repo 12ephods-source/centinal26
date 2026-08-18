@@ -1,20 +1,43 @@
-# Automation OS — Centinal26
+# Automation OS — Wazoo26
 
 Canonical implementation repository for Robert Frost's Automation project.
 
-Centinal26 is a local-first, evidence-centered automation runtime. It is designed so that increasing autonomy does not weaken authorization, execution bounds, verification, provenance, or release control.
+**Wazoo26** is the canonical human-facing name of the active Automation OS line formerly called Centinal26. The repository slug, Python distribution/import path, legacy CLI, state directory, historical release identifiers, hashes, and provenance records retain `centinal26` where changing them would break compatibility or falsify history.
+
+Wazoo26 is a local-first, evidence-centered automation runtime. It is designed so that increasing autonomy does not weaken authorization, execution bounds, verification, provenance, or release control.
 
 ## Status snapshot
 
-Centinal26 currently has three distinct version/state axes. They are intentionally separate:
+Wazoo26 currently has three distinct version/state axes. They are intentionally separate:
 
 | Axis | Current value | Meaning |
 |---|---|---|
-| Python runtime package | `centinal26 0.1.0` | Runnable Python 3.11+ implementation in `src/centinal26/` |
+| Python runtime package | `centinal26 0.1.0` | Compatibility distribution implementing Wazoo26 in `src/centinal26/` |
 | Recovery/bootstrap control state | `0.0.4-rc4-parent-recovery` | Static-validated recovery/control metadata in `releases/BOOTSTRAP_STATE.json` |
 | Highest recoverable canonical release target | `1.0.0-rc4-converged` | Release-control target; current decision is `REVIEW`, not GA |
 
 Host validation does **not** imply physical Android/Termux validation. The current release-control state does not claim Android-device validation, endurance validation, device-sync validation, recovery-drill validation, native-candidate certification, or explicit human promotion.
+
+## Naming and compatibility
+
+Canonical product name: `Wazoo26`.
+
+Compatibility identifiers retained deliberately:
+
+- GitHub repository: `12ephods-source/centinal26`
+- Python distribution/import package: `centinal26`
+- legacy CLI: `centinal26`
+- default state directory: `~/.local/state/centinal26`
+- legacy state variable: `CENTINAL26_HOME`
+
+New interfaces:
+
+- canonical CLI alias: `wazoo26`
+- canonical state variable: `WAZOO26_HOME`
+
+`WAZOO26_HOME` takes precedence over `CENTINAL26_HOME`; if neither is set, the existing state directory remains unchanged so the rename does not fork runtime state.
+
+Historical artifacts are not rewritten merely to replace the old name. See `docs/WAZOO26_RENAME.md`.
 
 ## Core invariant
 
@@ -31,13 +54,15 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
 
-centinal26 init
-centinal26 demo
-centinal26 status
+wazoo26 init
+wazoo26 demo
+wazoo26 status
 pytest
 ```
 
-State defaults to `~/.local/state/centinal26`; set `CENTINAL26_HOME` to override it.
+The legacy `centinal26` CLI remains available as a compatibility alias.
+
+State defaults to `~/.local/state/centinal26`. Set `WAZOO26_HOME` to override it; `CENTINAL26_HOME` remains supported for compatibility.
 
 Termux bootstrap:
 
@@ -65,23 +90,23 @@ The repository contains a runnable Python 3.11+ core with:
 Primary CLI commands:
 
 ```text
-centinal26 init
-centinal26 demo
-centinal26 run-once
-centinal26 status
-centinal26 qualify --output <path>
-centinal26 verify-evidence <bundle>
-centinal26 assess-evidence <bundle> [--output <path>]
+wazoo26 init
+wazoo26 demo
+wazoo26 run-once
+wazoo26 status
+wazoo26 qualify --output <path>
+wazoo26 verify-evidence <bundle>
+wazoo26 assess-evidence <bundle> [--output <path>]
 ```
 
 Automated-runtime commands:
 
 ```text
-centinal26 auto-demo
-centinal26 auto-run-once
-centinal26 auto-daemon [--poll <seconds>]
-centinal26 auto-selftest
-centinal26 auto-status
+wazoo26 auto-demo
+wazoo26 auto-run-once
+wazoo26 auto-daemon [--poll <seconds>]
+wazoo26 auto-selftest
+wazoo26 auto-status
 ```
 
 `auto-selftest` exercises the automated queue's lease-recovery path before executing the recovered job.
@@ -124,7 +149,7 @@ state transition / release-control decision
 
 ## Security model
 
-Centinal26 treats automation as an authorized state transition, not unrestricted command execution.
+Wazoo26 treats automation as an authorized state transition, not unrestricted command execution.
 
 The enforced baseline includes:
 
@@ -196,7 +221,7 @@ A higher stage may not be inferred from a lower one.
 
 ## Layout
 
-- `src/centinal26/` — runnable orchestration core and CLI
+- `src/centinal26/` — Wazoo26 runnable orchestration core and CLI compatibility package
 - `workers/` — bounded workers and job consumers
 - `deploy/termux/`, `scripts/` — Android/Termux deployment
 - `schemas/` — job, evidence, audit, artifact, and release schemas
@@ -209,7 +234,7 @@ A higher stage may not be inferred from a lower one.
 
 ## What this repository does not claim
 
-Centinal26 does not claim that:
+Wazoo26 does not claim that:
 
 - GitHub is an Android execution host.
 - A host test proves a physical-device result.
@@ -218,7 +243,3 @@ Centinal26 does not claim that:
 - A recovered or reconstructed file is byte-identical to a missing original without matching evidence.
 - Remote automation may bypass the registered capability interface and become a general-purpose shell.
 - `REVIEW` is equivalent to GA.
-
-Those distinctions are part of the architecture, not documentation caveats.
-
-© 2026 Robert Frost
