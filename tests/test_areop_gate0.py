@@ -5,8 +5,15 @@ import unittest
 from pathlib import Path
 
 from areop.controller import (
-    append_event, atomic_write_state, gate0, load_ledger, replay, replay_files,
-    seal_events, state_hash, verify_chain,
+    append_event,
+    atomic_write_state,
+    gate0,
+    load_ledger,
+    replay,
+    replay_files,
+    seal_events,
+    state_hash,
+    verify_chain,
 )
 
 S0 = {
