@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Independently derive gauge-only G422 one- and two-loop beta coefficients.
 
 This gate starts from a frozen representation registry and the generic
@@ -19,16 +18,15 @@ scalars.
 from __future__ import annotations
 
 import argparse
-from fractions import Fraction
 import json
+from collections.abc import Sequence
+from fractions import Fraction
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REGISTRY = ROOT / "physics" / "ftoe" / "g422_spectrum_registry.json"
 GROUPS = ("SU4C", "SU2L", "SU2R")
 
-# (dimension, quadratic Casimir C2, Dynkin index S2/T)
 REP_DATA = {
     "SU4C": {
         "1": (1, Fraction(0), Fraction(0)),
@@ -61,7 +59,7 @@ def load_registry(path: Path = DEFAULT_REGISTRY) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def rep_tuple(field: dict) -> Tuple[str, str, str]:
+def rep_tuple(field: dict) -> tuple[str, str, str]:
     reps = tuple(field["g422"])
     if len(reps) != 3:
         raise ValueError(f"{field['name']}: expected three G422 factors")
@@ -104,8 +102,8 @@ def kappa(field: dict) -> Fraction:
     raise ValueError(f"unsupported field kind: {kind}")
 
 
-def one_loop(fields: Sequence[dict]) -> Tuple[Fraction, Fraction, Fraction]:
-    out: List[Fraction] = []
+def one_loop(fields: Sequence[dict]) -> tuple[Fraction, Fraction, Fraction]:
+    out: list[Fraction] = []
     for i, group in enumerate(GROUPS):
         value = -Fraction(11, 3) * C2_G[group]
         for field in fields:
@@ -118,10 +116,10 @@ def one_loop(fields: Sequence[dict]) -> Tuple[Fraction, Fraction, Fraction]:
     return tuple(out)  # type: ignore[return-value]
 
 
-def two_loop(fields: Sequence[dict]) -> Tuple[Tuple[Fraction, ...], ...]:
-    rows: List[Tuple[Fraction, ...]] = []
+def two_loop(fields: Sequence[dict]) -> tuple[tuple[Fraction, ...], ...]:
+    rows: list[tuple[Fraction, ...]] = []
     for i, group_i in enumerate(GROUPS):
-        row: List[Fraction] = []
+        row: list[Fraction] = []
         for j, _group_j in enumerate(GROUPS):
             delta = Fraction(1 if i == j else 0)
             value = -Fraction(34, 3) * C2_G[group_i] * C2_G[group_i] * delta
@@ -144,9 +142,9 @@ def parse_fraction(text: str) -> Fraction:
 
 
 def expected(registry: dict):
-    e = registry["expected_gauge_only_coefficients"]
-    one = tuple(parse_fraction(x) for x in e["one_loop"])
-    two = tuple(tuple(parse_fraction(x) for x in row) for row in e["two_loop_2020"])
+    expected_values = registry["expected_gauge_only_coefficients"]
+    one = tuple(parse_fraction(x) for x in expected_values["one_loop"])
+    two = tuple(tuple(parse_fraction(x) for x in row) for row in expected_values["two_loop_2020"])
     return one, two
 
 
@@ -154,14 +152,20 @@ def fmt(value: Fraction) -> str:
     return str(value.numerator) if value.denominator == 1 else f"{value.numerator}/{value.denominator}"
 
 
-def scalar_dynkin_totals(fields: Sequence[dict]) -> Tuple[Fraction, Fraction, Fraction]:
-    scalars = [f for f in fields if "scalar" in f["kind"]]
-    return tuple(sum((kappa(f) * dynkin_with_spectators(f, i) for f in scalars), Fraction(0)) for i in range(3))  # type: ignore[return-value]
+def scalar_dynkin_totals(fields: Sequence[dict]) -> tuple[Fraction, Fraction, Fraction]:
+    scalars = [field for field in fields if "scalar" in field["kind"]]
+    return tuple(
+        sum((kappa(field) * dynkin_with_spectators(field, i) for field in scalars), Fraction(0))
+        for i in range(3)
+    )  # type: ignore[return-value]
 
 
-def fermion_dynkin_totals(fields: Sequence[dict]) -> Tuple[Fraction, Fraction, Fraction]:
-    fermions = [f for f in fields if "fermion" in f["kind"]]
-    return tuple(sum((kappa(f) * dynkin_with_spectators(f, i) for f in fermions), Fraction(0)) for i in range(3))  # type: ignore[return-value]
+def fermion_dynkin_totals(fields: Sequence[dict]) -> tuple[Fraction, Fraction, Fraction]:
+    fermions = [field for field in fields if "fermion" in field["kind"]]
+    return tuple(
+        sum((kappa(field) * dynkin_with_spectators(field, i) for field in fermions), Fraction(0))
+        for i in range(3)
+    )  # type: ignore[return-value]
 
 
 def calculate(registry_path: Path = DEFAULT_REGISTRY) -> dict:
@@ -187,7 +191,9 @@ def calculate(registry_path: Path = DEFAULT_REGISTRY) -> dict:
         "expected_one_loop": [fmt(x) for x in expected_one],
         "expected_two_loop_2020": [[fmt(x) for x in row] for row in expected_two],
         "gates": gates,
-        "overall": "PASS" if gates["one_loop_exact_match"] == gates["two_loop_exact_match_2020"] == gates["b_L4_is_525_over_2"] == "PASS" else "FAIL",
+        "overall": "PASS"
+        if gates["one_loop_exact_match"] == gates["two_loop_exact_match_2020"] == gates["b_L4_is_525_over_2"] == "PASS"
+        else "FAIL",
         "epistemic_status": "independent algebraic derivation from frozen field content and generic beta-function formulas; Yukawa gauge-beta terms intentionally excluded",
     }
 
