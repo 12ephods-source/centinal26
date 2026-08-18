@@ -1,0 +1,71 @@
+{
+  "experiment": {
+    "task": "signed implication-chain composition with irrelevant distractors",
+    "train_chain_lengths": [1, 2, 3, 4],
+    "ood_chain_lengths": [8, 16],
+    "pair_definition": "flip one load-bearing edge => target sign flips",
+    "invariant_pair_definition": "flip one distractor => target unchanged",
+    "same_architecture": true,
+    "same_training_steps": true,
+    "same_geometry_loss_computation": true,
+    "interpretation_limit": "toy symbolic test; not an LLM benchmark or Sophontic reproduction"
+  },
+  "rows": [
+    {
+      "seed": 0,
+      "mode": "baseline",
+      "train_acc": 1.0,
+      "ood8_acc": 0.9943359375,
+      "ood16_acc": 0.97265625,
+      "pair8_acc": 0.9927734375,
+      "pair16_acc": 0.9474609375,
+      "invariant16_acc": 0.9740234375
+    },
+    {
+      "seed": 0,
+      "mode": "correct_geo",
+      "train_acc": 1.0,
+      "ood8_acc": 0.9904296875,
+      "ood16_acc": 0.900390625,
+      "pair8_acc": 0.9841796875,
+      "pair16_acc": 0.79609375,
+      "invariant16_acc": 0.8939453125
+    },
+    {
+      "seed": 0,
+      "mode": "wrong_geo",
+      "train_acc": 1.0,
+      "ood8_acc": 0.9943359375,
+      "ood16_acc": 0.7990234375,
+      "pair8_acc": 0.9927734375,
+      "pair16_acc": 0.6177734375,
+      "invariant16_acc": 0.804296875
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "train_acc": {"mean": 1.0, "sd": 0.0},
+      "ood8_acc": {"mean": 0.9943359375, "sd": 0.0},
+      "ood16_acc": {"mean": 0.97265625, "sd": 0.0},
+      "pair8_acc": {"mean": 0.9927734375, "sd": 0.0},
+      "pair16_acc": {"mean": 0.9474609375, "sd": 0.0},
+      "invariant16_acc": {"mean": 0.9740234375, "sd": 0.0}
+    },
+    "correct_geo": {
+      "train_acc": {"mean": 1.0, "sd": 0.0},
+      "ood8_acc": {"mean": 0.9904296875, "sd": 0.0},
+      "ood16_acc": {"mean": 0.900390625, "sd": 0.0},
+      "pair8_acc": {"mean": 0.9841796875, "sd": 0.0},
+      "pair16_acc": {"mean": 0.79609375, "sd": 0.0},
+      "invariant16_acc": {"mean": 0.8939453125, "sd": 0.0}
+    },
+    "wrong_geo": {
+      "train_acc": {"mean": 1.0, "sd": 0.0},
+      "ood8_acc": {"mean": 0.9943359375, "sd": 0.0},
+      "ood16_acc": {"mean": 0.7990234375, "sd": 0.0},
+      "pair8_acc": {"mean": 0.9927734375, "sd": 0.0},
+      "pair16_acc": {"mean": 0.6177734375, "sd": 0.0},
+      "invariant16_acc": {"mean": 0.804296875, "sd": 0.0}
+    }
+  }
+}
