@@ -5,10 +5,12 @@ on:
     paths:
       - 'physics/ftoe/g422_spectrum_registry.json'
       - 'physics/ftoe/uv_model_contract.json'
+      - 'physics/ftoe/protected_I_so5_so4_candidate.json'
       - 'scripts/ftoe_so10_group_theory_gate.py'
       - 'scripts/ftoe_so10_linear_symmetry_no_go.py'
       - 'scripts/ftoe_so10_exact_shift_no_go.py'
       - 'scripts/ftoe_so10_collective_admission_gate.py'
+      - 'scripts/ftoe_so10_protected_i_candidate_gate.py'
       - 'scripts/ftoe_so10_low_scale_protection_bound.py'
       - 'scripts/ftoe_so10_ew_gauge_floor_gate.py'
       - 'scripts/ftoe_so10_running_ew_gauge_floor_gate.py'
@@ -28,6 +30,7 @@ on:
       - 'tests/test_ftoe_so10_linear_symmetry_no_go.py'
       - 'tests/test_ftoe_so10_exact_shift_no_go.py'
       - 'tests/test_ftoe_so10_collective_admission_gate.py'
+      - 'tests/test_ftoe_so10_protected_i_candidate_gate.py'
       - 'tests/test_ftoe_so10_low_scale_protection_bound.py'
       - 'tests/test_ftoe_so10_ew_gauge_floor_gate.py'
       - 'tests/test_ftoe_so10_running_ew_gauge_floor_gate.py'
@@ -72,6 +75,11 @@ jobs:
           mkdir -p artifacts/ftoe-so10-422
           python scripts/ftoe_so10_collective_admission_gate.py --json artifacts/ftoe-so10-422/collective_admission_gate.json
           python -m unittest tests.test_ftoe_so10_collective_admission_gate -v
+      - name: Evaluate explicit protected-I candidate fail-closed
+        run: |
+          mkdir -p artifacts/ftoe-so10-422
+          python scripts/ftoe_so10_protected_i_candidate_gate.py --json artifacts/ftoe-so10-422/protected_i_candidate_gate.json
+          python -m pytest -q tests/test_ftoe_so10_protected_i_candidate_gate.py
       - name: Derive lower-scale single-spurion protection bound
         run: |
           mkdir -p artifacts/ftoe-so10-422
@@ -114,6 +122,7 @@ jobs:
           python scripts/ftoe_so10_radiative_protection_gate.py --f 2.04990990688745e16 --muI 9.54e3 --alphaU 0.032067325570772874 --json artifacts/ftoe-so10-422/radiative_protection_gate.json
           python scripts/ftoe_so10_exact_shift_no_go.py --json artifacts/ftoe-so10-422/exact_shift_no_go.json
           python scripts/ftoe_so10_collective_admission_gate.py --json artifacts/ftoe-so10-422/collective_admission_gate.json
+          python scripts/ftoe_so10_protected_i_candidate_gate.py --json artifacts/ftoe-so10-422/protected_i_candidate_gate.json
           python scripts/ftoe_so10_low_scale_protection_bound.py --json artifacts/ftoe-so10-422/low_scale_protection_bound.json
           python scripts/ftoe_so10_ew_gauge_floor_gate.py --json artifacts/ftoe-so10-422/ew_gauge_floor_gate.json
           python scripts/ftoe_so10_running_ew_gauge_floor_gate.py --json artifacts/ftoe-so10-422/running_ew_gauge_floor_gate.json
