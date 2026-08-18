@@ -71,6 +71,11 @@ def _github_config_device_id() -> str | None:
 
 
 def _load_or_create_device_id() -> str:
+    """Return a stable local executor identity used only for provenance.
+
+    The identity says which Termux installation produced physical evidence. It is
+    not a conversation or job routing key; routing remains capability-based.
+    """
     path = _device_id_path()
     env_id = os.environ.get("AUTOMATION_DEVICE_ID", "").strip() or None
     if env_id is not None and not _valid_device_id(env_id):
