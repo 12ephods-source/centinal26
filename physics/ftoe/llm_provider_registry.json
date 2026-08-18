@@ -1,7 +1,7 @@
 {
-  "schema": "FTOE-LLM-PROVIDER-REGISTRY-v3",
+  "schema": "FTOE-LLM-PROVIDER-REGISTRY-v4",
   "policy": {
-    "keys_from_environment_only": true,
+    "keys_from_broker_secrets_only": true,
     "skip_unconfigured_providers": true,
     "no_key_logging": true,
     "no_provider_can_publish_or_merge": true,
@@ -9,10 +9,13 @@
     "model_discovery_when_supported": true,
     "capability_filter_discovered_models": true,
     "one_provider_per_cycle_before_reuse": true,
+    "blind_sister_attacks": true,
     "preserve_disagreement": true,
     "pass_without_evidence_is_review": true,
     "single_provider_pass_is_review": true,
     "plateau_detection": true,
+    "supervisor_has_no_direct_provider_credentials": true,
+    "same_uid_process_separation_is_not_os_sandbox": true,
     "max_calls_per_cycle_env": "FTOE_MAX_LLM_CALLS_PER_CYCLE"
   },
   "providers": {
@@ -80,14 +83,12 @@
       "priority":70
     }
   },
-  "roles": [
-    "theorist",
-    "group_theory_auditor",
-    "phenomenology_auditor",
-    "numerical_verifier",
-    "adversarial_referee",
-    "literature_synthesizer",
-    "manuscript_editor"
+  "attack_modes": [
+    "formal_derivation",
+    "counterexample",
+    "numerical_stability",
+    "independence_audit",
+    "hostile_referee"
   ],
-  "publication_rule": "Models may propose, criticize, cross-check and draft. Provider agreement is advisory only. A PASS must cite supplied local evidence, and one provider cannot constitute independent confirmation. Only deterministic gates plus the explicit publication-readiness contract can mark a result publishable."
+  "publication_rule": "Models may propose, criticize, cross-check and draft. Sister agents are blind to one another until arbitration. Provider agreement is advisory only. A PASS must cite supplied local evidence, and one provider cannot constitute independent confirmation. Only deterministic gates plus the explicit publication-readiness contract can mark a result publishable."
 }
