@@ -72,3 +72,5 @@ Phone deployment is separately fail-closed in `physics/ftoe/publication_gate.jso
 ## Deployment state
 
 The split-authority architecture is implemented but **not yet approved for phone deployment**. PR #108 remains draft. Acceptance requires the dedicated split-authority tests plus review of the repository-level `CI`, `automation-gates`, `federation-gates`, and `Mature Product Qualification` checks. A green dedicated orchestrator workflow alone is insufficient.
+
+Stop condition: do not place real provider API keys on the Android device until `phone_deployment_authorized` is explicitly `true` in `physics/ftoe/publication_gate.json` and that state is backed by a clean full-check head. Until then, CI may exercise only keyless/dry broker paths.
