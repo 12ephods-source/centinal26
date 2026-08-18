@@ -1,8 +1,22 @@
 {
-  "schema": "FTOE-AUTONOMOUS-RESEARCH-STATE-v1",
+  "schema": "FTOE-AUTONOMOUS-RESEARCH-STATE-v4",
   "cycle": 0,
   "publication_ready": false,
+  "current_target_gate": "radiative_naturalness",
   "current_stage": "UV closure / scalar potential and protected spectrum",
   "authority": "deterministic gates",
-  "note": "LLM panel outputs are advisory and cannot promote scientific status."
+  "strategy": "normal_review",
+  "plateau_cycles": 0,
+  "security_mode": "split_authority",
+  "supported_supervisor": "scripts/ftoe_secure_supervisor.py",
+  "provider_broker": "scripts/ftoe_provider_broker.py",
+  "legacy_direct_provider_daemon": "retained_for_history_not_for_termux_deployment",
+  "same_uid_hard_isolation": false,
+  "scheduled_external_autopilot": "disabled",
+  "notes": [
+    "The long-lived supervisor has no HTTP client and does not parse provider secrets.",
+    "The one-shot broker owns provider credentials and HTTPS but has no subprocess execution or publication authority.",
+    "Provider outputs are hostile input and cannot promote deterministic scientific gates.",
+    "Ordinary Termux same-UID process separation is not an OS sandbox."
+  ]
 }
