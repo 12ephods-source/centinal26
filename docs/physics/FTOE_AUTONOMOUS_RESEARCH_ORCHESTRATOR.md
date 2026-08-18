@@ -1,46 +1,53 @@
-# FToE Research Orchestrator
+# FToE Autonomous Research Orchestrator
 
-This layer automates repeated falsification-first research cycles on Android/Termux while preserving the project's rule that model output is not scientific verification.
+Status: DRAFT / REVIEW. Do not deploy the legacy direct-network daemon to Termux.
 
-## Architecture
+## Current architecture
 
-`Termux runit daemon -> deterministic local gates -> multi-provider LLM panel -> hash-linked cycle artifact -> publication gate -> repeat`
+The supported path is split-authority:
 
-The panel roles are theorist, group-theory auditor, phenomenology auditor, numerical verifier, adversarial referee, literature synthesizer, and manuscript editor. Every configured provider may answer every role; missing API keys are skipped.
+`runit/Termux supervisor -> deterministic local gates`
 
-Supported adapters: OpenAI Responses, Anthropic Messages, Gemini generateContent, xAI OpenAI-compatible chat, DeepSeek OpenAI-compatible chat, Mistral chat, and Cohere v2 chat. Model IDs are environment-overridable. API keys are read only from a local chmod-600 environment file and are never committed.
+`runit/Termux supervisor -> one-shot provider broker -> outbound LLM API`
 
-## Safety / epistemic boundary
+The resident supervisor (`scripts/ftoe_secure_supervisor.py`) has no HTTP client and does not parse provider credentials. The one-shot broker (`scripts/ftoe_provider_broker.py`) owns outbound HTTPS and provider credentials, but has no subprocess execution, GitHub mutation, publication, or scientific-state promotion capability. Provider responses are treated as hostile data and schema-validated before arbitration.
 
-The daemon cannot merge PRs, publish papers, execute arbitrary remote shell commands, or promote a claim because LLMs agree. Local execution is restricted to the explicit Python test/gate allowlist in `scripts/ftoe_research_daemon.py`.
+This is **process separation, not OS privilege separation**. Ordinary Termux processes share the same Android application UID; therefore the supervisor and broker are not a hard sandbox against a malicious process running under that UID. The split reduces accidental authority aggregation and credential exposure but does not replace Android/OS isolation.
 
-Publication readiness is fail-closed. `physics/ftoe/publication_gate.json` must have top-level `PASS` and every mandatory subgate must be `PASS`; a manuscript draft must exist; and all local gates must return zero.
+## Credential policy
 
-## Termux
+Provider credentials are stored in `~/.config/ftoe-research/providers.secrets` with mode `600`. The file uses literal `KEY=VALUE` records and is parsed by the broker; it is never sourced or evaluated by the shell. The long-lived service receives only the path to the file, not the credential values in its environment.
 
-Install Termux:Boot and then run:
+No provider key may be written to GitHub, cycle artifacts, logs, prompts, state JSON, command-line arguments, or deterministic gate output.
 
-```bash
-bash termux/install_ftoe_research_daemon.sh
-```
+## Sister-agent attack strategy
 
-Edit only the providers you can authenticate:
+Each cycle targets exactly one highest-priority non-PASS publication gate. Independent providers are assigned blind attack modes and do not receive other agents' verdicts before their own result is sealed:
 
-```bash
-nano ~/.config/ftoe-research/providers.env
-chmod 600 ~/.config/ftoe-research/providers.env
-sv restart ftoe-research
-```
+1. formal derivation;
+2. counterexample construction;
+3. numerical-stability / hidden-fit attack;
+4. evidence-independence / circularity audit;
+5. hostile-referee falsification design.
 
-Inspect:
+A FAIL is preserved. REVIEW blocks promotion. PASS requires valid local evidence identifiers from the evidence packet. Cross-model agreement cannot promote a deterministic publication gate.
 
-```bash
-sv status ftoe-research
-tail -f ~/.local/state/ftoe-research-log/current
-```
+## Plateau control
 
-The daemon persists cycles under `artifacts/ftoe-research-agent/` with a SHA-256 sidecar and updates `physics/ftoe/autonomous_research_state.json`.
+If the same gate and evidence digest persist, the controller changes strategy rather than repeatedly purchasing the same review:
 
-## Publication stop condition
+- normal review;
+- falsifier design;
+- deterministic escalation with a reduced LLM-call budget.
 
-The daemon exits only when the publication gate is explicit PASS. It does not convert a REVIEW or FAIL to PASS automatically. A failed branch must be repaired by a new derivation or removed from the manuscript.
+## Execution boundary
+
+Local execution remains an explicit Python argument-vector allowlist. No arbitrary shell string, root, ADB, Android Accessibility, package-management authority, merge authority, or publication authority is exposed to an LLM.
+
+## Publication boundary
+
+Publication readiness is fail-closed. It requires all deterministic gates to succeed, every mandatory publication gate to be PASS, a claim ledger, and a publication draft. LLM consensus is advisory only.
+
+## Legacy path
+
+`scripts/ftoe_research_daemon.py` is retained only for historical comparison while PR #108 is draft. The installer now launches `scripts/ftoe_secure_supervisor.py`; the legacy direct-network daemon must not be used for Termux deployment.
