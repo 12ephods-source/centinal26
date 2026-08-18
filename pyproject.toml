@@ -20,6 +20,7 @@ centinal26 = "centinal26.cli:main"
 frost = "centinal26.frost_cli:main"
 centinal26-intelligence = "frost_core.intelligence_cli:main"
 centinal26-fleet = "frost_core.fleet_cli:main"
+frost-export-recovery = "frost_core.export_recovery:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
