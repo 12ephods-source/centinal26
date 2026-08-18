@@ -30,7 +30,7 @@ Each cycle targets exactly one highest-priority non-PASS publication gate. Indep
 4. evidence-independence / circularity audit;
 5. hostile-referee falsification design.
 
-A FAIL is preserved. REVIEW blocks promotion. PASS requires valid local evidence identifiers from the evidence packet. Cross-model agreement cannot promote a deterministic publication gate.
+This is intentionally *sibling* rather than committee-style review: agents do not see one another's reasoning before committing a verdict, which reduces herding and copied-error correlation. Arbitration happens only after sealed responses are returned. A FAIL is preserved. REVIEW blocks promotion. PASS requires valid local evidence identifiers from the evidence packet. Cross-model agreement cannot promote a deterministic publication gate.
 
 ## Security attack tree
 
