@@ -34,7 +34,9 @@ curl() {{
 {helper}
 fetch_verify_run deadbeef deploy/termux/example.sh expected
 '''
-    result = subprocess.run(["bash", "-c", program], capture_output=True, text=True)
+    result = subprocess.run(
+        ["bash", "-c", program], capture_output=True, text=True, check=False
+    )
     assert result.returncode == 0, result.stderr
 
 
