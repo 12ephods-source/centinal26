@@ -38,7 +38,7 @@ def test_persisted_device_id_rejects_conflicting_environment(tmp_path, monkeypat
         cli._load_or_create_device_id()
 
 
-def test_campaign_binding_rejects_other_phone_identity(tmp_path, monkeypatch):
+def test_campaign_binding_rejects_other_phone_as_same_reboot_evidence(tmp_path, monkeypatch):
     _isolate_home(tmp_path, monkeypatch)
     campaign = tmp_path / "campaign"
     campaign.mkdir()
