@@ -1,8 +1,8 @@
 import importlib.util
 import json
-from pathlib import Path
 import sys
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PATH = ROOT / "scripts" / "ftoe_so10_collective_admission_gate.py"
@@ -16,9 +16,15 @@ spec.loader.exec_module(mod)
 class CollectiveAdmissionGateTests(unittest.TestCase):
     def test_current_frozen_contract_fails_admission(self):
         result = mod.evaluate(mod.load_contract())
-        self.assertEqual(result["collective_protection_admission"], "FAIL_CURRENT_FROZEN_BRANCH")
+        self.assertEqual(
+            result["collective_protection_admission"],
+            "FAIL_CURRENT_FROZEN_BRANCH",
+        )
         self.assertEqual(result["gates"]["protected_sector_constructed"], "FAIL")
-        self.assertEqual(result["gates"]["renormalizable_portal_suppression_proved"], "FAIL")
+        self.assertEqual(
+            result["gates"]["renormalizable_portal_suppression_proved"],
+            "FAIL",
+        )
         self.assertEqual(result["gates"]["radiative_stability_proved"], "FAIL")
 
     def test_synthetic_collective_contract_can_pass_structural_admission(self):
@@ -34,7 +40,9 @@ class CollectiveAdmissionGateTests(unittest.TestCase):
                 "radiative_stability_proof": "synthetic proof marker",
             }
         )
-        contract["scalar_potential_provenance"]["protected_I_extension"] = "CLOSED_FOR_SYNTHETIC_TEST"
+        contract["scalar_potential_provenance"]["protected_I_extension"] = (
+            "CLOSED_FOR_SYNTHETIC_TEST"
+        )
         result = mod.evaluate(contract)
         self.assertEqual(result["collective_protection_admission"], "PASS")
 
@@ -51,9 +59,14 @@ class CollectiveAdmissionGateTests(unittest.TestCase):
                 "radiative_stability_proof": "synthetic proof marker",
             }
         )
-        contract["scalar_potential_provenance"]["protected_I_extension"] = "CLOSED_FOR_SYNTHETIC_TEST"
+        contract["scalar_potential_provenance"]["protected_I_extension"] = (
+            "CLOSED_FOR_SYNTHETIC_TEST"
+        )
         result = mod.evaluate(contract)
-        self.assertEqual(result["gates"]["collective_or_sequestered_structure_frozen"], "FAIL")
+        self.assertEqual(
+            result["gates"]["collective_or_sequestered_structure_frozen"],
+            "FAIL",
+        )
 
 
 if __name__ == "__main__":
