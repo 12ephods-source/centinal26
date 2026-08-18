@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from typing import Any
 
 from .advance import advance_until_idle, build_advance_engine
 from .cli import event_store, state_home
@@ -44,7 +43,7 @@ def classify_operator(value: str) -> str:
         raise ValueError(f"unsupported frost intent: {value!r}") from error
 
 
-def _advance_payload(report) -> dict[str, Any]:
+def _advance_payload(report) -> dict[str, object]:
     return report.as_dict()
 
 
@@ -53,7 +52,7 @@ def run_operator(
     *,
     authorize: bool = False,
     max_tasks: int = 100,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     if max_tasks < 1:
         raise ValueError("max_tasks must be positive")
     if max_tasks > 1000:
@@ -112,12 +111,15 @@ def run_operator(
         store.close()
 
 
-def _exit_code(result: dict[str, Any]) -> int:
+def _exit_code(result: dict[str, object]) -> int:
     operator = result["operator"]
     if operator == "VERIFY":
         return 0 if result["event_chain_valid"] and result["runtime_audit_valid"] else 2
     if operator in {"PROCEED", "AUTOPILOT"}:
-        stop_reason = result["advance"]["stop_reason"]
+        advance = result["advance"]
+        if not isinstance(advance, dict):
+            return 4
+        stop_reason = advance["stop_reason"]
         if stop_reason in {"COMPLETE", "IDLE", "RESOURCE_LIMIT"}:
             return 0
         if stop_reason == "APPROVAL_REQUIRED":
