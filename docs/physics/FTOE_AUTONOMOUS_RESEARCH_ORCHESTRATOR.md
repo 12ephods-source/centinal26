@@ -54,4 +54,4 @@ Publication readiness is fail-closed. It requires all deterministic gates to suc
 
 ## Deployment state
 
-The split-authority architecture is implemented but **not yet approved for phone deployment**. PR #108 remains draft and must have the full repository check set reviewed before installation. A green dedicated orchestrator workflow alone is insufficient.
+The split-authority architecture is implemented but **not yet approved for phone deployment**. PR #108 remains draft. Acceptance requires the dedicated split-authority tests plus review of the repository-level `CI`, `automation-gates`, `federation-gates`, and `Mature Product Qualification` checks. A green dedicated orchestrator workflow alone is insufficient.
