@@ -15,8 +15,8 @@
     "alpha_reference": 0.032067325570772874,
     "coefficient_C_reference": 1.0,
     "spurion_per_C_reference": 0.002551849970937,
-    "break_even_f_GeV_reference": 188838.0,
-    "break_even_f_TeV_reference": 188.838,
+    "break_even_f_GeV_reference": 188852.15118535442,
+    "break_even_f_TeV_reference": 188.85215118535442,
     "qualification": "DERIVED reference bound from delta m^2 = C*alpha/(4*pi)*f^2. C=1 and alpha_reference are not representation-specific predictions."
   },
   "mandatory_admission_gates": {
