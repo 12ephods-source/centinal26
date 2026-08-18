@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+from pathlib import Path
 
 from .advance import advance_until_idle, build_advance_engine
-from .cli import event_store, state_home
-from .event_state import state_summary
+from .event_state import EventStore, state_summary
 
 
 _OPERATOR_ALIASES = {
@@ -29,6 +30,14 @@ _OPERATOR_ALIASES = {
     "proceed automatically": "AUTOPILOT",
     "run automatically": "AUTOPILOT",
 }
+
+
+def state_home() -> Path:
+    return Path(os.environ.get("CENTINAL26_HOME", "~/.local/state/centinal26")).expanduser()
+
+
+def event_store() -> EventStore:
+    return EventStore(state_home() / "events.sqlite3")
 
 
 def _normalize_text(value: str) -> str:
