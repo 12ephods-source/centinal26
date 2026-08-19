@@ -20,6 +20,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Frozen v1.4 controller tests
         run: node test_core.js
+      - name: Android integration guards
+        run: |
+          grep -q 'hotfix.js' app/src/main/assets/index.html
+          grep -q 'FrostAndroid.exportEvidence' app/src/main/assets/app.js
+          grep -q 'addJavascriptInterface' app/src/main/java/com/robertfrost/learningos/MainActivity.java
+          grep -q 'WebChromeClient' app/src/main/java/com/robertfrost/learningos/MainActivity.java
+          ! grep -q 'android.permission.INTERNET' app/src/main/AndroidManifest.xml
+          grep -q 'versionName = "1.4.1"' app/build.gradle.kts
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -35,7 +43,7 @@ jobs:
         run: sha256sum app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: frost-learning-os-v1.4-debug-apk
+          name: frost-learning-os-v1.4.1-fixed-debug-apk
           path: |
             external/frost-learning-os/android-v1.4/app/build/outputs/apk/debug/app-debug.apk
             external/frost-learning-os/android-v1.4/app/build/outputs/apk/debug/app-debug.apk.sha256
