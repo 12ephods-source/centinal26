@@ -1,0 +1,13 @@
+{
+  "schema": "FTOE-PROTECTED-I-REFERENCE-DISPOSITION-v0.9",
+  "status": "REFERENCE_MECHANISM_NOT_ADMISSIBLE_BY_DIRECT_IDENTIFICATION",
+  "scientific_status": "FAIL",
+  "parent_head": "5275a924cc486f6f65b624aa6f8b1d58334865dd",
+  "parent_gate": "FAIL_DIRECT_IDENTIFICATION_HIGGS_ROLE_CONFLICT",
+  "reference_mechanism": "SU(5)/SO(5) Littlest Higgs",
+  "disposition": "KILLED_FOR_DIRECT_IDENTIFICATION",
+  "dependency_rule": "Do not advance SO(10) embedding/sequestering, portal suppression, representation-specific radiative mass, or precision/partner constraints for the direct-identification realization. Any continuation must be a separately versioned extended mechanism with an additional protected doublet or other explicit role-separating construction.",
+  "scope_limit": "This disposition rejects only direct identification of protected I with the single Littlest-Higgs pNGB Higgs doublet. It does not reject extended cosets or other separately versioned protected mechanisms.",
+  "no_retuning": true,
+  "publication_readiness": "REVIEW_FAIL_CLOSED"
+}
