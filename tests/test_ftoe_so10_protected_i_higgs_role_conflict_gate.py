@@ -1,9 +1,9 @@
 import json
-import pathlib
-import scripts.ftoe_so10_protected_i_higgs_role_conflict_gate as gate
+from pathlib import Path
 
+from scripts import ftoe_so10_protected_i_higgs_role_conflict_gate as gate
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "physics/ftoe/protected_I_higgs_role_conflict_v08.json"
 
 
