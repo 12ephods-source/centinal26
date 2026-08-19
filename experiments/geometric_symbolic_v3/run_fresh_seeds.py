@@ -8,18 +8,24 @@ adjudication rule without retuning the mechanism after seeing v2 results.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 from dataclasses import asdict
 from pathlib import Path
 from statistics import mean, pstdev
 
-V2_DIR = Path(__file__).resolve().parents[1] / "geometric_symbolic_v2"
-sys.path.insert(0, str(V2_DIR))
+import torch
 
-from geometric_symbolic_v2 import MODES, train_one  # noqa: E402
-
-import torch  # noqa: E402
+V2_PATH = Path(__file__).resolve().parents[1] / "geometric_symbolic_v2" / "geometric_symbolic_v2.py"
+V2_SPEC = importlib.util.spec_from_file_location("geometric_symbolic_v2_impl", V2_PATH)
+if V2_SPEC is None or V2_SPEC.loader is None:
+    raise RuntimeError(f"Unable to load frozen v2 mechanism: {V2_PATH}")
+V2_MODULE = importlib.util.module_from_spec(V2_SPEC)
+sys.modules[V2_SPEC.name] = V2_MODULE
+V2_SPEC.loader.exec_module(V2_MODULE)
+MODES = V2_MODULE.MODES
+train_one = V2_MODULE.train_one
 
 
 def main():
