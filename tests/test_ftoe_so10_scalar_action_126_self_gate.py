@@ -1,12 +1,12 @@
 import copy
 import json
+import pathlib
 import unittest
-from pathlib import Path
 
 from scripts import ftoe_so10_scalar_action_126_self_gate as gate
 
 
-CONTRACT = Path("physics/ftoe/scalar_action_126_self_v12.json")
+CONTRACT = pathlib.Path("physics/ftoe/scalar_action_126_self_v12.json")
 
 
 class ScalarAction126SelfGateTests(unittest.TestCase):
