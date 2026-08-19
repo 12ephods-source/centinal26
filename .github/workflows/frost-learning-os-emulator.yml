@@ -34,18 +34,17 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none
-          script: |
-            cd external/frost-learning-os/android-v1.4
-            python3 emulator_ui_gate.py
+          script: cd external/frost-learning-os/android-v1.4 && python3 emulator_ui_gate.py
       - name: Hash emulator evidence
         if: always()
         working-directory: external/frost-learning-os/android-v1.4
         run: |
-          find emulator-evidence -type f -print0 | sort -z | xargs -0 sha256sum > emulator-evidence/SHA256SUMS.txt || true
+          mkdir -p emulator-evidence
+          find emulator-evidence -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 -r sha256sum > emulator-evidence/SHA256SUMS.txt
       - name: Upload emulator evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frost-learning-os-v1.4.1-emulator-evidence
           path: external/frost-learning-os/android-v1.4/emulator-evidence/
-          if-no-files-found: warn
+          if-no-files-found: error
