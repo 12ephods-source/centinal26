@@ -1,0 +1,50 @@
+name: FToE Scalar Action 210 Self-Sector Gate
+
+on:
+  pull_request:
+    paths:
+      - "physics/ftoe/scalar_action_210_self_v10.json"
+      - "scripts/ftoe_so10_scalar_action_210_self_gate.py"
+      - "tests/test_ftoe_so10_scalar_action_210_self_gate.py"
+      - ".github/workflows/ftoe-scalar-action-210-self.yml"
+  workflow_dispatch:
+
+jobs:
+  scalar-action-210-self:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Reproduce source-completeness verdict
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          python scripts/ftoe_so10_scalar_action_210_self_gate.py \
+            --contract physics/ftoe/scalar_action_210_self_v10.json \
+            --json evidence/scalar_action_210_self.json | tee evidence/stdout.txt
+      - name: Run focused tests
+        run: |
+          set -o pipefail
+          python -m pytest -q tests/test_ftoe_so10_scalar_action_210_self_gate.py \
+            | tee evidence/pytest.txt
+      - name: Record environment and hashes
+        if: always()
+        run: |
+          python --version > evidence/python-version.txt
+          uname -a > evidence/uname.txt
+          git rev-parse HEAD > evidence/head-sha.txt
+          sha256sum \
+            physics/ftoe/scalar_action_210_self_v10.json \
+            scripts/ftoe_so10_scalar_action_210_self_gate.py \
+            tests/test_ftoe_so10_scalar_action_210_self_gate.py \
+            > evidence/sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-scalar-action-210-self-evidence
+          path: evidence/
