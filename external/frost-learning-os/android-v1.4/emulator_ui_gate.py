@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import json
 import re
 import subprocess
@@ -10,11 +9,11 @@ OUT = Path("emulator-evidence")
 OUT.mkdir(exist_ok=True)
 
 
-def adb(*args, check=True, text=True):
-    p = subprocess.run(["adb", *args], check=False, capture_output=True, text=text)
+def adb(*args, check=True):
+    p = subprocess.run(["adb", *args], check=False, capture_output=True, text=True)
     if check and p.returncode:
-        raise RuntimeError(f"adb {' '.join(args)} failed: {p.stderr if text else p.returncode}")
-    return p.stdout if text else p.stdout
+        raise RuntimeError(f"adb {' '.join(args)} failed: {p.stderr}")
+    return p.stdout
 
 
 def wait_for_device():
@@ -27,7 +26,11 @@ def wait_for_device():
 
 
 def screenshot(name):
-    p = subprocess.run(["adb", "exec-out", "screencap", "-p"], check=True, capture_output=True)
+    p = subprocess.run(
+        ["adb", "exec-out", "screencap", "-p"],
+        check=True,
+        capture_output=True,
+    )
     (OUT / f"{name}.png").write_bytes(p.stdout)
 
 
@@ -42,38 +45,43 @@ def all_nodes(root):
     return list(root.iter("node"))
 
 
-def node_text(n):
-    return " ".join(filter(None, [n.attrib.get("text", ""), n.attrib.get("content-desc", "")]))
+def node_text(node):
+    return " ".join(
+        filter(None, [node.attrib.get("text", ""), node.attrib.get("content-desc", "")])
+    )
 
 
 def find_text(root, needle):
-    needle = needle.lower()
-    for n in all_nodes(root):
-        if needle in node_text(n).lower():
-            return n
+    normalized = needle.lower()
+    for node in all_nodes(root):
+        if normalized in node_text(node).lower():
+            return node
     raise AssertionError(f"UI text not found: {needle}")
 
 
-def bounds_center(n):
-    m = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", n.attrib.get("bounds", ""))
-    if not m:
-        raise AssertionError(f"bad bounds: {n.attrib.get('bounds')}")
-    x1, y1, x2, y2 = map(int, m.groups())
+def bounds_center(node):
+    match = re.fullmatch(
+        r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",
+        node.attrib.get("bounds", ""),
+    )
+    if not match:
+        raise AssertionError(f"bad bounds: {node.attrib.get('bounds')}")
+    x1, y1, x2, y2 = map(int, match.groups())
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
 def click_text(needle, name):
     root = dump_ui(name)
-    n = find_text(root, needle)
-    x, y = bounds_center(n)
+    node = find_text(root, needle)
+    x, y = bounds_center(node)
     adb("shell", "input", "tap", str(x), str(y))
     time.sleep(1)
 
 
 def first_edit(root):
-    for n in all_nodes(root):
-        if "EditText" in n.attrib.get("class", ""):
-            return n
+    for node in all_nodes(root):
+        if "EditText" in node.attrib.get("class", ""):
+            return node
     raise AssertionError("answer EditText not found")
 
 
@@ -83,7 +91,7 @@ def answer(value, label):
     x, y = bounds_center(edit)
     adb("shell", "input", "tap", str(x), str(y))
     adb("shell", "input", "text", value)
-    time.sleep(.5)
+    time.sleep(0.5)
     click_text("Check reasoning", f"{label}-submit")
     root = dump_ui(f"{label}-result")
     find_text(root, "Correct")
@@ -92,6 +100,15 @@ def answer(value, label):
 
 def resumed_activity():
     return adb("shell", "dumpsys", "activity", "activities", check=False)
+
+
+def preserve_failure_context():
+    try:
+        screenshot("failure")
+        dump_ui("failure")
+        (OUT / "logcat.txt").write_text(adb("logcat", "-d", check=False), encoding="utf-8")
+    except (AssertionError, RuntimeError, subprocess.SubprocessError, ET.ParseError, OSError) as capture_error:
+        (OUT / "failure-capture-error.txt").write_text(str(capture_error) + "\n", encoding="utf-8")
 
 
 def main():
@@ -155,9 +172,9 @@ def main():
 
         click_text("Export JSON evidence", "07-export-click")
         time.sleep(2)
-        acts = resumed_activity()
-        (OUT / "07-export-activity.txt").write_text(acts, encoding="utf-8")
-        if "documentsui" not in acts.lower():
+        activities = resumed_activity()
+        (OUT / "07-export-activity.txt").write_text(activities, encoding="utf-8")
+        if "documentsui" not in activities.lower():
             raise AssertionError("native DocumentsUI was not resumed by export")
         screenshot("07-native-export-picker")
         result["checks"].append("NATIVE_EXPORT_PICKER_PASS")
@@ -171,24 +188,22 @@ def main():
         result["checks"].append("RESET_CONFIRMATION_PASS")
         try:
             click_text("Cancel", "08-reset-cancel")
-        except Exception:
+        except (AssertionError, RuntimeError):
             adb("shell", "input", "keyevent", "4")
 
         logcat = adb("logcat", "-d", check=False)
         (OUT / "logcat.txt").write_text(logcat, encoding="utf-8")
         result["decision"] = "PASS_HOST_EMULATED_UI_FLOW"
-    except Exception as exc:
+    except (AssertionError, RuntimeError, subprocess.SubprocessError, ET.ParseError, OSError) as exc:
         result["decision"] = "FAIL"
         result["error"] = str(exc)
-        try:
-            screenshot("failure")
-            dump_ui("failure")
-            (OUT / "logcat.txt").write_text(adb("logcat", "-d", check=False), encoding="utf-8")
-        except Exception:
-            pass
+        preserve_failure_context()
         raise
     finally:
-        (OUT / "EMULATOR_GATE_RESULT.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (OUT / "EMULATOR_GATE_RESULT.json").write_text(
+            json.dumps(result, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
 
 
 if __name__ == "__main__":
