@@ -1,37 +1,33 @@
-import copy
 import json
-import pathlib
-import unittest
+from pathlib import Path
 
 from scripts import ftoe_so10_scalar_action_126_self_gate as gate
 
 
-CONTRACT = pathlib.Path("physics/ftoe/scalar_action_126_self_v12.json")
+def load_contract() -> dict:
+    path = Path("physics/ftoe/scalar_action_126_self_v12.json")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
-class ScalarAction126SelfGateTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
-
-    def test_frozen_contract_passes(self) -> None:
-        result = gate.evaluate(self.contract)
-        self.assertTrue(result["execution_pass"])
-        self.assertEqual(
-            result["claim_status"], "PARTIAL_ACTION_126_SELF_SECTOR_SOURCE_ENUMERATED"
-        )
-        self.assertEqual(result["full_action_gate"], "NOT_COMPLETE")
-
-    def test_missing_complex_quartic_fails(self) -> None:
-        broken = copy.deepcopy(self.contract)
-        broken["self_sector"]["complex_quartic_invariants"] = []
-        self.assertFalse(gate.evaluate(broken)["execution_pass"])
-
-    def test_false_full_action_claim_fails(self) -> None:
-        broken = copy.deepcopy(self.contract)
-        broken["full_action_gate"] = "COMPLETE"
-        self.assertFalse(gate.evaluate(broken)["execution_pass"])
+def test_frozen_126_self_sector_passes() -> None:
+    result = gate.evaluate(load_contract())
+    assert result["execution_pass"] is True
+    assert result["claim_status"] == "PARTIAL_ACTION_126_SELF_SECTOR_SOURCE_ENUMERATED"
+    assert result["scientific_status"] == "REVIEW"
+    assert result["full_action_gate"] == "NOT_COMPLETE"
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_missing_complex_quartic_fails() -> None:
+    contract = load_contract()
+    contract["self_sector"]["complex_quartic_invariants"] = []
+    result = gate.evaluate(contract)
+    assert result["execution_pass"] is False
+    assert result["checks"]["complex_quartic_basis"] is False
+
+
+def test_false_full_action_claim_fails() -> None:
+    contract = load_contract()
+    contract["full_action_gate"] = "COMPLETE"
+    result = gate.evaluate(contract)
+    assert result["execution_pass"] is False
+    assert result["checks"]["full_action_fail_closed"] is False
