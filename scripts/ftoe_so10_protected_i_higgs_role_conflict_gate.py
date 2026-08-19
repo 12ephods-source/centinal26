@@ -7,8 +7,7 @@ including an expected FAIL verdict.
 
 import argparse
 import json
-import pathlib
-
+from pathlib import Path
 
 EXPECTED_FAIL = "FAIL_DIRECT_IDENTIFICATION_HIGGS_ROLE_CONFLICT"
 
@@ -54,8 +53,8 @@ def adjudicate(contract: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--contract", type=pathlib.Path, required=True)
-    parser.add_argument("--json", type=pathlib.Path)
+    parser.add_argument("--contract", type=Path, required=True)
+    parser.add_argument("--json", type=Path)
     args = parser.parse_args()
 
     contract = json.loads(args.contract.read_text(encoding="utf-8"))
