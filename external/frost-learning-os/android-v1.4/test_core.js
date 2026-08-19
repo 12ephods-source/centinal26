@@ -1,5 +1,7 @@
 const assert=require('assert');
+const crypto=require('crypto');
 const C=require('./app/src/main/assets/core.js');
+require('./app/src/main/assets/hotfix.js').apply(C);
 function q(id){return C.QUESTIONS.find(x=>x.id===id)}
 
 assert(C.equivalentLinearExpr('12+3x','3x+12'));
@@ -13,6 +15,7 @@ assert(!C.unlocked(s,'linear'));
 C.updateState(s,q('d1'),'3x+12','2026-08-01T00:00:00Z');
 C.updateState(s,q('d2'),'10y-15','2026-08-01T00:01:00Z');
 assert(C.masteryReady(s,'distribution','2026-08-01T00:02:00Z'));
+assert(C.transferReady(s,'distribution','2026-08-01T00:02:00Z'));
 assert(C.unlocked(s,'linear','2026-08-01T00:02:00Z'));
 assert(C.retentionRequired(s.mastery.distribution,'2026-08-18T00:00:00Z'));
 assert(!C.masteryReady(s,'distribution','2026-08-18T00:00:00Z'));
@@ -21,11 +24,30 @@ assert.strictEqual(s.mastery.distribution.retentionHold,true);
 C.updateState(s,q('d2'),'10y-15','2026-08-18T00:02:00Z');
 assert.strictEqual(s.mastery.distribution.retentionHold,false);
 
+// Repetition of one item alone must never unlock transfer.
+let repeated=C.initialState();
+for(let i=0;i<4;i++) C.updateState(repeated,q('d1'),'3x+12',`2026-08-19T0${i}:00:00Z`);
+assert.strictEqual(C.independentCorrectCount(repeated.mastery.distribution),1);
+assert.strictEqual(C.transferReady(repeated,'distribution','2026-08-19T05:00:00Z'),false);
+assert.notStrictEqual(C.nextQuestion(repeated,'2026-08-19T05:00:00Z').id,'d3');
+
 let e=C.initialState();
 C.appendEvidence(e,{id:'1',at:'2026-08-18T00:00:00Z',type:'TEST'});
 assert(C.verifyEvidenceChain(e).ok);
 e.evidence[0].type='TAMPER';
 assert(!C.verifyEvidenceChain(e).ok);
+
+// Evidence hashing must be true UTF-8 SHA-256, not ASCII-only.
+for(const text of ['漢','🧠','𝑥','é']){
+  const expected=crypto.createHash('sha256').update(text,'utf8').digest('hex');
+  assert.strictEqual(C.sha256(text),expected);
+  const unicodeState=C.initialState();
+  const event=C.appendEvidence(unicodeState,{id:'unicode',at:'2026-08-19T00:00:00Z',type:'ANSWER_SUBMITTED',question_id:'d1',skill:'distribution',response:text,correct:false});
+  assert.strictEqual(event.hash.length,64);
+  assert(C.verifyEvidenceChain(unicodeState).ok);
+  unicodeState.evidence[0].response=text+'x';
+  assert(!C.verifyEvidenceChain(unicodeState).ok);
+}
 
 const legacy={version:2,mastery:{distribution:{alpha:2,beta:1}},evidence:[],questionHistory:[]};
 const migrated=C.normalizeState(legacy);
