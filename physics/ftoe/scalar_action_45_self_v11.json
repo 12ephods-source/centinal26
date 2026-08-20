@@ -1,0 +1,41 @@
+{
+  "schema": "FTOE-SCALAR-ACTION-45-SELF-v11",
+  "status": "PARTIAL_ACTION_45_SELF_SECTOR_SOURCE_ENUMERATED",
+  "scientific_status": "REVIEW",
+  "parent_exact_head": "cf0e6d15faf43f49d9de1a7df0d00e97568275cc",
+  "representation": {
+    "name": "45_H",
+    "type": "real_adjoint",
+    "field_symbol": "Phi"
+  },
+  "primary_source": {
+    "arxiv": "0912.1796",
+    "title": "On the vacuum of the minimal nonsupersymmetric SO(10) unification",
+    "equation": "Eq. (4)",
+    "source_statement": "The most general renormalizable pure-adjoint sector is -mu^2/2 Tr(Phi^2) + a1/4 (Tr(Phi^2))^2 + a2/4 Tr(Phi^4); linear and cubic Phi self-interactions are absent."
+  },
+  "self_sector": {
+    "quadratic_invariants": [
+      "Tr(Phi^2)"
+    ],
+    "cubic_invariants": [],
+    "quartic_invariants": [
+      "(Tr(Phi^2))^2",
+      "Tr(Phi^4)"
+    ],
+    "independent_quartic_count": 2,
+    "cubic_absence_source_verified": true
+  },
+  "full_action_gate": "NOT_COMPLETE",
+  "still_unenumerated": [
+    "mixed_210_H_45_H_renormalizable_invariants",
+    "mixed_45_H_126_H_renormalizable_invariants",
+    "mixed_45_H_10_C_H_renormalizable_invariants",
+    "mixed_45_H_protected_I_renormalizable_invariants",
+    "126_H_self_sector_in_current_nonsupersymmetric_action",
+    "10_C_H_self_sector_in_current_nonsupersymmetric_action",
+    "surviving_protected_I_self_and_portal_sector"
+  ],
+  "no_downstream_retuning": true,
+  "epistemic_limit": "This freezes only the sourced 45_H self-sector. It does not establish the complete FToE scalar action, vacuum, Hessian, heavy spectrum, thresholds, or publication readiness."
+}
