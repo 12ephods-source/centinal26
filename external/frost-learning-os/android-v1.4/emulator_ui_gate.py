@@ -137,7 +137,7 @@ def answer(value, label):
 def next_prompt(label):
     response = debug_call("next")
     if not isinstance(response, dict):
-        raise AssertionError(f"invalid next-question response for {label}: {response!r}")
+        raise TypeError(f"invalid next-question response for {label}: {response!r}")
     prompt = response.get("question", "")
     if not prompt:
         raise AssertionError(f"empty next-question prompt for {label}")
@@ -239,7 +239,7 @@ def main():
 
         snapshot = debug_call("snapshot")
         if not isinstance(snapshot, dict):
-            raise AssertionError(f"invalid launch snapshot: {snapshot!r}")
+            raise TypeError(f"invalid launch snapshot: {snapshot!r}")
         assert snapshot.get("title") == "Frost Learning OS"
         assert snapshot.get("question") == "Simplify: 3(x + 4)"
         assert snapshot.get("studentHidden") is False
