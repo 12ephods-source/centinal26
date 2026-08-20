@@ -1,0 +1,16 @@
+{
+  "schema": "FTOE-PROTECTED-I-DISPOSITION-v0.4",
+  "candidate_schema": "FTOE-PROTECTED-I-CANDIDATE-v0.3",
+  "candidate_ref": "physics/ftoe/protected_I_so5_so4_candidate.json",
+  "parent_exact_head": "74dcc5988c451174baab25c5fc48db1c3465a703",
+  "candidate_status": "FAILED_CURRENT_MINIMAL_CANDIDATE",
+  "scientific_status": "FAIL",
+  "disposition": "KILLED_FOR_ADMISSION",
+  "mandatory_failed_gate": "collective_or_other_radiative_protection",
+  "failed_gate_status": "FAIL_CURRENT_MINIMAL_CANDIDATE",
+  "reason": "The candidate's own mandatory admission contract contains an exact-head host-verified FAIL: it specifies no qualifying collective-breaking couplings, symmetry-restoration tests, partner spectrum, one-loop cancellation proof, or derived radiative mass bound.",
+  "dependency_rule": "Do not advance representation_specific_C, renormalizable_SO10_portal_suppression, strong_sector_resonance_spectrum, beta_function_backreaction, electroweak_precision_constraints, or matching_to_existing_mu_I_and_G422_branch on this same minimal candidate. A repair requires a separately versioned successor mechanism that first resolves the failed mandatory protection gate.",
+  "scope_limit": "This kills only the current minimal SO(5)/SO(4) protected-I candidate for admission. It does not falsify the broader nonlinear/collective/sequestered/lower-scale protection class.",
+  "no_retuning": true,
+  "publication_readiness": "REVIEW_FAIL_CLOSED"
+}

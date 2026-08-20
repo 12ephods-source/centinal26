@@ -1,0 +1,55 @@
+name: FToE Protected-I Higgs-Role Conflict Gate
+
+on:
+  pull_request:
+    paths:
+      - "physics/ftoe/protected_I_higgs_role_conflict_v08.json"
+      - "scripts/ftoe_so10_protected_i_higgs_role_conflict_gate.py"
+      - "tests/test_ftoe_so10_protected_i_higgs_role_conflict_gate.py"
+      - ".github/workflows/ftoe-protected-i-higgs-role-conflict.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adjudicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Reproduce scientific verdict
+        run: |
+          python scripts/ftoe_so10_protected_i_higgs_role_conflict_gate.py \
+            --contract physics/ftoe/protected_I_higgs_role_conflict_v08.json \
+            --json physics/ftoe/protected_I_higgs_role_conflict_verdict_v08.json \
+            | tee physics/ftoe/protected_I_higgs_role_conflict_stdout_v08.log
+      - name: Focused tests
+        run: python -m pytest -q tests/test_ftoe_so10_protected_i_higgs_role_conflict_gate.py
+      - name: Record environment and hashes
+        if: always()
+        run: |
+          python --version > physics/ftoe/protected_I_higgs_role_conflict_environment_v08.txt
+          sha256sum \
+            physics/ftoe/protected_I_higgs_role_conflict_v08.json \
+            scripts/ftoe_so10_protected_i_higgs_role_conflict_gate.py \
+            tests/test_ftoe_so10_protected_i_higgs_role_conflict_gate.py \
+            physics/ftoe/protected_I_higgs_role_conflict_verdict_v08.json \
+            physics/ftoe/protected_I_higgs_role_conflict_stdout_v08.log \
+            physics/ftoe/protected_I_higgs_role_conflict_environment_v08.txt \
+            > physics/ftoe/protected_I_higgs_role_conflict_sha256_v08.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-higgs-role-conflict-evidence
+          path: |
+            physics/ftoe/protected_I_higgs_role_conflict_verdict_v08.json
+            physics/ftoe/protected_I_higgs_role_conflict_stdout_v08.log
+            physics/ftoe/protected_I_higgs_role_conflict_environment_v08.txt
+            physics/ftoe/protected_I_higgs_role_conflict_sha256_v08.txt
