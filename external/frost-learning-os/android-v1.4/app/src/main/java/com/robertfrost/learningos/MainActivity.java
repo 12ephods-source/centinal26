@@ -96,8 +96,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String snapshotScript() {
-        return "(()=>JSON.stringify({"
+    private String snapshotExpression() {
+        return "JSON.stringify({"
                 + "title:document.querySelector('h1')?.textContent||'',"
                 + "question:document.querySelector('#question')?.textContent||'',"
                 + "feedback:document.querySelector('#feedback')?.innerText||'',"
@@ -106,7 +106,11 @@ public class MainActivity extends Activity {
                 + "studentHidden:!!document.querySelector('#student')?.hidden,"
                 + "teacherHidden:!!document.querySelector('#teacher')?.hidden,"
                 + "evidenceHidden:!!document.querySelector('#evidence')?.hidden"
-                + "}))()";
+                + "})";
+    }
+
+    private String snapshotScript() {
+        return "(()=>" + snapshotExpression() + ")()";
     }
 
     private void runDebugOperation(String op, String value) {
@@ -136,7 +140,7 @@ public class MainActivity extends Activity {
             }
             String quoted = JSONObject.quote(tab);
             script = "(()=>{document.querySelector('.tab[data-tab='+" + quoted + "+']')?.click();"
-                    + "return " + snapshotScript().substring(4) + ";})()";
+                    + "return " + snapshotExpression() + ";})()";
         } else if ("export".equals(op)) {
             script = "(()=>{document.querySelector('#export')?.click();return 'EXPORT_REQUESTED';})()";
         } else if ("reset".equals(op)) {
