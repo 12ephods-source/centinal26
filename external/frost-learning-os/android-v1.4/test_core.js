@@ -31,6 +31,26 @@ assert.strictEqual(C.independentCorrectCount(repeated.mastery.distribution),1);
 assert.strictEqual(C.transferReady(repeated,'distribution','2026-08-19T05:00:00Z'),false);
 assert.notStrictEqual(C.nextQuestion(repeated,'2026-08-19T05:00:00Z').id,'d3');
 
+// Frozen curriculum-reachability gate: every transfer skill must be able to
+// collect two independent direct observations before its transfer item.
+for(const skill of Object.keys(C.SKILLS)){
+  const direct=C.QUESTIONS.filter(item=>item.skill===skill&&!item.transfer);
+  const transfers=C.QUESTIONS.filter(item=>item.skill===skill&&item.transfer);
+  if(!transfers.length) continue;
+  assert(
+    direct.length>=2,
+    `${skill} transfer is structurally unreachable: only ${direct.length} non-transfer item(s) for a two-distinct-item readiness gate`,
+  );
+  const reach=C.initialState();
+  C.updateState(reach,direct[0],direct[0].answer,'2026-08-19T06:00:00Z');
+  C.updateState(reach,direct[1],direct[1].answer,'2026-08-19T06:01:00Z');
+  assert.strictEqual(C.independentCorrectCount(reach.mastery[skill]),2);
+  assert.strictEqual(C.transferReady(reach,skill,'2026-08-19T06:02:00Z'),true);
+  const oneItem=C.initialState();
+  for(let i=0;i<4;i++) C.updateState(oneItem,direct[0],direct[0].answer,`2026-08-19T0${i}:10:00Z`);
+  assert.strictEqual(C.transferReady(oneItem,skill,'2026-08-19T06:03:00Z'),false);
+}
+
 let e=C.initialState();
 C.appendEvidence(e,{id:'1',at:'2026-08-18T00:00:00Z',type:'TEST'});
 assert(C.verifyEvidenceChain(e).ok);
