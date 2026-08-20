@@ -7,13 +7,27 @@ from pathlib import Path
 
 OUT = Path("emulator-evidence")
 OUT.mkdir(exist_ok=True)
+UI_DUMP_PATH = "/data/local/tmp/flos-window.xml"
 
 
 def adb(*args, check=True):
-    p = subprocess.run(["adb", *args], check=False, capture_output=True, text=True)
-    if check and p.returncode:
-        raise RuntimeError(f"adb {' '.join(args)} failed: {p.stderr}")
-    return p.stdout
+    process = subprocess.run(
+        ["adb", *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if check and process.returncode:
+        detail = process.stderr.strip() or process.stdout.strip()
+        raise RuntimeError(f"adb {' '.join(args)} failed: {detail}")
+    return process.stdout
+
+
+def write_diag(name, *args):
+    output = adb(*args, check=False)
+    (OUT / name).write_text(output, encoding="utf-8")
+    return output
 
 
 def wait_for_device():
@@ -25,20 +39,38 @@ def wait_for_device():
     raise RuntimeError("emulator boot did not complete")
 
 
+def wake_and_unlock():
+    adb("shell", "input", "keyevent", "KEYCODE_WAKEUP", check=False)
+    adb("shell", "wm", "dismiss-keyguard", check=False)
+    adb("shell", "input", "keyevent", "82", check=False)
+    time.sleep(1)
+
+
 def screenshot(name):
-    p = subprocess.run(
+    process = subprocess.run(
         ["adb", "exec-out", "screencap", "-p"],
         check=True,
         capture_output=True,
+        timeout=30,
     )
-    (OUT / f"{name}.png").write_bytes(p.stdout)
+    (OUT / f"{name}.png").write_bytes(process.stdout)
 
 
 def dump_ui(name):
-    adb("shell", "uiautomator", "dump", "/sdcard/window.xml")
-    xml = adb("exec-out", "cat", "/sdcard/window.xml")
-    (OUT / f"{name}.xml").write_text(xml, encoding="utf-8")
-    return ET.fromstring(xml)
+    last_error = None
+    for attempt in range(3):
+        try:
+            adb("shell", "rm", "-f", UI_DUMP_PATH, check=False)
+            adb("shell", "uiautomator", "dump", "--compressed", UI_DUMP_PATH)
+            xml = adb("exec-out", "cat", UI_DUMP_PATH)
+            if not xml.lstrip().startswith("<?xml"):
+                raise RuntimeError(f"uiautomator returned non-XML output: {xml[:160]!r}")
+            (OUT / f"{name}.xml").write_text(xml, encoding="utf-8")
+            return ET.fromstring(xml)
+        except (RuntimeError, subprocess.SubprocessError, ET.ParseError) as error:
+            last_error = error
+            time.sleep(attempt + 1)
+    raise RuntimeError(f"uiautomator dump failed after retries: {last_error}")
 
 
 def all_nodes(root):
@@ -102,13 +134,37 @@ def resumed_activity():
     return adb("shell", "dumpsys", "activity", "activities", check=False)
 
 
+def capture_runtime_context(prefix):
+    screenshot(prefix)
+    write_diag(f"{prefix}-activity.txt", "shell", "dumpsys", "activity", "activities")
+    write_diag(f"{prefix}-window.txt", "shell", "dumpsys", "window", "windows")
+    write_diag(f"{prefix}-webview.txt", "shell", "dumpsys", "webviewupdate")
+    write_diag(f"{prefix}-package.txt", "shell", "dumpsys", "package", "com.robertfrost.learningos")
+    write_diag(f"{prefix}-logcat.txt", "logcat", "-d")
+
+
 def preserve_failure_context():
-    try:
-        screenshot("failure")
-        dump_ui("failure")
-        (OUT / "logcat.txt").write_text(adb("logcat", "-d", check=False), encoding="utf-8")
-    except (AssertionError, RuntimeError, subprocess.SubprocessError, ET.ParseError, OSError) as capture_error:
-        (OUT / "failure-capture-error.txt").write_text(str(capture_error) + "\n", encoding="utf-8")
+    errors = []
+    for action in (
+        lambda: capture_runtime_context("failure"),
+        lambda: dump_ui("failure"),
+    ):
+        try:
+            action()
+        except (
+            AssertionError,
+            RuntimeError,
+            subprocess.SubprocessError,
+            subprocess.TimeoutExpired,
+            ET.ParseError,
+            OSError,
+        ) as capture_error:
+            errors.append(str(capture_error))
+    if errors:
+        (OUT / "failure-capture-errors.txt").write_text(
+            "\n".join(errors) + "\n",
+            encoding="utf-8",
+        )
 
 
 def main():
@@ -120,6 +176,7 @@ def main():
     }
     try:
         wait_for_device()
+        wake_and_unlock()
         adb("install", "-r", "app/build/outputs/apk/debug/app-debug.apk")
         result["checks"].append("APK_INSTALL_PASS")
 
@@ -130,8 +187,21 @@ def main():
         result["checks"].append("PACKAGE_METADATA_PASS")
         result["checks"].append("NO_INTERNET_PERMISSION_PASS")
 
-        adb("shell", "am", "start", "-W", "-n", "com.robertfrost.learningos/.MainActivity")
-        time.sleep(3)
+        launch = adb(
+            "shell",
+            "am",
+            "start",
+            "-W",
+            "-n",
+            "com.robertfrost.learningos/.MainActivity",
+        )
+        (OUT / "01-launch-command.txt").write_text(launch, encoding="utf-8")
+        time.sleep(4)
+        capture_runtime_context("01-pre-ui-dump")
+        activity = resumed_activity().lower()
+        if "com.robertfrost.learningos" not in activity:
+            raise AssertionError("Frost Learning OS is not present in activity state after launch")
+
         root = dump_ui("01-launch")
         find_text(root, "Frost Learning OS")
         find_text(root, "Student")
@@ -191,10 +261,16 @@ def main():
         except (AssertionError, RuntimeError):
             adb("shell", "input", "keyevent", "4")
 
-        logcat = adb("logcat", "-d", check=False)
-        (OUT / "logcat.txt").write_text(logcat, encoding="utf-8")
+        write_diag("final-logcat.txt", "logcat", "-d")
         result["decision"] = "PASS_HOST_EMULATED_UI_FLOW"
-    except (AssertionError, RuntimeError, subprocess.SubprocessError, ET.ParseError, OSError) as exc:
+    except (
+        AssertionError,
+        RuntimeError,
+        subprocess.SubprocessError,
+        subprocess.TimeoutExpired,
+        ET.ParseError,
+        OSError,
+    ) as exc:
         result["decision"] = "FAIL"
         result["error"] = str(exc)
         preserve_failure_context()
