@@ -1,0 +1,44 @@
+name: FToE Protected-I Disposition Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_so5_so4_candidate.json'
+      - 'physics/ftoe/protected_I_candidate_disposition_v04.json'
+      - 'scripts/ftoe_so10_protected_i_disposition_gate.py'
+      - 'tests/test_ftoe_so10_protected_i_disposition_gate.py'
+      - '.github/workflows/ftoe-protected-i-disposition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-disposition:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Evaluate candidate disposition
+        run: |
+          mkdir -p artifacts/ftoe-protected-i-disposition
+          python scripts/ftoe_so10_protected_i_disposition_gate.py \
+            --json artifacts/ftoe-protected-i-disposition/disposition_gate.json
+      - name: Run focused tests
+        run: python -m unittest tests.test_ftoe_so10_protected_i_disposition_gate -v
+      - name: Hash evidence
+        run: |
+          sha256sum \
+            physics/ftoe/protected_I_so5_so4_candidate.json \
+            physics/ftoe/protected_I_candidate_disposition_v04.json \
+            scripts/ftoe_so10_protected_i_disposition_gate.py \
+            tests/test_ftoe_so10_protected_i_disposition_gate.py \
+            artifacts/ftoe-protected-i-disposition/disposition_gate.json \
+            > artifacts/ftoe-protected-i-disposition/sha256.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-disposition-evidence
+          path: artifacts/ftoe-protected-i-disposition/

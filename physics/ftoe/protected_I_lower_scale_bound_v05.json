@@ -1,0 +1,14 @@
+{
+  "schema": "FTOE-PROTECTED-I-LOWER-SCALE-BOUND-v0.5",
+  "parent_disposition_head": "6ab4bceefa16b700951f10e84df2306dfe6bb53e",
+  "mechanism_scope": "future single-spurion lower-scale protected-I successors only",
+  "mu_I_GeV": 9540.0,
+  "alpha_reference": 0.032067325570772874,
+  "coefficient_C_reference": 1.0,
+  "bound_definition": "f_max = mu_I/sqrt(C*alpha/(4*pi))",
+  "status": "DERIVED_REFERENCE_BOUND_PENDING_EXACT_HEAD_CI",
+  "scientific_status": "REVIEW",
+  "admission_rule": "A future explicit single-spurion successor with frozen positive C and alpha fails the reference naturalness condition if its protection scale exceeds the derived f_max. C and alpha must be independently derived for the successor before scientific admission.",
+  "scope_limit": "This is a necessary reference envelope, not an explicit protection mechanism and not a resurrection of the killed minimal SO(5)/SO(4) candidate.",
+  "no_retuning": true
+}

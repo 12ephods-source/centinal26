@@ -1,0 +1,44 @@
+name: FToE Protected-I Lower-Scale Bound
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_lower_scale_bound_v05.json'
+      - 'scripts/ftoe_so10_protected_i_lower_scale_gate.py'
+      - 'scripts/ftoe_so10_low_scale_protection_bound.py'
+      - 'tests/test_ftoe_so10_protected_i_lower_scale_gate.py'
+      - '.github/workflows/ftoe-protected-i-lower-scale.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lower-scale-bound:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Derive lower-scale reference bound
+        run: |
+          mkdir -p artifacts/ftoe-protected-i-lower-scale
+          python scripts/ftoe_so10_protected_i_lower_scale_gate.py \
+            --json artifacts/ftoe-protected-i-lower-scale/lower_scale_gate.json
+      - name: Run focused tests
+        run: python -m unittest tests.test_ftoe_so10_protected_i_lower_scale_gate -v
+      - name: Hash evidence
+        run: |
+          sha256sum \
+            physics/ftoe/protected_I_lower_scale_bound_v05.json \
+            scripts/ftoe_so10_protected_i_lower_scale_gate.py \
+            scripts/ftoe_so10_low_scale_protection_bound.py \
+            tests/test_ftoe_so10_protected_i_lower_scale_gate.py \
+            artifacts/ftoe-protected-i-lower-scale/lower_scale_gate.json \
+            > artifacts/ftoe-protected-i-lower-scale/sha256.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-lower-scale-evidence
+          path: artifacts/ftoe-protected-i-lower-scale/
