@@ -1,0 +1,58 @@
+name: geometric-transformer-minpairs
+
+on:
+  pull_request:
+    paths:
+      - "experiments/geometric_transformer_minpairs/**"
+      - ".github/workflows/geometric-transformer-minpairs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  transformer-minpair-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy torch
+      - name: Run preregistered transformer experiment
+        run: |
+          set -o pipefail
+          python experiments/geometric_transformer_minpairs/geometric_transformer_minpairs.py \
+            --steps 400 \
+            --seed-start 211 \
+            --seeds 3 \
+            --out experiments/geometric_transformer_minpairs/ci_results.json \
+            | tee experiments/geometric_transformer_minpairs/ci_stdout.log
+      - name: Apply preregistered checker
+        run: |
+          set -o pipefail
+          python experiments/geometric_transformer_minpairs/check_results.py \
+            experiments/geometric_transformer_minpairs/ci_results.json \
+            | tee experiments/geometric_transformer_minpairs/ci_verdict.json
+      - name: Hash evidence
+        if: always()
+        run: |
+          sha256sum \
+            experiments/geometric_transformer_minpairs/geometric_transformer_minpairs.py \
+            experiments/geometric_transformer_minpairs/check_results.py \
+            experiments/geometric_transformer_minpairs/ci_results.json \
+            experiments/geometric_transformer_minpairs/ci_verdict.json \
+            > experiments/geometric_transformer_minpairs/ci_sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometric-transformer-minpairs-evidence
+          path: |
+            experiments/geometric_transformer_minpairs/ci_results.json
+            experiments/geometric_transformer_minpairs/ci_stdout.log
+            experiments/geometric_transformer_minpairs/ci_verdict.json
+            experiments/geometric_transformer_minpairs/ci_sha256.txt
