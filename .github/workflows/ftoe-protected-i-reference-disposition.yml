@@ -1,0 +1,46 @@
+name: FToE Protected-I Reference Disposition Gate
+
+on:
+  pull_request:
+    paths:
+      - "physics/ftoe/protected_I_reference_disposition_v09.json"
+      - "scripts/ftoe_so10_protected_i_reference_disposition_gate.py"
+      - "tests/test_ftoe_so10_protected_i_reference_disposition_gate.py"
+      - ".github/workflows/ftoe-protected-i-reference-disposition.yml"
+  workflow_dispatch:
+
+jobs:
+  disposition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Reproduce fail-closed disposition
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          python scripts/ftoe_so10_protected_i_reference_disposition_gate.py \
+            --contract physics/ftoe/protected_I_reference_disposition_v09.json \
+            --json evidence/reference_disposition.json | tee evidence/stdout.txt
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_ftoe_so10_protected_i_reference_disposition_gate.py | tee evidence/pytest.txt
+      - name: Record environment and hashes
+        if: always()
+        run: |
+          python --version > evidence/python-version.txt
+          uname -a > evidence/uname.txt
+          sha256sum physics/ftoe/protected_I_reference_disposition_v09.json \
+            scripts/ftoe_so10_protected_i_reference_disposition_gate.py \
+            tests/test_ftoe_so10_protected_i_reference_disposition_gate.py \
+            > evidence/sha256.txt
+          git rev-parse HEAD > evidence/head-sha.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-reference-disposition-evidence
+          path: evidence/
