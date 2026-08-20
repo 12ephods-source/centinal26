@@ -1,0 +1,34 @@
+{
+  "schema": "FTOE-SCALAR-ACTION-210-SELF-v1.0",
+  "status": "PARTIAL_ACTION_210_SELF_SECTOR_SOURCE_ENUMERATED",
+  "scientific_status": "REVIEW",
+  "parent_head": "9e6b779e18170c7f54061c96c2123a605916db1c",
+  "representation": "210_H",
+  "tensor_realization": "real four-index antisymmetric SO(10) tensor Phi_abcd",
+  "renormalizable_self_sector": {
+    "quadratic_invariant_count": 1,
+    "cubic_invariant_count": 1,
+    "quartic_invariant_count": 4,
+    "quartic_source_statement": "the real 210 has four independent quartic invariants"
+  },
+  "primary_sources": [
+    {
+      "arxiv": "hep-ph/0306242",
+      "role": "explicit Phi^2 and Phi^3 SO(10)-invariant contractions in the renormalizable 210-containing Higgs superpotential"
+    },
+    {
+      "arxiv": "gr-qc/9512033",
+      "role": "most-general classically conformal 210-only potential; four independent quartic invariants"
+    }
+  ],
+  "full_action_gate": "NOT_COMPLETE",
+  "still_unenumerated": [
+    "all independent mixed renormalizable invariants coupling 210_H to 45_H",
+    "all independent mixed renormalizable invariants coupling 210_H to 126_H",
+    "all independent mixed renormalizable invariants coupling 210_H to 10_C,H",
+    "all independent mixed renormalizable invariants coupling 210_H to protected-I",
+    "protected-I self and portal sector consistent with the surviving versioned protection mechanism"
+  ],
+  "no_retuning": true,
+  "publication_readiness": "REVIEW_FAIL_CLOSED"
+}
