@@ -16,6 +16,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact PR head checkout
+        if: github.event_name == 'pull_request'
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -33,7 +39,8 @@ jobs:
       - name: Record environment
         if: always()
         run: |
-          python --version > experiments/geometric_symbolic_v15/ci_environment.txt 2>&1
+          git rev-parse HEAD > experiments/geometric_symbolic_v15/ci_environment.txt 2>&1
+          python --version >> experiments/geometric_symbolic_v15/ci_environment.txt 2>&1
           python - <<'PY' >> experiments/geometric_symbolic_v15/ci_environment.txt 2>&1
           import numpy, torch
           print('numpy', numpy.__version__)
