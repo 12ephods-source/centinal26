@@ -9,6 +9,14 @@ OUT = Path("emulator-evidence")
 OUT.mkdir(exist_ok=True)
 UI_DUMP_PATH = "/data/local/tmp/flos-window.xml"
 
+QUESTION_ANSWERS = {
+    "Simplify: 3(x + 4)": "3x+12",
+    "Simplify: 5(2y - 3)": "10y-15",
+    "A 4 kg sample costs $18. What is the cost per kg?": "4.5",
+    "At 12 km in 3 h, what is the average speed in km/h?": "4",
+    "Solve: 3(x + 4) = 21": "3",
+}
+
 
 def adb(*args, check=True):
     process = subprocess.run(
@@ -91,6 +99,23 @@ def find_text(root, needle):
     raise AssertionError(f"UI text not found: {needle}")
 
 
+def contains_text(root, needle):
+    try:
+        find_text(root, needle)
+        return True
+    except AssertionError:
+        return False
+
+
+def visible_known_prompt(root):
+    for prompt in QUESTION_ANSWERS:
+        if contains_text(root, prompt):
+            return prompt
+    if contains_text(root, "Transfer: simplify 4(3a + 2) - a"):
+        return "Transfer: simplify 4(3a + 2) - a"
+    raise AssertionError("no known Frost Learning OS question prompt is visible")
+
+
 def bounds_center(node):
     match = re.fullmatch(
         r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",
@@ -130,6 +155,26 @@ def answer(value, label):
     screenshot(f"{label}-correct")
 
 
+def advance_until_second_distribution_item():
+    """Follow the real global scheduler without assuming d1 -> d2 adjacency."""
+    target = "Simplify: 5(2y - 3)"
+    transfer = "Transfer: simplify 4(3a + 2) - a"
+    for step in range(4):
+        click_text("Next adaptive question", f"03-next-{step}")
+        root = dump_ui(f"03-scheduled-{step}")
+        if contains_text(root, transfer):
+            raise AssertionError(
+                "distribution transfer appeared before two distinct distribution items were correct"
+            )
+        prompt = visible_known_prompt(root)
+        if prompt == target:
+            return
+        if prompt not in QUESTION_ANSWERS:
+            raise AssertionError(f"unexpected pre-transfer prompt: {prompt}")
+        answer(QUESTION_ANSWERS[prompt], f"03-intermediate-{step}")
+    raise AssertionError("scheduler did not surface the second distribution retrieval item")
+
+
 def resumed_activity():
     return adb("shell", "dumpsys", "activity", "activities", check=False)
 
@@ -139,7 +184,13 @@ def capture_runtime_context(prefix):
     write_diag(f"{prefix}-activity.txt", "shell", "dumpsys", "activity", "activities")
     write_diag(f"{prefix}-window.txt", "shell", "dumpsys", "window", "windows")
     write_diag(f"{prefix}-webview.txt", "shell", "dumpsys", "webviewupdate")
-    write_diag(f"{prefix}-package.txt", "shell", "dumpsys", "package", "com.robertfrost.learningos")
+    write_diag(
+        f"{prefix}-package.txt",
+        "shell",
+        "dumpsys",
+        "package",
+        "com.robertfrost.learningos",
+    )
     write_diag(f"{prefix}-logcat.txt", "logcat", "-d")
 
 
@@ -212,15 +263,14 @@ def main():
         result["checks"].append("LAUNCH_UI_PASS")
 
         answer("3x+12", "02-d1")
-        click_text("Next adaptive question", "03-next-d2")
-        root = dump_ui("03-d2")
-        find_text(root, "Simplify: 5(2y - 3)")
+        advance_until_second_distribution_item()
         answer("10y-15", "03-d2")
         result["checks"].append("TWO_DISTINCT_CORRECT_ITEMS_PASS")
+        result["checks"].append("PREMATURE_TRANSFER_BLOCK_PASS")
 
         click_text("Next adaptive question", "04-next-transfer")
         root = dump_ui("04-transfer")
-        find_text(root, "Transfer")
+        find_text(root, "Transfer: simplify 4(3a + 2) - a")
         screenshot("04-transfer")
         result["checks"].append("TRANSFER_AFTER_DISTINCT_EVIDENCE_PASS")
 
