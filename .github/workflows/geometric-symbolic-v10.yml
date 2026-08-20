@@ -1,0 +1,56 @@
+name: geometric-symbolic-v10
+
+on:
+  pull_request:
+    paths:
+      - "experiments/geometric_symbolic_v10/**"
+      - ".github/workflows/geometric-symbolic-v10.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-grounding-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy torch
+      - name: Run frozen v10 experiment
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v10/geometric_symbolic_v10.py \
+            --steps 700 \
+            --out experiments/geometric_symbolic_v10/ci_results.json \
+            | tee experiments/geometric_symbolic_v10/ci_stdout.log
+      - name: Apply frozen v10 checker
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v10/check_results.py \
+            experiments/geometric_symbolic_v10/ci_results.json \
+            | tee experiments/geometric_symbolic_v10/ci_verdict.json
+      - name: Hash evidence
+        if: always()
+        run: |
+          sha256sum \
+            experiments/geometric_symbolic_v10/geometric_symbolic_v10.py \
+            experiments/geometric_symbolic_v10/check_results.py \
+            experiments/geometric_symbolic_v10/ci_results.json \
+            experiments/geometric_symbolic_v10/ci_verdict.json \
+            > experiments/geometric_symbolic_v10/ci_sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometric-symbolic-v10-evidence
+          path: |
+            experiments/geometric_symbolic_v10/ci_results.json
+            experiments/geometric_symbolic_v10/ci_stdout.log
+            experiments/geometric_symbolic_v10/ci_verdict.json
+            experiments/geometric_symbolic_v10/ci_sha256.txt
