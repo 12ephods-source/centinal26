@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import random
 from dataclasses import asdict, dataclass
 from statistics import mean, pstdev
@@ -167,7 +166,6 @@ def geometry_loss(model, h, examples, mode, device):
             if mode == "correct_geo":
                 parity = true_parity
             else:
-                # Deliberately wrong algebra: POS flips, NEG preserves.
                 prefix = ex["edges"][: ex["rel_positions"].index(pos) + 1]
                 parity = sum(1 - edge for edge in prefix) % 2
 
