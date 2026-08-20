@@ -1,0 +1,17 @@
+{
+  "schema": "FTOE-PROTECTED-I-RUNNING-EW-FLOOR-v0.6",
+  "parent_lower_scale_head": "c910f0c0e232f052c9fc70af1e1db809e23a7ceb",
+  "mechanism_scope": "future linearly realized electroweak-doublet successors without explicit partner or collective cancellation",
+  "mu_I_GeV": 9540.0,
+  "reference_lower_scale_bound_GeV": 188852.151,
+  "gate_definition": "Lambda_EW solves Lambda^2*C_gauge(Lambda)/(16*pi^2)=mu_I^2 using frozen one-loop gauge running",
+  "status": "RUNNING_EW_FLOOR_PENDING_EXACT_HEAD_CI",
+  "scientific_status": "REVIEW",
+  "admission_rule": "A future linearly realized Y=1/2 electroweak-doublet successor with no explicit symmetry-enforced partner/cancellation mechanism must introduce its protection/cancellation scale no higher than the RG-improved electroweak gauge-floor cutoff.",
+  "scope_limit": "This is a Wilsonian one-loop necessary-condition diagnostic. It does not apply unchanged to an explicitly derived collective, supersymmetric, composite, or sequestered cancellation mechanism and does not resurrect the killed minimal SO(5)/SO(4) candidate.",
+  "primary_sources": [
+    "arXiv:1201.5868",
+    "arXiv:1308.1242"
+  ],
+  "no_retuning": true
+}
