@@ -32,7 +32,7 @@ jobs:
           api-level: 35
           arch: x86_64
           profile: pixel_6
-          disable-animations: true
+          disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none
           script: cd external/frost-learning-os/android-v1.4 && python3 emulator_ui_gate.py
       - name: Hash emulator evidence
