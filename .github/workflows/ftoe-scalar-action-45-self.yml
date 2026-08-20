@@ -1,0 +1,56 @@
+name: FToE Scalar Action 45 Self-Sector Gate
+
+on:
+  pull_request:
+    paths:
+      - "physics/ftoe/scalar_action_45_self_v11.json"
+      - "scripts/ftoe_so10_scalar_action_45_self_gate.py"
+      - "tests/test_ftoe_so10_scalar_action_45_self_gate.py"
+      - ".github/workflows/ftoe-scalar-action-45-self.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scalar-action-45-self:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install focused test dependency
+        run: python -m pip install --upgrade pip pytest
+      - name: Derive frozen 45_H self-sector verdict
+        run: |
+          set -o pipefail
+          python scripts/ftoe_so10_scalar_action_45_self_gate.py \
+            --contract physics/ftoe/scalar_action_45_self_v11.json \
+            --json physics/ftoe/scalar_action_45_self_verdict.json \
+            | tee physics/ftoe/scalar_action_45_self_stdout.log
+      - name: Run focused regression tests
+        run: python -m pytest -q tests/test_ftoe_so10_scalar_action_45_self_gate.py
+      - name: Hash evidence
+        if: always()
+        run: |
+          sha256sum \
+            physics/ftoe/scalar_action_45_self_v11.json \
+            scripts/ftoe_so10_scalar_action_45_self_gate.py \
+            tests/test_ftoe_so10_scalar_action_45_self_gate.py \
+            physics/ftoe/scalar_action_45_self_verdict.json \
+            > physics/ftoe/scalar_action_45_self_sha256.txt
+          python --version > physics/ftoe/scalar_action_45_self_environment.txt
+          uname -a >> physics/ftoe/scalar_action_45_self_environment.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-scalar-action-45-self-evidence
+          path: |
+            physics/ftoe/scalar_action_45_self_v11.json
+            physics/ftoe/scalar_action_45_self_verdict.json
+            physics/ftoe/scalar_action_45_self_stdout.log
+            physics/ftoe/scalar_action_45_self_sha256.txt
+            physics/ftoe/scalar_action_45_self_environment.txt

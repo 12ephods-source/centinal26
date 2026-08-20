@@ -1,0 +1,42 @@
+name: FToE Protected-I Collective Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_so5_so4_candidate.json'
+      - 'scripts/ftoe_so10_protected_i_collective_adjudication.py'
+      - 'tests/test_ftoe_so10_protected_i_collective_adjudication.py'
+      - '.github/workflows/ftoe-protected-i-collective.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collective-adjudication:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run deterministic adjudication
+        run: |
+          mkdir -p artifacts/ftoe-protected-i-collective
+          python scripts/ftoe_so10_protected_i_collective_adjudication.py \
+            --json artifacts/ftoe-protected-i-collective/adjudication.json
+      - name: Run focused tests
+        run: python -m unittest tests.test_ftoe_so10_protected_i_collective_adjudication -v
+      - name: Hash evidence
+        run: |
+          sha256sum \
+            physics/ftoe/protected_I_so5_so4_candidate.json \
+            scripts/ftoe_so10_protected_i_collective_adjudication.py \
+            tests/test_ftoe_so10_protected_i_collective_adjudication.py \
+            artifacts/ftoe-protected-i-collective/adjudication.json \
+            > artifacts/ftoe-protected-i-collective/sha256.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-collective-evidence
+          path: artifacts/ftoe-protected-i-collective/

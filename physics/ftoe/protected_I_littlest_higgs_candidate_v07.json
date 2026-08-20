@@ -1,0 +1,30 @@
+{
+  "schema": "FTOE-PROTECTED-I-LITTLEST-HIGGS-CANDIDATE-v0.7",
+  "status": "PROPOSED_REFERENCE_MECHANISM",
+  "scientific_status": "REVIEW",
+  "parent_gate": "DERIVED_RUNNING_EW_FLOOR",
+  "parent_head": "2b44e93ce1d9264223acdc58c44f1eac89904b95",
+  "mechanism": {
+    "coset": "SU(5)/SO(5)",
+    "collective_gauge_structure": "[SU(2)xU(1)]_1 x [SU(2)xU(1)]_2",
+    "pNGB_doublet": true,
+    "same_statistics_partners": true,
+    "one_loop_quadratic_cancellation_reference": true,
+    "reference_source": "arXiv:hep-ph/0206021"
+  },
+  "frozen_scope": {
+    "introduces_new_symmetry_after_hard_parent_failure": true,
+    "does_not_resurrect_killed_so5_so4_candidate": true,
+    "does_not_claim_so10_embedding": true,
+    "does_not_claim_muI_match": true,
+    "does_not_claim_portal_suppression": true,
+    "does_not_claim_publication_readiness": true
+  },
+  "mandatory_next_gates": {
+    "identify_I_with_reference_pNGB_without_higgs_role_conflict": "NOT_DERIVED",
+    "so10_compatible_embedding_or_sequestering": "NOT_DERIVED",
+    "portal_suppression": "NOT_DERIVED",
+    "representation_specific_radiative_mass": "NOT_DERIVED",
+    "precision_and_partner_constraints": "NOT_DERIVED"
+  }
+}

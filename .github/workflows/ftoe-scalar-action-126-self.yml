@@ -1,0 +1,59 @@
+name: FToE Scalar Action 126 Self-Sector Gate
+
+on:
+  pull_request:
+    paths:
+      - "physics/ftoe/scalar_action_126_self_v12.json"
+      - "scripts/ftoe_so10_scalar_action_126_self_gate.py"
+      - "tests/test_ftoe_so10_scalar_action_126_self_gate.py"
+      - ".github/workflows/ftoe-scalar-action-126-self.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scalar-action-126-self:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused-test dependency
+        run: python -m pip install pytest
+      - name: Derive source-enumeration verdict
+        run: |
+          set -o pipefail
+          python scripts/ftoe_so10_scalar_action_126_self_gate.py \
+            --contract physics/ftoe/scalar_action_126_self_v12.json \
+            --json physics/ftoe/scalar_action_126_self_gate_result.json \
+            | tee physics/ftoe/scalar_action_126_self_stdout.log
+      - name: Run focused tests
+        run: python -m pytest tests/test_ftoe_so10_scalar_action_126_self_gate.py -q
+      - name: Record environment
+        run: |
+          python --version > physics/ftoe/scalar_action_126_self_environment.txt
+          python -m pytest --version >> physics/ftoe/scalar_action_126_self_environment.txt
+          uname -a >> physics/ftoe/scalar_action_126_self_environment.txt
+      - name: Hash evidence
+        if: always()
+        run: |
+          sha256sum \
+            physics/ftoe/scalar_action_126_self_v12.json \
+            scripts/ftoe_so10_scalar_action_126_self_gate.py \
+            tests/test_ftoe_so10_scalar_action_126_self_gate.py \
+            physics/ftoe/scalar_action_126_self_gate_result.json \
+            physics/ftoe/scalar_action_126_self_environment.txt \
+            > physics/ftoe/scalar_action_126_self_sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-scalar-action-126-self-evidence
+          path: |
+            physics/ftoe/scalar_action_126_self_v12.json
+            physics/ftoe/scalar_action_126_self_gate_result.json
+            physics/ftoe/scalar_action_126_self_stdout.log
+            physics/ftoe/scalar_action_126_self_environment.txt
+            physics/ftoe/scalar_action_126_self_sha256.txt

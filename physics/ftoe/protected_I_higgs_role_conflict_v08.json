@@ -1,0 +1,25 @@
+{
+  "schema": "FTOE-PROTECTED-I-HIGGS-ROLE-CONFLICT-v0.8",
+  "status": "SCIENTIFIC_GATE_SPECIFIED",
+  "scientific_status": "FAIL",
+  "parent_head": "cef661e18ec0a3cd30d1378108bd7a6c69343e1d",
+  "parent_mechanism": "SU(5)/SO(5) Littlest Higgs reference mechanism",
+  "frozen_ftoe_facts": {
+    "protected_I_is_distinct_informational_doublet": true,
+    "protected_I_has_independent_mu_I_GeV": 9540.0,
+    "protected_I_threshold_GeV": 13491.6,
+    "complete_action_lists_protected_I_separately_from_Higgs_sector": true,
+    "source": "docs/physics/FTOE_L1_L4_TERMINAL_CLOSURE_2026-08-17.md"
+  },
+  "frozen_reference_facts": {
+    "coset": "SU(5)/SO(5)",
+    "single_light_pNGB_electroweak_doublet": true,
+    "pNGB_doublet_role": "Standard Model Higgs",
+    "below_TeV_effective_theory": "minimal Standard Model",
+    "source": "arXiv:hep-ph/0206021"
+  },
+  "gate_question": "Can protected I be directly identified with the reference pNGB doublet without Higgs-role conflict?",
+  "expected_verdict": "FAIL_DIRECT_IDENTIFICATION_HIGGS_ROLE_CONFLICT",
+  "scope_limit": "Rejects only direct identification of protected I with the single Littlest-Higgs pNGB doublet. It does not reject separately versioned extended cosets containing an additional protected doublet.",
+  "no_retuning": true
+}
