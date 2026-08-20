@@ -1,0 +1,63 @@
+name: geometric-symbolic-v7
+
+on:
+  pull_request:
+    paths:
+      - "experiments/geometric_symbolic_v7/**"
+      - ".github/workflows/geometric-symbolic-v7.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structure-selection-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy torch
+
+      - name: Run frozen v7 experiment
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v7/geometric_symbolic_v7.py \
+            --warmup-steps 250 \
+            --selection-steps 350 \
+            --out experiments/geometric_symbolic_v7/ci_results.json \
+            | tee experiments/geometric_symbolic_v7/ci_stdout.log
+
+      - name: Apply frozen v7 checker
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v7/check_results.py \
+            experiments/geometric_symbolic_v7/ci_results.json \
+            | tee experiments/geometric_symbolic_v7/ci_verdict.json
+
+      - name: Hash evidence
+        if: always()
+        run: |
+          sha256sum \
+            experiments/geometric_symbolic_v7/geometric_symbolic_v7.py \
+            experiments/geometric_symbolic_v7/check_results.py \
+            experiments/geometric_symbolic_v7/ci_results.json \
+            experiments/geometric_symbolic_v7/ci_verdict.json \
+            > experiments/geometric_symbolic_v7/ci_sha256.txt
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometric-symbolic-v7-evidence
+          path: |
+            experiments/geometric_symbolic_v7/ci_results.json
+            experiments/geometric_symbolic_v7/ci_stdout.log
+            experiments/geometric_symbolic_v7/ci_verdict.json
+            experiments/geometric_symbolic_v7/ci_sha256.txt
