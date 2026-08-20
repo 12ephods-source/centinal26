@@ -110,7 +110,7 @@ def _normalize_parameters(operation: str, raw: Json) -> Json:
                 if objective not in {"nevsi", "mi_estimand", "mi_system", "structural"}:
                     raise HSIProtocolError("unsupported HSI objective")
                 out["objective"] = objective
-        elif any(k in raw for k in {"runs", "seed", "objective"}):
+        elif any(k in raw for k in ("runs", "seed", "objective")):
             raise HSIProtocolError("run-only parameters supplied to hsi.identify")
         return out
 
