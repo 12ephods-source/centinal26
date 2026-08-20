@@ -1,0 +1,30 @@
+{
+  "schema": "FLOS_CURRICULUM_REACHABILITY_STANDARD_v1",
+  "status": "FROZEN_BEFORE_CONTENT_REPAIR",
+  "scope": "structural reachability of the frozen v1.4.1 mastery/transfer policy",
+  "non_claims": [
+    "This is an engineering reachability gate, not evidence of learning efficacy.",
+    "It does not establish that two retrieval items are pedagogically sufficient.",
+    "It does not modify or validate the 14-day retention interval."
+  ],
+  "invariants": {
+    "minimum_distinct_correct_items_for_mastery_ready": 2,
+    "transfer_requires_mastery_ready": true,
+    "retention_hold_must_be_clear": true,
+    "every_transfer_skill_must_be_reachable_without_answering_its_transfer_item_first": true
+  },
+  "checks": [
+    "Every skill containing a transfer item has at least two distinct non-transfer retrieval items.",
+    "Correct answers to two distinct non-transfer items make transferReady true for that skill when evidence is fresh.",
+    "Prerequisite-dependent skills become unlocked after their prerequisite skills satisfy the same readiness gate.",
+    "Repeated success on only one non-transfer item never makes transferReady true."
+  ],
+  "baseline_observation": {
+    "distribution": {"direct_items": ["d1", "d2"], "transfer_items": ["d3"], "reachable": true},
+    "linear": {"direct_items": ["l1"], "transfer_items": ["l2"], "reachable": false},
+    "proportional": {"direct_items": ["p1"], "transfer_items": ["p2"], "reachable": false},
+    "energy": {"direct_items": ["e1"], "transfer_items": ["e2"], "reachable": false}
+  },
+  "baseline_decision": "FAIL_3_OF_4_TRANSFER_SKILLS_STRUCTURALLY_REACHABLE",
+  "repair_constraint": "Add independent retrieval opportunities or otherwise restore reachability without weakening the two-distinct-item mastery-ready invariant."
+}
