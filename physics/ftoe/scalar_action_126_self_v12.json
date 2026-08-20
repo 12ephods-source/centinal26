@@ -1,0 +1,48 @@
+{
+  "schema": "FTOE-SCALAR-ACTION-126-SELF-v12",
+  "status": "PARTIAL_ACTION_126_SELF_SECTOR_SOURCE_ENUMERATED",
+  "scientific_status": "REVIEW",
+  "parent_exact_head": "6cbb3fa7e904b791e6c26aa933f0dab31a7fb405",
+  "representation": {
+    "name": "126_H",
+    "type": "complex_self_dual_five_index_antisymmetric_tensor",
+    "field_symbol": "Sigma"
+  },
+  "primary_source": {
+    "arxiv": "2304.14227",
+    "title": "The trouble with the minimal renormalizable SO(10) GUT",
+    "equation": "Eq. (4), with completeness cross-check below Eqs. (3)-(7)",
+    "source_statement": "The complete renormalizable 126_H self-sector contains one quadratic norm, four hermitian quartic contractions with couplings lambda_0, lambda_2, lambda_4 and lambda_4_prime, plus one complex quartic structure with coupling eta_2 and its explicit conjugate. No cubic 126_H self-interaction appears in the complete potential."
+  },
+  "self_sector": {
+    "quadratic_invariants": [
+      "(Sigma Sigma*)_0"
+    ],
+    "cubic_invariants": [],
+    "hermitian_quartic_invariants": [
+      "(Sigma Sigma*)_0 (Sigma Sigma*)_0",
+      "(Sigma Sigma*)_2 (Sigma Sigma*)_2",
+      "(Sigma Sigma*)_4 (Sigma Sigma*)_4",
+      "(Sigma Sigma*)_4_prime (Sigma Sigma*)_4_prime"
+    ],
+    "complex_quartic_invariants": [
+      "(Sigma Sigma)_2 (Sigma Sigma)_2 + h.c."
+    ],
+    "real_quartic_coupling_count": 4,
+    "complex_quartic_coupling_count": 1,
+    "cubic_absence_source_verified": true,
+    "source_completeness_cross_check": true
+  },
+  "full_action_gate": "NOT_COMPLETE",
+  "still_unenumerated": [
+    "mixed_210_H_45_H_renormalizable_invariants",
+    "mixed_210_H_126_H_renormalizable_invariants",
+    "mixed_210_H_10_C_H_renormalizable_invariants",
+    "mixed_210_H_protected_I_renormalizable_invariants",
+    "mixed_45_H_protected_I_renormalizable_invariants",
+    "10_C_H_self_sector_in_current_nonsupersymmetric_action",
+    "surviving_protected_I_self_and_portal_sector"
+  ],
+  "no_downstream_retuning": true,
+  "epistemic_limit": "This freezes only the sourced 126_H self-sector. It does not establish the complete FToE scalar action, vacuum, Hessian, heavy spectrum, thresholds, or publication readiness."
+}
