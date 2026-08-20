@@ -1,0 +1,44 @@
+{
+  "schema_version": "wazoo26.open-source-resources/0.2",
+  "generated_at": "2026-08-19T22:36:00-06:00",
+  "base_repository": "12ephods-source/centinal26",
+  "base_commit": "14416d0f08cddf117a79c05104ba15c4ad3b1036",
+  "status": "PROPOSED_HOST_VALIDATED_NOT_PROMOTED",
+  "protocol_pins": {
+    "a2a": {
+      "version": "1.0.0",
+      "normative_url": "https://a2a-protocol.org/v1.0.0/specification/",
+      "role": "agent_to_agent"
+    },
+    "mcp": {
+      "version": "2026-07-28",
+      "normative_url": "https://modelcontextprotocol.io/specification/2026-07-28",
+      "role": "agent_to_tool_resource"
+    }
+  },
+  "existing_wazoo26_catalog": {
+    "a2a": {
+      "kind": "PROTOCOL",
+      "operations": [
+        "agent.message"
+      ],
+      "status": "NOT_CONFIGURED"
+    },
+    "mcp": {
+      "kind": "PROTOCOL",
+      "operations": [
+        "tools.list",
+        "tools.call"
+      ],
+      "status": "NOT_CONFIGURED"
+    }
+  },
+  "policy": [
+    "Discovery is not authorization.",
+    "No inline credentials.",
+    "No wildcard capabilities.",
+    "Canonical operation must already be registered.",
+    "Stale or revoked adapters are unroutable.",
+    "Host validation does not establish connected or physical-device validation."
+  ]
+}

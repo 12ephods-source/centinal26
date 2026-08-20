@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/capability_descriptor.schema.json",
+  "title": "CapabilityDescriptor",
+  "type": "object",
+  "required": [
+    "capability_id",
+    "canonical_operation",
+    "protocol_operation",
+    "required_scopes",
+    "side_effects",
+    "verification",
+    "timeout_ms",
+    "concurrency_limit"
+  ],
+  "properties": {
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{2,127}$"
+    },
+    "canonical_operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol_operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "side_effects": {
+      "enum": [
+        "none",
+        "reversible",
+        "irreversible"
+      ]
+    },
+    "verification": {
+      "enum": [
+        "required",
+        "optional",
+        "none"
+      ]
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600000
+    },
+    "concurrency_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024
+    }
+  },
+  "additionalProperties": false
+}

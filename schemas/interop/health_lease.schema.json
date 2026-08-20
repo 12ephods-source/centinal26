@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/health_lease.schema.json",
+  "title": "HealthLease",
+  "type": "object",
+  "required": [
+    "lease_id",
+    "subject_id",
+    "issued_at",
+    "expires_at",
+    "heartbeat_interval_s",
+    "grace_s",
+    "status",
+    "last_seen_at",
+    "renewal_counter"
+  ],
+  "properties": {
+    "lease_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "heartbeat_interval_s": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "grace_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": [
+        "healthy",
+        "degraded",
+        "stale",
+        "offline",
+        "quarantined"
+      ]
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "renewal_counter": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

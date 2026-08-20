@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/auth_profile.schema.json",
+  "title": "AuthProfile",
+  "type": "object",
+  "required": [
+    "auth_type",
+    "credential_binding",
+    "storage_policy",
+    "requires_user_presence",
+    "delegation_allowed",
+    "scopes"
+  ],
+  "properties": {
+    "auth_type": {
+      "enum": [
+        "none",
+        "api_key",
+        "bearer",
+        "oauth2",
+        "oidc",
+        "mtls",
+        "local_identity"
+      ]
+    },
+    "credential_binding": {
+      "enum": [
+        "none",
+        "issuer_bound",
+        "device_bound",
+        "worker_bound",
+        "certificate_bound"
+      ]
+    },
+    "storage_policy": {
+      "enum": [
+        "none",
+        "memory_only",
+        "os_keyring",
+        "termux_file_0600",
+        "external_secret_store"
+      ]
+    },
+    "requires_user_presence": {
+      "type": "boolean"
+    },
+    "delegation_allowed": {
+      "type": "boolean"
+    },
+    "scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "issuer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "audience": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/adapter_manifest.schema.json",
+  "title": "InteropAdapterManifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "adapter_id",
+    "adapter_version",
+    "adapter_type",
+    "protocol",
+    "endpoint",
+    "authorization_state",
+    "trust_tier",
+    "discovery",
+    "auth_profile",
+    "session_state",
+    "health_lease",
+    "capabilities",
+    "artifact",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "wazoo26.adapter/0.2"
+    },
+    "adapter_id": {
+      "enum": [
+        "a2a",
+        "mcp"
+      ]
+    },
+    "adapter_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_type": {
+      "enum": [
+        "declarative",
+        "executable",
+        "remote"
+      ]
+    },
+    "protocol": {
+      "type": "object",
+      "required": [
+        "family",
+        "version"
+      ],
+      "properties": {
+        "family": {
+          "enum": [
+            "a2a",
+            "mcp"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "endpoint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorization_state": {
+      "enum": [
+        "unregistered",
+        "registered",
+        "authorized",
+        "revoked",
+        "expired",
+        "quarantined"
+      ]
+    },
+    "trust_tier": {
+      "enum": [
+        "CANONICAL",
+        "COMPATIBLE_MODULE",
+        "EXPERIMENTAL",
+        "SUPERSEDED",
+        "REJECTED"
+      ]
+    },
+    "discovery": {
+      "type": "object"
+    },
+    "auth_profile": {
+      "type": "object"
+    },
+    "session_state": {
+      "type": "object"
+    },
+    "health_lease": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

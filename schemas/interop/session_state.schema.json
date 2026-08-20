@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/session_state.schema.json",
+  "title": "SessionState",
+  "type": "object",
+  "required": [
+    "state_id",
+    "transport_semantics",
+    "state_owner",
+    "resumable",
+    "protocol_state"
+  ],
+  "properties": {
+    "state_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "transport_semantics": {
+      "enum": [
+        "stateless_request",
+        "task_state",
+        "application_state"
+      ]
+    },
+    "state_owner": {
+      "enum": [
+        "none",
+        "adapter",
+        "wazoo26",
+        "remote_peer"
+      ]
+    },
+    "resumable": {
+      "type": "boolean"
+    },
+    "protocol_state": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}
