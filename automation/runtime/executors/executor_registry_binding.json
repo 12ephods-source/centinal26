@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "executors": [],
+  "binding_rules": {
+    "require_capability_match": true,
+    "require_authorization": true,
+    "require_health_check": true,
+    "require_validation": true
+  },
+  "status": "initialized"
+}
