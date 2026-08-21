@@ -1,16 +1,16 @@
 # Automation / Frost Forge Source Consolidation
 
-Version: 2.8
+Version: 2.9
 Date: 2026-08-21
 Canonical repository: `12ephods-source/centinal26`
 Canonical production branch: `main`
-Source-index snapshot head: `5b4557294386c2791c5b1b3977ca3ea70f2b158d`
+Source-index snapshot head: `e69a88ebbe15237d96b665bc86951c009d80caf5`
 
 ## Purpose
 
 This document removes source-of-truth ambiguity without deleting historical evidence. It classifies repository material into production source, bounded candidates, superseded provenance, external projects, and scientific research branches.
 
-The machine-readable authority for this classification is `automation/SOURCE_INDEX.json`.
+The machine-readable authority for this classification is `automation/SOURCE_INDEX.json`. Deferred work is separately recorded in `automation/DEFERRED_BLOCKERS.json`.
 
 ## Production source
 
@@ -22,6 +22,7 @@ Canonical continuation records:
 - `automation/PROJECT_STATE.json` — machine continuation state.
 - `PROJECT_STATE_AUTOMATION_OS.md` — concise continuation record.
 - `automation/SOURCE_INDEX.json` — source classification and cleanup authority.
+- `automation/DEFERRED_BLOCKERS.json` — blocked-work registry and resume conditions.
 
 Canonical software roots:
 
@@ -31,6 +32,14 @@ Canonical software roots:
 - `deploy/automation_os/` — universal installer module manager and registry.
 - `deploy/termux/` — versioned Android/Termux deployment entry points and compatibility installers.
 - `deploy/vercel/` — current Vercel controller deployment target.
+
+## Deferred blockers
+
+Automation uses `DEFER_AND_CONTINUE` for genuine blockers. A blocked item is recorded with its blocker class, evidence, and exact resume condition; it is then skipped while independent eligible work continues.
+
+This policy does not weaken gates. Deferred work cannot be promoted by substitution or inference. In particular, merged host software is not a live external deployment, queued work is not executed work, host/CI evidence is not physical-device evidence, and device validation is not persistence validation.
+
+Current machine-readable deferred state is `automation/DEFERRED_BLOCKERS.json`.
 
 ## Installer source
 
@@ -104,7 +113,9 @@ Scientific/research examples include FToE, KMS/modular, de Sitter, and geometric
 6. Do not duplicate physical-gate trackers; issue #208 is canonical.
 7. Connected-service state such as Base44 is coordination/evidence state, not a substitute for canonical software source.
 8. File Library artifacts are evidence/source candidates until exact bytes are canonicalized into immutable source.
+9. When a work item is genuinely blocked, record it in `automation/DEFERRED_BLOCKERS.json`, preserve its resume condition, skip it, and continue independent work.
+10. Never promote a deferred item until the recorded resume condition is independently satisfied.
 
 ## Result
 
-After this consolidation, future Automation work should begin from current `main`, read `automation/PROJECT_STATE.json` and `automation/SOURCE_INDEX.json`, and treat every other branch as candidate/provenance unless explicitly promoted.
+After this consolidation, future Automation work should begin from current `main`, read `automation/PROJECT_STATE.json`, `automation/SOURCE_INDEX.json`, and `automation/DEFERRED_BLOCKERS.json`, and treat every other branch as candidate/provenance unless explicitly promoted.
