@@ -1,42 +1,56 @@
-name: Request Android Physical GA
+name: Prepare Android Physical Commissioning
 
 on:
   workflow_dispatch:
-    inputs:
-      endurance_iterations:
-        description: "Endurance iterations on Android device"
-        required: true
-        default: "100"
 
 permissions:
   contents: read
-  issues: write
+  issues: read
 
 jobs:
-  create-device-job:
+  commissioning-guidance:
     runs-on: ubuntu-latest
     steps:
-      - name: Create bounded physical-GA request
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          ITER: ${{ inputs.endurance_iterations }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          SHA: ${{ github.sha }}
+      - uses: actions/checkout@v4
+
+      - name: Resolve canonical physical commissioning state
+        id: state
         shell: bash
         run: |
           set -euo pipefail
-          request_id="gha-${RUN_ID}-${RUN_ATTEMPT}"
-          body="$(jq -n \
-            --arg request_id "$request_id" \
-            --arg sha "$SHA" \
-            --arg iterations "$ITER" \
-            '{schema:"automation.github_job/v2",request_id:$request_id,command:"automation_os_physical_ga_rc9_integrity",parameters:{endurance_iterations:($iterations|tonumber)},provenance:{github_sha:$sha},authorization:{source:"workflow_dispatch",decision:"REVIEW_DEVICE_GUARDIAN"}}')"
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GH_REPO}/issues" \
-            -d "$(jq -n --arg title "Automation OS device job: ${request_id}" --arg body "$body" '{title:$title,body:$body,labels:["automation-os-job"]}')"
+          source_commit="$(jq -r '.physical_gate.qualified_source_commit' automation/PROJECT_STATE.json)"
+          tracker_issue="$(jq -r '.physical_gate.tracker_issue' automation/PROJECT_STATE.json)"
+          mode="$(jq -r '.physical_gate.commissioning_mode' automation/PROJECT_STATE.json)"
+          test "$source_commit" != "null"
+          test "$tracker_issue" != "null"
+          test "$mode" = "ONE_ANDROID_RUN_PLUS_CONTROLLER_VERIFICATION"
+          printf 'source_commit=%s\n' "$source_commit" >> "$GITHUB_OUTPUT"
+          printf 'tracker_issue=%s\n' "$tracker_issue" >> "$GITHUB_OUTPUT"
+
+      - name: Publish fail-closed commissioning instructions
+        env:
+          SOURCE: ${{ steps.state.outputs.source_commit }}
+          TRACKER: ${{ steps.state.outputs.tracker_issue }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# Android physical commissioning'
+            echo
+            echo 'This workflow does not enqueue or claim a device job.'
+            echo 'The historical RC9 physical-GA command is superseded and disabled by default.'
+            echo
+            echo "Canonical tracker: issue #${TRACKER}"
+            echo "Qualified commissioning source: \`${SOURCE}\`"
+            echo
+            echo 'Run on the authorized Android/Termux device:'
+            echo '```bash'
+            echo "SOURCE=${SOURCE}"
+            echo 'URL="https://raw.githubusercontent.com/12ephods-source/centinal26/${SOURCE}/automation/deployment/enrollment_package/termux_enroll_onepaste.sh"'
+            echo 'curl -fsSL "$URL" | bash -s -- "" "$SOURCE"'
+            echo '```'
+            echo
+            echo 'Preserve the returned guardian_physical_validation_<timestamp>.zip unchanged.'
+            echo 'Physical promotion remains controller- and evidence-gated.'
+          } >> "$GITHUB_STEP_SUMMARY"
