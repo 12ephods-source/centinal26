@@ -5,14 +5,14 @@ No automatic privilege escalation or hidden data access.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
 def create_manifest(device_id, output):
     manifest = {
         "device_id": device_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "status": "inventory_pending",
         "capabilities": [],
         "verification": "pending"

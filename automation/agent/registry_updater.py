@@ -11,8 +11,8 @@ Rules:
 """
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 
 def update_registry(classified_file, registry_file):
@@ -30,7 +30,7 @@ def update_registry(classified_file, registry_file):
                 "verification_status": "pending",
                 "provenance": {
                     "source": classified_file,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(UTC).isoformat()
                 }
             }
 

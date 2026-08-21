@@ -3,8 +3,8 @@
 Checks local prerequisites before a worker is enrolled.
 """
 
-import platform
 import json
+import platform
 
 
 def collect_environment():
