@@ -1,9 +1,17 @@
 import hashlib
+import importlib.util
 import json
+import sys
 import zipfile
 from pathlib import Path
 
-from deploy.termux.library_cleaner.package_evidence import package_evidence, sha256_file
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "deploy" / "termux" / "library_cleaner" / "package_evidence.py"
+spec = importlib.util.spec_from_file_location("library_cleaner_package_evidence", SCRIPT)
+assert spec is not None and spec.loader is not None
+packager = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = packager
+spec.loader.exec_module(packager)
 
 
 def test_package_evidence_builds_manifest_and_checksum(tmp_path: Path) -> None:
@@ -23,7 +31,7 @@ def test_package_evidence_builds_manifest_and_checksum(tmp_path: Path) -> None:
     archived = archive_dir / "item.txt"
     archived.write_text("payload", encoding="utf-8")
 
-    zip_path, checksum_path, manifest = package_evidence(
+    zip_path, checksum_path, manifest = packager.package_evidence(
         app_home=app_home,
         archive_dir=archive_dir,
         output_dir=output_dir,
@@ -38,7 +46,7 @@ def test_package_evidence_builds_manifest_and_checksum(tmp_path: Path) -> None:
     assert manifest["archive_index"][0]["sha256"] == hashlib.sha256(b"payload").hexdigest()
 
     checksum = checksum_path.read_text(encoding="utf-8").split()[0]
-    assert checksum == sha256_file(zip_path)
+    assert checksum == packager.sha256_file(zip_path)
 
     with zipfile.ZipFile(zip_path) as bundle:
         names = set(bundle.namelist())
@@ -61,7 +69,7 @@ def test_package_evidence_can_include_archived_bytes(tmp_path: Path) -> None:
     archive_dir.mkdir()
     (archive_dir / "item.bin").write_bytes(b"abc")
 
-    zip_path, _, _ = package_evidence(
+    zip_path, _, _ = packager.package_evidence(
         app_home=app_home,
         archive_dir=archive_dir,
         output_dir=output_dir,
