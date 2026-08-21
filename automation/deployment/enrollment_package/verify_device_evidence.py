@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -19,11 +20,17 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def verify_bundle(root: Path) -> dict[str, Any]:
+def normalize_commit(value: str | None) -> str | None:
+    candidate = (value or "").strip().lower()
+    return candidate if re.fullmatch(r"[0-9a-f]{40}", candidate) else None
+
+
+def verify_bundle(root: Path, expected_source_commit: str | None = None) -> dict[str, Any]:
     missing = sorted(name for name in REQUIRED_FILES if not (root / name).is_file())
     result: dict[str, Any] = {
         "bundle": str(root),
         "integrity": "FAILED",
+        "software_provenance": "UNVERIFIED",
         "device_origin": "UNVERIFIED",
         "inventory": "UNVERIFIED",
         "enrollment": "REJECTED",
@@ -48,6 +55,33 @@ def verify_bundle(root: Path) -> dict[str, Any]:
 
     evidence = json.loads((root / "device_evidence.json").read_text(encoding="utf-8"))
     report = json.loads((root / "validation_report.json").read_text(encoding="utf-8"))
+
+    source_commit = normalize_commit(
+        evidence.get("software_provenance", {}).get("source_commit")
+    )
+    report_commit = normalize_commit(report.get("source_commit"))
+    expected_commit = normalize_commit(expected_source_commit)
+    if source_commit is None or report_commit != source_commit:
+        result["errors"].append("software source commit provenance missing or inconsistent")
+        return result
+    if expected_source_commit is not None and expected_commit is None:
+        result["errors"].append("invalid expected source commit")
+        return result
+    if expected_commit is not None and source_commit != expected_commit:
+        result["errors"].append(
+            {
+                "source_commit_mismatch": {
+                    "expected": expected_commit,
+                    "observed": source_commit,
+                }
+            }
+        )
+        return result
+    result["source_commit"] = source_commit
+    result["software_provenance"] = (
+        "VERIFIED_EXPECTED_COMMIT" if expected_commit else "VERIFIED_PRESENT"
+    )
+
     android = evidence.get("platform", {}).get("android_detection", {})
     signals = android.get("signals", {})
     android_signal_count = sum(
@@ -92,9 +126,13 @@ def verify_bundle(root: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("bundle", type=Path)
+    parser.add_argument("--expected-source-commit")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = verify_bundle(args.bundle)
+    result = verify_bundle(
+        args.bundle,
+        expected_source_commit=args.expected_source_commit,
+    )
     text = json.dumps(result, indent=2, sort_keys=True)
     if args.output:
         args.output.write_text(text + "\n", encoding="utf-8")
