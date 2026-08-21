@@ -31,6 +31,38 @@ export function requireAdmin(request) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+function encryptionKey() {
+  const secret = process.env.FROST_CONTROLLER_CREDENTIAL_KEY;
+  if (!secret || secret.length < 32) throw new Error('CREDENTIAL_KEY_NOT_CONFIGURED');
+  return crypto.createHash('sha256').update(secret).digest();
+}
+
+export function encryptSecret(secret) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKey(), iv);
+  const ciphertext = Buffer.concat([cipher.update(secret, 'utf8'), cipher.final()]);
+  return {
+    iv: iv.toString('base64url'),
+    tag: cipher.getAuthTag().toString('base64url'),
+    ciphertext: ciphertext.toString('base64url'),
+  };
+}
+
+export function decryptSecret(record) {
+  if (!record?.iv || !record?.tag || !record?.ciphertext) throw new Error('SECRET_RECORD_INVALID');
+  const decipher = crypto.createDecipheriv(
+    'aes-256-gcm',
+    encryptionKey(),
+    Buffer.from(record.iv, 'base64url'),
+  );
+  decipher.setAuthTag(Buffer.from(record.tag, 'base64url'));
+  const plaintext = Buffer.concat([
+    decipher.update(Buffer.from(record.ciphertext, 'base64url')),
+    decipher.final(),
+  ]);
+  return plaintext.toString('utf8');
+}
+
 function redisConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
