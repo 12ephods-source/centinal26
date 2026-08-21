@@ -6,7 +6,6 @@ import os
 import sys
 from pathlib import Path
 
-
 MODULE_PATH = Path(__file__).resolve().parents[1] / "automation" / "device" / "outbound_worker.py"
 SPEC = importlib.util.spec_from_file_location("outbound_worker_transport_auth", MODULE_PATH)
 assert SPEC and SPEC.loader
