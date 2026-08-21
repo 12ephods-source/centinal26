@@ -40,3 +40,7 @@ target-version = "py311"
 "deploy/hermes-c05/hermes_c05_bridge.py" = ["EXE001", "TRY004", "BLE001"]
 "deploy/hermes-c05/plugin/frost_orchestrator/tools.py" = ["I001", "PLW1510", "BLE001"]
 "tests/test_hermes_c05_adapter.py" = ["I001"]
+# P05's frozen dataclass cohort default is immutable by construction; the external
+# API type/error handling and UTC normalization are deliberate compatibility choices.
+"src/frost_core/p05_prospective.py" = ["UP017", "TRY004", "FURB162", "B008"]
+"tests/test_p05_prospective.py" = ["UP017"]
