@@ -1,0 +1,90 @@
+{
+  "schema": "automation.release_contract/v1",
+  "release_target": "1.0.0",
+  "canonical_state": "automation/PROJECT_STATE.json",
+  "release_state_mirror": "releases/CURRENT_RELEASE_STATE.json",
+  "authority_matrix": "releases/AUTHORITY_MATRIX.json",
+  "promotion_order": [
+    "STATIC_VALIDATED",
+    "HOST_VALIDATED",
+    "DEVICE_VALIDATED",
+    "PERSISTENT_VALIDATED",
+    "RECOVERY_VALIDATED",
+    "GA"
+  ],
+  "evidence_non_substitution": [
+    "HOST_VALIDATED != DEVICE_VALIDATED",
+    "DEVICE_VALIDATED != PERSISTENT_VALIDATED",
+    "PERSISTENT_VALIDATED != RECOVERY_VALIDATED",
+    "EXECUTED != VERIFIED",
+    "SIMULATION != PHYSICAL_DEVICE",
+    "ADAPTER_REACHABLE != AUTHORIZED"
+  ],
+  "mandatory_host_checks": [
+    "validate",
+    "CI",
+    "automation-gates",
+    "federation-gates",
+    "Mature Product Qualification"
+  ],
+  "physical_gate": {
+    "tracker_issue": 208,
+    "qualified_source_commit": "9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483",
+    "phase_a": {
+      "promotion": "DEVICE_VALIDATED",
+      "requires": [
+        "real_android_termux_device_origin",
+        "exact_source_provenance",
+        "controller_verified_commissioning_package",
+        "fresh_registered_android_worker",
+        "one_harmless_bounded_work_item",
+        "independent_postcondition_verification"
+      ]
+    },
+    "phase_b": {
+      "promotion": "PERSISTENT_VALIDATED",
+      "requires": [
+        "phase_a_pass",
+        "pre_reboot_boot_identity",
+        "physical_reboot",
+        "changed_boot_id",
+        "same_verified_enrollment_identity",
+        "fresh_post_reboot_heartbeat",
+        "valid_event_and_lease_chain",
+        "one_harmless_post_reboot_work_item",
+        "independent_postcondition_verification"
+      ]
+    }
+  },
+  "recovery_gate": {
+    "promotion": "RECOVERY_VALIDATED",
+    "requires": [
+      "restart_or_interruption_recovery",
+      "rollback_path_verified",
+      "audit_and_provenance_chain_valid",
+      "no_silent_partial_success"
+    ]
+  },
+  "ga_conditions": [
+    "canonical project state and release mirror agree",
+    "mandatory host checks PASS on the exact release head",
+    "DEVICE_VALIDATED PASS",
+    "PERSISTENT_VALIDATED PASS",
+    "RECOVERY_VALIDATED PASS",
+    "no widened authority boundary",
+    "release manifest binds exact source and artifact identities"
+  ],
+  "non_blocking_adjacent_tracks": {
+    "connector_qualification_issue": 209,
+    "deployment_issue": 228,
+    "library_cleaner_issue": 245,
+    "bluetooth_issue": 261
+  },
+  "superseded_physical_contracts": [
+    {
+      "issue": 64,
+      "status": "HISTORICAL_PROVENANCE_ONLY"
+    }
+  ],
+  "fail_closed": "Any missing, stale, cross-device, self-certified, contradictory, or wrong-source evidence blocks promotion rather than being inferred as PASS."
+}

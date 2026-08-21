@@ -1,0 +1,64 @@
+{
+  "schema": "automation.authority_matrix/v1",
+  "principle": "one authoritative writer per state domain; adapters may transport or mirror but never become competing authorities",
+  "domains": {
+    "project_state": {
+      "authority": "automation/PROJECT_STATE.json",
+      "writers": ["canonical project-state reconciliation path"],
+      "mirrors": ["PROJECT_STATE_AUTOMATION_OS.md", "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md", "releases/CURRENT_RELEASE_STATE.json"],
+      "forbidden": ["adapter-owned canonical state", "parallel live project-state database"]
+    },
+    "artifact_identity": {
+      "authority": "Frost CORE immutable content-addressed object identity",
+      "writers": ["canonical object-store ingestion"],
+      "mirrors": ["provider artifacts", "release manifests"],
+      "forbidden": ["filename-only identity", "silent byte replacement"]
+    },
+    "authorization": {
+      "authority": "Guardian policy and scoped capability tokens",
+      "writers": ["authorized Guardian path"],
+      "mirrors": ["audit/provenance records"],
+      "forbidden": ["self-granted agent authority", "transport-implied authorization"]
+    },
+    "execution": {
+      "authority": "durable queue/lease plus registered bounded executor",
+      "writers": ["authorized worker/executor state transitions"],
+      "mirrors": ["GitHub/Base44/provider job views"],
+      "forbidden": ["direct AI-to-shell execution", "adapter-specific competing executor"]
+    },
+    "verification": {
+      "authority": "independent postcondition verifier/Judge",
+      "writers": ["independent verification path"],
+      "mirrors": ["release validation ledger"],
+      "forbidden": ["executor self-certification", "exit-code-only success"]
+    },
+    "evidence": {
+      "authority": "immutable evidence objects bound to source identity and content hash",
+      "writers": ["canonical evidence acquisition/ingestion path"],
+      "mirrors": ["reports", "summaries", "provider metadata"],
+      "forbidden": ["summary replacing raw evidence", "silent evidence-byte replacement"]
+    },
+    "audit": {
+      "authority": "append-only provenance/audit ledger",
+      "writers": ["canonical audit append path"],
+      "mirrors": ["audit reports", "release validation ledger"],
+      "forbidden": ["silent history rewrite", "mutable replacement of prior audit events"]
+    },
+    "release_promotion": {
+      "authority": "releases/RELEASE_CONTRACT.json plus exact evidence gates",
+      "writers": ["release promotion path after required verification"],
+      "mirrors": ["releases/CURRENT_RELEASE_STATE.json", "automation/PROJECT_STATE.json"],
+      "forbidden": ["host-to-device gate substitution", "stale-head qualification"]
+    }
+  },
+  "adapter_class": [
+    "GitHub",
+    "Base44",
+    "Android/Termux",
+    "Discord",
+    "Vercel",
+    "conversation/reconciler",
+    "other provider integrations"
+  ],
+  "adapter_rule": "Adapters may discover, transport, stage, execute registered capabilities when authorized, or mirror state; they do not own canonical project state, authorization, verification, evidence identity, audit history, or release promotion."
+}
