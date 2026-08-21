@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from enum import StrEnum
-from typing import Any, Iterable, Protocol
+from typing import Any, Protocol
 
 
 class ObjectiveSource(StrEnum):
@@ -271,9 +272,8 @@ def execution_gate(token: CapabilityToken, action: Action) -> bool:
         return False
     if action.destructive and not token.destructive_actions:
         return False
-    if action.requires_network:
-        if not action.destination or action.destination not in token.network_scope:
-            return False
-    if action.secret_id and action.secret_id not in token.allowed_secrets:
+    if action.requires_network and (
+        not action.destination or action.destination not in token.network_scope
+    ):
         return False
-    return True
+    return not (action.secret_id and action.secret_id not in token.allowed_secrets)
