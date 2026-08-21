@@ -1,14 +1,14 @@
 # Automation OS / Frost Forge Project Consolidation
 
-Version: 2.1
+Version: 2.2
 Status: CANONICAL / HOST_V1_VERIFIED_COMPLETE
 Canonical repository: `12ephods-source/centinal26`
 Canonical production branch: `main`
-Observed production head for this refresh: `9c5e89b17eeb95b0e456f3f3428df80e7b4a9283`
+Observed production head for this refresh: `8920d6a30f2566299230be70ba26df67400e64da`
 
 ## Source-of-Truth Hierarchy
 
-1. Git history, exact-head CI evidence, durable workflow ledgers, and immutable artifacts remain primary evidence.
+1. Git history, exact-head CI evidence, durable workflow ledgers, immutable artifacts, and live connector/runtime observations remain primary evidence.
 2. This file is the canonical human-readable continuation authority for the Automation project.
 3. `automation/PROJECT_STATE.json` is the canonical machine-readable continuation state.
 4. `PROJECT_STATE_AUTOMATION_OS.md` is the concise production-state summary and must defer to the two canonical continuation records above if they diverge.
@@ -25,6 +25,10 @@ Execution transaction:
 
 `INTENT -> AUTHORIZATION -> PRECONDITIONS -> BASELINE -> BOUNDED EXECUTION -> POSTCONDITIONS -> INDEPENDENT VERIFICATION -> EVIDENCE -> STATE UPDATE -> ROLLBACK/PROMOTION`
 
+Decision-resolution transaction:
+
+`QUESTION -> CONTEXT/EVIDENCE/DEFAULTS/TOOLS -> ACTION-VALUE RANKING -> AUTHORITY CHECK -> EXECUTE IF AUTHORIZED -> VERIFY -> APPEND DECISION PROVENANCE -> CONTINUE`
+
 ## Control Plane
 
 Active canonical protocol: Frost Master Project Protocol v3.
@@ -40,6 +44,9 @@ Goal / Project Intent
         |
         v
 Project State / Productizer
+        |
+        v
+Autonomous Question Resolver
         |
         v
 Task Router / Scheduler / Queue
@@ -89,9 +96,13 @@ Deployed or represented by merged production commits:
 - Executor capability metadata and unified request contract.
 - Executor integration harness connected to CI.
 - Project Productizer -> canonical Protocol v3 provenance binding -> independent Judge verification.
+- Autonomous question resolver using the Frost action-value function, exact authority checks, objective-preserving adaptation, and append-only decision provenance.
+- Manifest-driven Automation OS Universal Installer v3.1.2 with immutable Git-blob identity checks and deployment profiles including `automation-core-current` and `device-validation`.
 - Android/Termux device-origin evidence collector and one-paste enrollment runner.
 - Controller-side physical evidence integrity/origin verifier that fails closed on host or tampered evidence.
-- CI, validate, automation-gates, federation-gates, Executor Integration Validation, and Mature Product Qualification.
+- Device/boot/enrollment-bound worker heartbeat record and controller verifier.
+- Fail-closed Termux signing-key recovery for the observed `NO_PUBKEY 5A897D96E57CF20C` environment failure.
+- CI, validate, automation-gates, federation-gates, Executor Integration Validation, Automation Validation, callable-adapter, and Mature Product Qualification.
 
 ## Canonical Software Lineage
 
@@ -106,6 +117,10 @@ Deployed or represented by merged production commits:
 - PR #196: canonical continuation consolidation — MERGED / CANONICAL STATE.
 - PR #197: durable bounded Agent Execution Plane ledger — MERGED / CANONICAL.
 - PR #200: bounded agent authority policy reconciliation — MERGED / CANONICAL.
+- PR #203: worker heartbeat activation gate and Termux keyring recovery — MERGED / CANONICAL.
+- PR #204: qualified Universal Installer v3.1.2 host software — MERGED / CANONICAL.
+- PR #206: finalized physical-gate continuation state — MERGED / CANONICAL STATE.
+- PR #205: autonomous question resolver policy — MERGED / CANONICAL.
 
 PR #197 production verification:
 - merge commit `fc1cb13696099e5cf32f43f55f7c1fc8868a31d0`;
@@ -123,6 +138,20 @@ PR #200 production verification:
 - evidence digest `20681ea2c49fbe28f04b70f4c3366ed73c09f40945f0f2f253c5d39f3aea4f76`;
 - workflow artifact #9448948270 retained with digest `sha256:7d2368ec67390701ca1ef589bfe559c5dc69d1a4025714e99c3aaf92a365c9d2`.
 
+PR #205 exact-head verification:
+- qualified head `4e603cc44ff559eda6e28cc287665fe3b6bb21ae`;
+- Python 3.11 / 3.12 / 3.13 CI PASS;
+- callable-adapter PASS;
+- Automation Validation PASS;
+- Executor Integration Validation PASS;
+- automation-gates PASS;
+- federation-gates PASS;
+- validate PASS;
+- Mature Product Qualification PASS;
+- merged as `8920d6a30f2566299230be70ba26df67400e64da`.
+
+No separate post-merge Actions run for `8920d6a30f2566299230be70ba26df67400e64da` has been observed through the available connector; do not promote that absence into a post-merge PASS or failure.
+
 ## Supersession Record
 
 Do not use PR #176, #179, #180, #182, #183, #184, #185, #186, #188, #189, or #191 for new implementation. They remain historical design/failure/reconstruction provenance only.
@@ -139,17 +168,20 @@ Mandatory distinctions:
 - host/CI PASS != physical-device PASS;
 - captured Android evidence != controller-verified enrollment != active worker;
 - integration PASS != production external-connector PASS;
+- exact-head CI PASS != unobserved post-merge CI PASS;
 - numerical/software consistency != empirical/scientific confirmation;
 - evidence existence != accessibility != acquisition != integrity != verification != interpretation;
 - absence of observed evidence != evidence of absence.
 
 ## Trust / Authority Model
 
-`config/agent_authority.json` and the canonical `src/centinal26/agent_execution_plane.py` now implement the active bounded authority policy.
+`config/agent_authority.json`, the canonical `src/centinal26/agent_execution_plane.py`, and `automation/runtime/autonomous_question_resolver.py` implement the active bounded authority and decision-resolution model.
 
 Qualified roles: Planner, Builder, Judge, SRE, Sentinel, Release.
 
 Judge and Sentinel are non-mutating by default. Planner, Builder, SRE, and Release may perform policy-authorized bounded mutations. Consequential mutations require independent Judge verification. Protected recovery-root operations remain denied. Provider authentication, account/org ownership controls, third-party authorization, credential recovery controls, and other platform-enforced boundaries remain external mandatory controls.
+
+The autonomous resolver may decide and execute A0-A2 actions automatically; an A3 action requires exact pre-existing authority for that side-effect class plus any platform confirmation; A4 remains an explicit authority boundary. Implementation details may adapt within the authorized objective, but the resolver may not silently substitute a materially different objective.
 
 ## Completed Internal Workstreams
 
@@ -161,32 +193,44 @@ PR #197 is deployed and production-verified. Reusable callers select named profi
 
 PR #200 is deployed and production-verified. Stale PR #179 is superseded and closed.
 
+### Universal Android/Termux Installer Host Software — VERIFIED_COMPLETE_HOST
+
+PR #204 is merged and host-qualified. The installer is manifest-driven, fetches registered modules from immutable Git commits, verifies expected Git blob identities, and provides canonical deployment profiles. This does not establish physical Android PASS.
+
+### Autonomous Question Resolution — VERIFIED_COMPLETE_HOST
+
+PR #205 is merged after exact-head qualification across all active host gates. It implements action-value ranking, automatic A0-A2 decision resolution, exact-authority A3 handling, fail-closed A4/platform/authentication/objective boundaries, and append-only decision provenance.
+
 ## Active Workstreams
 
 ### A. Android/Termux Physical Validation — PENDING_PHYSICAL_EVIDENCE
 
 Software now exists on `main` to:
-- perform one-paste Termux setup;
+- perform manifest-driven Termux setup;
+- install canonical deployment profiles;
 - capture Android/Termux environment and package inventory evidence;
 - generate SHA-256 manifests;
 - reject non-Android host execution as physical PASS;
-- controller-verify bundle integrity, Android-origin signals, boot ID, and package inventory.
+- controller-verify bundle integrity, Android-origin signals, boot ID, and package inventory;
+- recover the observed Termux repository signing-key failure without disabling authentication.
 
 The gate still requires execution on a real authorized Android device. Physical PASS cannot be manufactured by CI.
 
 ### B. Real Android Worker Activation — PENDING_PHYSICAL
 
-After a bundle is controller-verified as `VERIFIED_ELIGIBLE`, worker activation remains heartbeat-gated. A bounded task must then execute through the Android worker executor and produce preserved post-execution evidence before the worker path is promoted.
+After a bundle is controller-verified as `VERIFIED_ELIGIBLE`, worker activation remains heartbeat-gated. The heartbeat must bind device identity, boot ID, enrollment digest, freshness, and integrity. A bounded task must then execute through the Android worker executor and produce preserved post-execution evidence before the worker path is promoted.
 
 ### C. Production Connector Authorization — PARTIAL
 
 Repository/API executor contracts exist. Each real external connector still requires supported authentication/authorization and connector-specific live execution evidence.
 
+A live ChatGPT platform observation on 2026-08-21 showed that global plugin `full_access` was unavailable while `review_important_actions` was accepted. Treat this only as the strongest supported permission mode observed in that runtime session; it is not proof that every connector is authenticated or production-qualified.
+
 ## Release State
 
 `AUTOMATION_PLATFORM_V1_HOST = VERIFIED_COMPLETE`
 
-Verified host/CI scope includes deterministic project productization, Protocol v3 provenance, operational bounded agent execution, independent Judge verification, durable status evidence, bounded authority, runtime executor integration, and mature-product host qualification.
+Verified host/CI scope includes deterministic project productization, Protocol v3 provenance, operational bounded agent execution, autonomous decision resolution, independent Judge verification, durable status evidence, bounded authority, runtime executor integration, universal-installer host qualification, and mature-product host qualification.
 
 `AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE = PENDING_PHYSICAL_EVIDENCE`
 
@@ -197,14 +241,14 @@ Do not collapse these three states into a single global PASS.
 ## Critical Path
 
 1. Preserve this refreshed canonical state.
-2. Execute `automation/deployment/enrollment_package/termux_enroll_onepaste.sh` on one real authorized Android/Termux device.
+2. Execute the canonical universal-installer/device-evidence path on one real authorized Android/Termux device.
 3. Return and controller-verify the generated evidence bundle.
-4. Observe a valid worker heartbeat for the verified device identity/boot session.
+4. Observe a valid worker heartbeat for the verified device identity/boot session/enrollment digest.
 5. Execute one bounded Android-worker task and preserve independent post-execution evidence.
 6. Promote production connector adapters individually after connector-specific authorization and verification.
 
 ## Stop / Continuation Rule
 
-Continue automatically through available bounded implementation, tests, diagnosis, repair, exact-head qualification, integration, and promotion. Escalate only for a genuine physical/external dependency, authorization/platform boundary, falsified gate, superseded objective, or negative expected value.
+Continue automatically through available bounded implementation, tests, diagnosis, repair, exact-head qualification, integration, and promotion. Resolve operational questions from context, defaults, evidence, tools, and action-value ranking. Escalate only for a genuine physical/external dependency, authorization/platform boundary, material objective ambiguity, falsified gate, superseded objective, or negative expected value.
 
 This document and `automation/PROJECT_STATE.json` are continuation indexes, not substitutes for source evidence or Git history.
