@@ -59,6 +59,7 @@ TASK_EVENT_ALLOWED_PREVIOUS = {
         {"DISCOVERED", "READY", "AUTHORIZED", "RUNNING", "EXECUTED", "VERIFIED"}
     ),
 }
+STANDALONE_VERIFICATION_EVENTS = frozenset({"VERIFICATION_PASSED", "VERIFICATION_FAILED"})
 TERMINAL_TASK_STATES = frozenset({"COMPLETE", "FAILED", "VERIFICATION_FAILED"})
 
 
@@ -394,12 +395,19 @@ def reduce_event(state: ProjectState, event: Event) -> ProjectState:
     elif event.type in TASK_EVENT_STATUS:
         task_id = _entity_id(event, "task_id")
         if task_id not in state.tasks:
-            raise StateTransitionError(f"unknown task: {task_id}")
-        current_status = str(state.tasks[task_id].get("status"))
-        _validate_task_transition(task_id, current_status, event.type)
-        state.tasks[task_id]["status"] = TASK_EVENT_STATUS[event.type]
-        if event.payload:
-            state.tasks[task_id]["last_event"] = dict(event.payload)
+            # Verification events are also used as standalone evidence records.
+            # They are allowed only when they do not explicitly claim a task;
+            # task-bound verification remains subject to strict lifecycle order.
+            if event.type in STANDALONE_VERIFICATION_EVENTS and "task_id" not in event.payload:
+                pass
+            else:
+                raise StateTransitionError(f"unknown task: {task_id}")
+        else:
+            current_status = str(state.tasks[task_id].get("status"))
+            _validate_task_transition(task_id, current_status, event.type)
+            state.tasks[task_id]["status"] = TASK_EVENT_STATUS[event.type]
+            if event.payload:
+                state.tasks[task_id]["last_event"] = dict(event.payload)
     elif event.type == "ARTIFACT_CREATED":
         artifact_id = _entity_id(event, "artifact_id")
         state.artifacts[artifact_id] = dict(event.payload)
