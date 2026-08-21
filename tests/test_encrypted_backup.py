@@ -2,7 +2,11 @@ import os
 
 import pytest
 
-from frost_core.encrypted_backup import EncryptedBackupError, encrypt_backup, rotation_plan
+from frost_core.encrypted_backup import (
+    EncryptedBackupError,
+    encrypt_backup,
+    rotation_plan,
+)
 
 
 RECIPIENT = "age1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
