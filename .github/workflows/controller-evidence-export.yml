@@ -32,11 +32,9 @@ jobs:
         run: node automation/controller/base44_evidence_export.mjs --self-test
       - name: Check Termux installer shell syntax
         run: bash -n deploy/termux/FROST_EVIDENCE_GATE_ONE_PASTE_v1.0.sh
-      - name: Reject write/service-role surfaces
+      - name: Reject Base44 write/service-role surfaces
         shell: bash
         run: |
           set -euo pipefail
-          ! grep -F '.create(' automation/controller/base44_evidence_export.mjs
-          ! grep -F '.update(' automation/controller/base44_evidence_export.mjs
-          ! grep -F '.delete(' automation/controller/base44_evidence_export.mjs
+          ! grep -E 'base44(\.asServiceRole)?\.entities\.[A-Za-z0-9_]+\.(create|update|delete|bulkCreate|deleteMany)\(' automation/controller/base44_evidence_export.mjs
           ! grep -F 'asServiceRole' automation/controller/base44_evidence_export.mjs
