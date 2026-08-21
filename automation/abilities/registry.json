@@ -13,5 +13,39 @@
       "no_authority_expansion"
     ]
   },
-  "abilities": []
+  "abilities": [
+    {
+      "id": "frost-forge/ability-registry/v1",
+      "name": "Reusable Ability Registry",
+      "kind": "registry-tool",
+      "source": {
+        "path": "scripts/ability_registry.py",
+        "production_commit": "acdbc27b5415218ab22601bb8e7a30699b2e72a3"
+      },
+      "interface": {
+        "validate": "python scripts/ability_registry.py validate",
+        "list": "python scripts/ability_registry.py list",
+        "register": "python scripts/ability_registry.py register path/to/ability.json"
+      },
+      "verification": {
+        "exact_head": "3b7b2899cc9c342de715110012cc1d85253d9761",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_ability_registry.py"
+      },
+      "provenance": {
+        "origin": "standing Frost Forge capability-recovery rule",
+        "pull_request": 235,
+        "purpose": "discover, preserve, validate, register, and reuse bounded tools without granting new authority"
+      },
+      "lifecycle": {
+        "removal": "mark this entry SUPERSEDED in a versioned successor registry and retain provenance"
+      },
+      "status": "VERIFIED"
+    }
+  ]
 }
