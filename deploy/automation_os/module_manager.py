@@ -243,11 +243,13 @@ def verify_state() -> dict:
             item["identity_ok"] = actual == item["expected"]
         else:
             item["identity_ok"] = False
+        item["source_identity_ok"] = item["identity_ok"]
+        item["installation_state_ok"] = record.get("status") == "INSTALLED"
         item_ok = (
             item["registered"]
             and item["artifact_exists"]
-            and item["identity_ok"]
-            and record.get("status") in {"INSTALLED", "STAGED"}
+            and item["source_identity_ok"]
+            and item["installation_state_ok"]
         )
         report["ok"] = report["ok"] and item_ok
         report["modules"][name] = item
