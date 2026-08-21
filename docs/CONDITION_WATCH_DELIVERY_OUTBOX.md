@@ -1,6 +1,6 @@
 # Condition-Watch Durable Delivery Outbox
 
-Status: implementation candidate on `agent/durable-condition-watch-outbox`
+Status: implemented on `main`; lease-completion fencing is required.
 
 ## Problem
 
@@ -23,6 +23,10 @@ The repaired path is:
 - `LEGACY_UNCERTAIN` — a pre-outbox record says the old caller was told to notify, but no downstream acknowledgement evidence exists.
 
 Expired `DELIVERING` leases are reclaimable by another worker. Retryable failures return to `PENDING`.
+Every acknowledgement or failure must present the `attempt_count` captured in its
+`DeliveryClaim`, in addition to the delivery and worker identifiers. This fences a
+late completion from an expired attempt even when a restarted or concurrent worker
+reuses the same configured worker ID.
 
 ## Exactly-once scope
 

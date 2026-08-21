@@ -359,10 +359,12 @@ class ConditionWatchLedger:
         delivery_id: str,
         worker_id: str,
         *,
+        attempt_count: int,
         delivered_at: float | None = None,
     ) -> bool:
         did = self._clean(delivery_id, name="delivery_id")
         worker = self._clean(worker_id, name="worker_id")
+        attempt = self._validate_attempt_count(attempt_count)
         now = time.time() if delivered_at is None else float(delivered_at)
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -374,16 +376,19 @@ class ConditionWatchLedger:
                 raise KeyError(did)
             if row["status"] == "DELIVERED":
                 return False
-            self._require_lease(row, worker)
-            db.execute(
+            self._require_lease(row, worker, attempt)
+            updated = db.execute(
                 """
                 UPDATE condition_watch_outbox
                 SET status='DELIVERED',lease_owner=NULL,lease_until=NULL,
                     delivered_at=?,updated_at=?,last_error=NULL
-                WHERE delivery_id=?
+                WHERE delivery_id=? AND status='DELIVERING'
+                    AND lease_owner=? AND attempt_count=?
                 """,
-                (now, now, did),
+                (now, now, did, worker, attempt),
             )
+            if updated.rowcount != 1:
+                raise RuntimeError(f"delivery {did} lease changed during acknowledgement")
             db.execute(
                 """
                 UPDATE condition_watches
@@ -400,11 +405,13 @@ class ConditionWatchLedger:
         worker_id: str,
         error: str,
         *,
+        attempt_count: int,
         retryable: bool = True,
         failed_at: float | None = None,
     ) -> bool:
         did = self._clean(delivery_id, name="delivery_id")
         worker = self._clean(worker_id, name="worker_id")
+        attempt = self._validate_attempt_count(attempt_count)
         message = self._clean(error, name="error")
         now = time.time() if failed_at is None else float(failed_at)
         with self._connect() as db:
@@ -417,16 +424,19 @@ class ConditionWatchLedger:
                 raise KeyError(did)
             if row["status"] == "DELIVERED":
                 return False
-            self._require_lease(row, worker)
+            self._require_lease(row, worker, attempt)
             status = "PENDING" if retryable else "FAILED_TERMINAL"
-            db.execute(
+            updated = db.execute(
                 """
                 UPDATE condition_watch_outbox
                 SET status=?,lease_owner=NULL,lease_until=NULL,last_error=?,updated_at=?
-                WHERE delivery_id=?
+                WHERE delivery_id=? AND status='DELIVERING'
+                    AND lease_owner=? AND attempt_count=?
                 """,
-                (status, message[:4000], now, did),
+                (status, message[:4000], now, did, worker, attempt),
             )
+            if updated.rowcount != 1:
+                raise RuntimeError(f"delivery {did} lease changed during failure completion")
             db.execute(
                 """
                 UPDATE condition_watches SET delivery_state=?,updated_at=?
@@ -437,12 +447,30 @@ class ConditionWatchLedger:
             return True
 
     @staticmethod
-    def _require_lease(row: sqlite3.Row, worker_id: str) -> None:
+    def _validate_attempt_count(attempt_count: int) -> int:
+        if (
+            isinstance(attempt_count, bool)
+            or not isinstance(attempt_count, int)
+            or attempt_count <= 0
+        ):
+            raise ValueError("attempt_count must be a positive integer")
+        return attempt_count
+
+    @staticmethod
+    def _require_lease(
+        row: sqlite3.Row,
+        worker_id: str,
+        attempt_count: int,
+    ) -> None:
         if row["status"] != "DELIVERING":
             raise ValueError(f"delivery {row['delivery_id']} is not leased")
         if row["lease_owner"] != worker_id:
             raise PermissionError(
                 f"delivery {row['delivery_id']} is leased by another worker"
+            )
+        if int(row["attempt_count"]) != attempt_count:
+            raise PermissionError(
+                f"delivery {row['delivery_id']} is leased under another attempt"
             )
 
     def resolve_legacy(
