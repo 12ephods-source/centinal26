@@ -1,7 +1,13 @@
-"""Frost Automation OS agent registry updater.
+"""
+Frost Automation OS - Agent Registry Updater v1.1
 
 Consumes classified capability records and prepares registry candidates.
 No automatic trust promotion is performed.
+
+Rules:
+- Preserve provenance.
+- Avoid duplicate agent identities.
+- Keep verification separate from registration.
 """
 
 import json
@@ -30,6 +36,7 @@ def update_registry(classified_file, registry_file):
 
     registry["agents"] = list(existing.values())
     Path(registry_file).write_text(json.dumps(registry, indent=2))
+    return registry
 
 
 if __name__ == "__main__":
