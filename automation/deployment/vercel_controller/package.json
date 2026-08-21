@@ -1,0 +1,8 @@
+{
+  "name": "frost-vercel-outbound-controller",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
+}
