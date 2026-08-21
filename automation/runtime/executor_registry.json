@@ -1,10 +1,57 @@
 {
-  "schema_version": "1.0",
-  "executors": [],
+  "schema_version": "1.1",
+  "executors": [
+    {
+      "executor_id": "local_python_executor",
+      "capabilities": ["local_python"],
+      "authorization_required": true,
+      "health_required": true,
+      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "module": "automation.runtime.executors.local_python_executor"
+    },
+    {
+      "executor_id": "repository_executor",
+      "capabilities": ["repository_operation"],
+      "authorization_required": true,
+      "health_required": true,
+      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "module": "automation.runtime.executors.repository_executor"
+    },
+    {
+      "executor_id": "api_connector_executor",
+      "capabilities": ["api_connector"],
+      "authorization_required": true,
+      "health_required": true,
+      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "module": "automation.runtime.executors.api_connector_executor"
+    },
+    {
+      "executor_id": "android_worker_executor",
+      "capabilities": ["android_worker"],
+      "authorization_required": true,
+      "health_required": true,
+      "verification_status": "PENDING_PHYSICAL_WORKER",
+      "module": "automation.runtime.executors.android_worker_executor"
+    },
+    {
+      "executor_id": "agent_execution_plane",
+      "capabilities": ["bounded_agent_command"],
+      "roles": ["planner", "builder", "judge", "sre", "sentinel"],
+      "authorization_required": true,
+      "health_required": false,
+      "verification_status": "BEHAVIORAL_TESTS_PRESENT_CI_UNVERIFIED",
+      "module": "centinal26.agent_execution_plane"
+    }
+  ],
+  "request_contract": {
+    "required": ["task_id", "capability_id", "authorization_status"],
+    "authorized_value": "AUTHORIZED"
+  },
   "selection_policy": {
     "require_verified_capability": true,
     "require_authorized_executor": true,
-    "require_health_check": true
+    "require_health_check": true,
+    "require_independent_validation": true
   },
-  "status": "initialized"
+  "status": "normalized_pending_ci"
 }
