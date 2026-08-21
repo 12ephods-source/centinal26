@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 from datetime import UTC, datetime
@@ -43,6 +44,11 @@ def read_optional(path: str) -> str | None:
         return None
 
 
+def normalize_commit(value: str | None) -> str | None:
+    candidate = (value or "").strip().lower()
+    return candidate if re.fullmatch(r"[0-9a-f]{40}", candidate) else None
+
+
 def detect_android() -> dict[str, Any]:
     prefix = os.environ.get("PREFIX", "")
     signals = {
@@ -56,7 +62,7 @@ def detect_android() -> dict[str, Any]:
     return {"is_android": is_android, "signals": signals}
 
 
-def collect(device_id: str) -> dict[str, Any]:
+def collect(device_id: str, source_commit: str | None = None) -> dict[str, Any]:
     android = detect_android()
     commands = {
         "uname": run_command(["uname", "-a"]),
@@ -65,17 +71,29 @@ def collect(device_id: str) -> dict[str, Any]:
         "termux_packages": run_command(["pkg", "list-installed"]),
         "android_packages_pm": run_command(["pm", "list", "packages"]),
         "android_packages_cmd": run_command(["cmd", "package", "list", "packages"]),
+        "git_head": run_command(["git", "rev-parse", "HEAD"]),
     }
     package_sources = [
-        key for key in ("android_packages_pm", "android_packages_cmd")
-        if commands[key]["available"] and commands[key]["returncode"] == 0 and commands[key]["stdout"].strip()
+        key
+        for key in ("android_packages_pm", "android_packages_cmd")
+        if commands[key]["available"]
+        and commands[key]["returncode"] == 0
+        and commands[key]["stdout"].strip()
     ]
+    observed_commit = normalize_commit(source_commit)
+    if observed_commit is None and commands["git_head"]["returncode"] == 0:
+        observed_commit = normalize_commit(commands["git_head"]["stdout"])
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "captured_at_utc": utc_now(),
         "device_id": device_id,
         "status": "DEVICE_EVIDENCE_CAPTURED" if android["is_android"] else "HOST_ONLY_NOT_DEVICE_EVIDENCE",
         "physical_device_gate": "EVIDENCE_CAPTURED_UNVERIFIED" if android["is_android"] else "NOT_APPLICABLE_HOST",
+        "software_provenance": {
+            "repository": "12ephods-source/centinal26",
+            "source_commit": observed_commit,
+            "status": "OBSERVED" if observed_commit else "MISSING",
+        },
         "platform": {
             "system": platform.system(),
             "release": platform.release(),
@@ -89,6 +107,7 @@ def collect(device_id: str) -> dict[str, Any]:
         "claims": {
             "device_origin": "OBSERVED" if android["is_android"] else "FAILED",
             "integrity": "UNVERIFIED_UNTIL_MANIFEST_CHECK",
+            "software_provenance": "OBSERVED" if observed_commit else "MISSING",
             "enrollment": "PENDING_CONTROLLER_VERIFICATION",
             "worker_activation": "PENDING_CONTROLLER_VERIFICATION",
         },
@@ -103,6 +122,7 @@ def write_bundle(output_dir: Path, evidence: dict[str, Any]) -> None:
         "captured_at_utc": evidence["captured_at_utc"],
         "status": evidence["status"],
         "physical_device_gate": evidence["physical_device_gate"],
+        "source_commit": evidence.get("software_provenance", {}).get("source_commit"),
         "package_inventory_sources": evidence["package_inventory_sources"],
     }
     (output_dir / "validation_report.json").write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
@@ -116,13 +136,24 @@ def write_bundle(output_dir: Path, evidence: dict[str, Any]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-id", default=platform.node() or "UNKNOWN_DEVICE")
+    parser.add_argument("--source-commit")
     parser.add_argument("--output", default=None)
     args = parser.parse_args()
-    evidence = collect(args.device_id)
+    evidence = collect(args.device_id, source_commit=args.source_commit)
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     output = Path(args.output or f"guardian_physical_validation_{stamp}")
     write_bundle(output, evidence)
-    print(json.dumps({"status": evidence["status"], "output": str(output), "physical_device_gate": evidence["physical_device_gate"]}, indent=2))
+    print(
+        json.dumps(
+            {
+                "status": evidence["status"],
+                "output": str(output),
+                "physical_device_gate": evidence["physical_device_gate"],
+                "source_commit": evidence["software_provenance"]["source_commit"],
+            },
+            indent=2,
+        )
+    )
     return 0 if evidence["status"] == "DEVICE_EVIDENCE_CAPTURED" else 2
 
 
