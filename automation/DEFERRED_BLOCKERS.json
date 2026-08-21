@@ -1,0 +1,49 @@
+{
+  "schema": "frost.automation.deferred_blockers.v1",
+  "policy": {
+    "name": "DEFER_AND_CONTINUE",
+    "description": "When independent work is blocked by a genuine external, credential, physical-device, authorization, or platform boundary, record the blocker and resume condition, skip the blocked item, and continue other eligible work. Do not promote blocked work or substitute host evidence for external evidence.",
+    "allowed_blocker_classes": [
+      "EXTERNAL_PHYSICAL_EVIDENCE",
+      "BLOCKED_CREDENTIAL",
+      "AUTHORIZATION_BOUNDARY",
+      "PLATFORM_BOUNDARY",
+      "EXTERNAL_PROVISIONING",
+      "FALSIFIED_TERMINAL_GATE",
+      "SUPERSEDED",
+      "NEGATIVE_EXPECTED_VALUE"
+    ]
+  },
+  "items": [
+    {
+      "id": "vercel_controller_materialization",
+      "status": "DEFERRED_BLOCKED",
+      "blocker_class": ["BLOCKED_CREDENTIAL", "EXTERNAL_PROVISIONING"],
+      "evidence": {
+        "software_merge": "PR #227",
+        "production_commit": "e36ddbafec46d0a5d7da29b40633db5476a34a48",
+        "host_validation": "PASS",
+        "connected_vercel_projects_observed": 0
+      },
+      "resume_condition": "A usable Vercel deployment credential or externally materialized project becomes available and the controller can be deployed and /api/health independently verified.",
+      "promotion_boundary": "Merged deployment software is not evidence of a live deployment."
+    },
+    {
+      "id": "android_termux_device_validation",
+      "status": "DEFERRED_BLOCKED",
+      "blocker_class": ["EXTERNAL_PHYSICAL_EVIDENCE"],
+      "tracker_issue": 208,
+      "resume_condition": "Device-origin commissioning evidence from a real authorized Android/Termux device is available for controller verification.",
+      "promotion_boundary": "Host, CI, emulator, or queued-work evidence cannot satisfy the physical-device gate."
+    },
+    {
+      "id": "android_reboot_persistence_validation",
+      "status": "DEFERRED_BLOCKED",
+      "blocker_class": ["EXTERNAL_PHYSICAL_EVIDENCE"],
+      "tracker_issue": 208,
+      "depends_on": "android_termux_device_validation",
+      "resume_condition": "DEVICE_VALIDATED evidence exists and a real physical reboot can be observed with changed boot identity, worker return, fresh heartbeat, valid lease/event chain, and post-reboot bounded work verification.",
+      "promotion_boundary": "Device validation does not imply persistence validation."
+    }
+  ]
+}
