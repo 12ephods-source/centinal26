@@ -8,7 +8,7 @@ This is a simulation harness until real workers/connectors are enrolled.
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -39,7 +39,7 @@ class MockExecutor:
             evidence={
                 "task_id": task.task_id,
                 "executor": self.__class__.__name__,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
@@ -50,18 +50,13 @@ def run_integration_test():
         capability="test.capability",
         payload={"operation": "validation"},
     )
-
     executor = MockExecutor()
-
     assert executor.health_check()
     assert executor.can_execute(task)
-
     result = executor.execute(task)
-
     assert result.status == "SUCCESS"
     assert "evidence" not in result.evidence
     assert "task_id" in result.evidence
-
     return {
         "status": "PASS",
         "stage": "executor_integration",
