@@ -1,8 +1,8 @@
 # Automation OS Project State Consolidation
 
-Version: Consolidated Record v2.0
+Version: Consolidated Record v2.1
 Date: 2026-08-21
-Status: SOFTWARE_V1_QUALIFIED / PHYSICAL_DEVICE_GATE_PENDING
+Status: HOST_V1_VERIFIED_COMPLETE / PHYSICAL_EVIDENCE_PENDING
 
 ## Canonical Continuation Pointers
 
@@ -10,132 +10,95 @@ This file is the concise production-state summary. For continuation and agent ro
 
 - `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` — canonical human-readable continuation authority.
 - `automation/PROJECT_STATE.json` — canonical machine-readable continuation state.
-- Git history, exact-head CI evidence, and immutable artifacts remain the primary evidence if summaries diverge.
-
-## Classification
-
-Primary project: Automation OS
-Related domains: developer infrastructure, device workers, connector automation, scientific and security workflow support.
+- Git history, exact-head CI evidence, durable workflow ledgers, and immutable artifacts remain primary evidence if summaries diverge.
 
 ## Objective
 
-Build an evidence-first automation platform connecting project requirements, agents, capabilities, bounded execution, independent verification, productization, device workers, connectors, and auditable evidence.
+Operate an evidence-first automation platform connecting project requirements, qualified agents, bounded authority, capabilities, execution, independent verification, productization, device workers, connectors, and auditable evidence.
 
 ## Canonical Software Lineage
 
-The active Automation Platform v1 lineage on `main` is:
+The active Automation Platform v1 lineage includes:
 
-1. PR #190 — deployed the Planner/Builder/Judge/SRE/Sentinel bounded agent execution plane.
-2. PR #192 — made the agent execution path event-driven and failure-complete.
-3. PR #193 — normalized runtime executor contracts, registered capability metadata, bound executor integration to the canonical agent plane, and qualified the combined execution path.
-4. PR #194 — bound Project Productizer output to the canonical Frost Master Project Protocol v3 with SHA-256 provenance and added Productizer-to-Judge end-to-end verification.
+1. PR #190 — bounded Planner/Builder/Judge/SRE/Sentinel execution plane.
+2. PR #192 — event-driven, failure-complete execution.
+3. PR #193 — normalized runtime executor contracts and executor integration.
+4. PR #194 — Productizer -> Protocol v3 provenance -> Judge end-to-end closure.
+5. PR #196 — canonical continuation-state consolidation.
+6. PR #197 — durable bounded agent execution ledger and named workflow profiles.
+7. PR #200 — current-runtime authority policy reconciliation and Release role semantics.
 
-Historical execution-plane alternatives were preserved in GitHub but closed after being superseded by this lineage.
+Stale alternatives remain provenance and are not active deployment paths.
 
 ## Verified Software State
 
-### Control and orchestration
+### Agent/runtime control
 
-- Agent, capability, device, and connector registries exist.
-- Authorization policy, scheduler, task routing, runtime queue, retry policy, and workflow state exist.
-- Runtime executors use the normalized request contract: `task_id`, `capability_id`, `authorization_status`.
-- Local Python, repository, API connector, Android worker, and canonical agent-plane executor entries are registered with explicit validation states.
+- Roles: Planner, Builder, Judge, SRE, Sentinel, Release.
+- Reusable agent workflow exposes named profiles rather than arbitrary reusable command input.
+- Task and evidence SHA-256 digests are preserved.
+- Durable issue #199 records the latest production agent execution state.
+- Judge and Sentinel are non-mutating by default.
+- Consequential mutations require independent Judge verification.
+- Expanded recovery-root operations remain denied.
+- Provider authentication, credential recovery, account ownership, and third-party authorization remain external boundaries.
 
-### Canonical agent execution plane
+### Production verification
 
-- Roles: Planner, Builder, Judge, SRE, Sentinel.
-- Bounded subprocess timeout.
-- Root-deny capabilities for account ownership, credential root, audit destruction, and backup destruction.
-- Task and evidence SHA-256 digests.
-- Explicit PASS/FAIL/blocked/error evidence states.
-- Behavioral tests and GitHub Actions integration.
+PR #197 production push verification:
+- merge commit `fc1cb13696099e5cf32f43f55f7c1fc8868a31d0`;
+- Judge `agent-tests` PASS;
+- durable issue #199 created;
+- machine evidence artifact retained.
 
-### Evidence and verification
+PR #200 production push verification:
+- merge commit `883673d8ae03be09d0db0cc646e9a0c7b4ab692a`;
+- run `32488911036`;
+- Judge `agent-tests` PASS;
+- 9 tests PASS;
+- evidence artifact #9448948270 retained with SHA-256 digest.
 
-- Execution evidence generation exists.
-- Result validation remains independent of execution.
-- Executor integration tests exercise real repository components rather than a mock-only path.
-- Productizer output records canonical protocol provenance and SHA-256.
-- End-to-end Productizer -> generated artifacts -> Judge verification is covered by the qualified test suite.
+### Physical-validation software
 
-## Qualification Evidence
+Current `main` also contains:
+- one-paste Termux enrollment/evidence runner;
+- fail-closed Android device-origin evidence collector;
+- SHA-256 bundle manifest generation;
+- controller-side bundle integrity/origin verifier;
+- host/tamper rejection tests.
 
-PR #193 exact-head qualification completed successfully across:
+These software capabilities do not themselves establish physical-device PASS.
 
-- CI
-- Automation Validation
-- Executor Integration Validation
-- automation-gates
-- federation-gates
-- Mature Product Qualification
-- validate
+## Release State
 
-PR #194 exact-head qualification completed successfully across:
+DONE / VERIFIED HOST SOFTWARE:
+- Automation Platform v1 host/CI vertical slice.
+- Durable bounded agent execution and status evidence.
+- Bounded authority policy.
+- Runtime executor integration.
+- Productizer-to-Judge end-to-end verification.
+- Android physical-evidence capture and controller-verification software.
 
-- CI on Python 3.11, 3.12, and 3.13
-- callable-adapter
-- automation-gates
-- federation-gates
-- Mature Product Qualification
-- validate
+PENDING PHYSICAL EVIDENCE:
+- Execute enrollment/evidence capture on a real authorized Android/Termux device.
+- Controller-verify the returned bundle.
+- Observe a valid worker heartbeat.
+- Execute one bounded Android-worker task and preserve post-execution evidence.
 
-These results qualify the repository software state represented by those commits. They do not imply physical Android or production third-party connector validation.
-
-## Device and Connector Boundary
-
-### Implemented software
-
-- Device enrollment schema/client.
-- Heartbeat and worker lifecycle models.
-- Android inventory collection and capability pipeline.
-- Android executor contract.
-- Connector registry, adapter interface, authorization policy, and health model.
-
-### Pending external evidence
-
-Physical phones are not yet verified as enrolled workers because no physical-device manifest/heartbeat/inventory evidence has been acquired by this repository workflow.
-
-Third-party connectors are not production-authorized merely because adapter scaffolds exist. Real connectors require their supported authentication/permission flow and connector-specific verification.
-
-Continuous background execution by the ChatGPT conversation itself is not a property of the repository and is not claimed.
-
-## Current State Categories
-
-DONE / VERIFIED SOFTWARE:
-
-- Automation Platform v1 canonical software lineage.
-- Bounded multi-role agent execution plane.
-- Runtime executor contract unification.
-- Executor/evidence/validator integration.
-- CI and maturity qualification for merged v1 closure changes.
-- Canonical protocol provenance in Project Productizer.
-- End-to-end Productizer-to-Judge verification.
-
-BLOCKED_EXTERNAL_DEVICE:
-
-- Physical Android worker enrollment and heartbeat verification.
-- Real installed-app inventory ingestion from each phone.
-
-PENDING_CONNECTOR_AUTHORIZATION:
-
-- Production authentication and permission for specific external applications/services.
-- Connector-specific end-to-end execution verification.
-
-NOT CLAIMED:
-
-- Physical-device PASS.
-- Production third-party connector PASS.
-- Unrestricted autonomous device or account control.
+PENDING CONNECTOR AUTHORIZATION:
+- Production authentication/permission for each external application/service.
+- Connector-specific live execution verification.
 
 ## Core Invariants
 
 - Discovery does not equal authorization.
 - Installed software does not equal an active worker.
+- Captured evidence does not equal verified enrollment.
+- Verified enrollment does not equal active worker heartbeat.
 - Execution does not equal success.
-- CI/integration PASS does not equal physical-device or production PASS.
-- Absence of acquired physical evidence is not evidence that the physical capability is absent.
-- Failed and superseded branches remain provenance rather than being rewritten as successes.
+- Host/CI PASS does not equal physical-device or production-connector PASS.
+- Absence of acquired evidence is not evidence that the capability or evidence is absent.
 
-## Reopening Condition
+## Current Reopening Condition
 
-The next material external project gate opens when at least one authorized physical phone executes the enrollment worker and returns a verifiable device manifest, heartbeat, and inventory package. Internal software work may continue on the durable execution ledger and authority-policy reconciliation before that physical gate.
+The next material external gate opens when one authorized physical Android/Termux device executes `automation/deployment/enrollment_package/termux_enroll_onepaste.sh` and returns the generated evidence bundle. The controller verifier must accept that bundle before worker heartbeat or execution promotion.
