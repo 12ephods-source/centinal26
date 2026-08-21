@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 Json = dict[str, Any]
 
@@ -10,7 +11,7 @@ Json = dict[str, Any]
 def load_source(path: str | Path) -> Json:
     value = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(value, dict):
-        raise ValueError("continuity schema source must be a JSON object")
+        raise TypeError("continuity schema source must be a JSON object")
     if value.get("schema") != "frost.automation.continuity_model_source.v1":
         raise ValueError("unsupported continuity schema source")
     if not isinstance(value.get("entity_types"), list) or not value["entity_types"]:
