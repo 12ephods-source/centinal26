@@ -4,31 +4,15 @@ Version: Consolidated Record v2.3
 Date: 2026-08-21
 Status: HOST_V1_VERIFIED_COMPLETE / PHYSICAL_GATE_EXTERNAL / GITHUB_CONNECTOR_VERIFIED
 
-## Canonical Continuation Pointers
+Canonical records: `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` and `automation/PROJECT_STATE.json`. Git history, exact-head CI, durable ledgers, immutable artifacts, and external-gate issues remain primary evidence.
 
-- `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` — canonical human-readable continuation authority.
-- `automation/PROJECT_STATE.json` — canonical machine-readable continuation state.
-- Git history, exact-head CI evidence, durable workflow ledgers, immutable artifacts, and external-gate issues are primary evidence.
-
-Frozen verified host baseline: `9446a7afb214e413d1fbb87f09781272fac350c6`.
+Observed verified host production head before this state PR: `8920d6a30f2566299230be70ba26df67400e64da`.
 
 ## Verified Host State
 
-Production includes:
+Production includes Protocol v3, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, durable agent evidence issue #199, runtime executor contracts, universal Termux installer, fail-closed module manager, Android evidence capture/controller verification, worker heartbeat record/controller verification software, pinned Termux keyring recovery, and the autonomous question resolver for authorized resolvable A0-A2 decisions.
 
-- Frost Master Project Protocol v3.
-- Project Productizer -> Protocol v3 provenance -> independent Judge E2E path.
-- Planner / Builder / Judge / SRE / Sentinel / Release execution semantics.
-- Bounded authority with protected recovery-root deny policy and independent Judge gate for consequential mutation.
-- Durable Agent Execution Plane status issue #199 and retained machine evidence.
-- Runtime executor registry and local/repository/API/Android-worker contracts.
-- Manifest-driven universal Android/Termux installer with immutable module registry and fail-closed module manager.
-- Android/Termux device evidence capture and controller verifier.
-- Physical worker heartbeat record/verifier software with device, boot, enrollment-digest, freshness, Android/Termux-signal, and SHA-256 binding.
-- Pinned Termux keyring recovery.
-- Qualified CI and maturity gates.
-
-PR #206 exact-head state qualification passed CI, Automation Validation, validate, automation-gates, federation-gates, and Mature Product Qualification before merge to the frozen host baseline.
+PR #205 exact head `4e603cc44ff559eda6e28cc287665fe3b6bb21ae` passed CI, Automation Validation, Executor Integration Validation, validate, automation-gates, federation-gates, and Mature Product Qualification. A4 and unresolved authorization/platform/unknown-data boundaries remain fail-closed.
 
 ## Release State
 
@@ -40,39 +24,26 @@ PR #206 exact-head state qualification passed CI, Automation Validation, validat
 
 ## Physical Gate
 
-Issue #208 is the canonical physical-device tracker.
+Issue #208 is canonical. Required next evidence: real Android/Termux capture -> controller bundle verification -> heartbeat bound to verified enrollment and boot session -> controller heartbeat verification -> one bounded Android-worker task -> preserved independent Judge evidence.
 
-Remaining evidence must originate from a real authorized Android/Termux device:
-
-1. Execute the current one-paste enrollment/evidence runner.
-2. Preserve the evidence bundle.
-3. Controller-verify bundle hashes, Android-origin invariants, boot ID, package inventory, and enrollment eligibility.
-4. Emit and controller-verify a heartbeat bound to the verified enrollment digest and boot session.
-5. Execute one harmless bounded Android-worker task.
-6. Preserve task/evidence digests and independent Judge result.
-
-Host PASS, device capture, verified enrollment, active heartbeat, and worker execution are separate states.
+Host PASS, device capture, verified enrollment, verified heartbeat, and worker execution remain separate states.
 
 ## Connector Gate
 
-Issue #209 is the connector qualification matrix.
+Issue #209 tracks connectors individually. GitHub is `VERIFIED_LIVE_READ_WRITE` for the currently authorized `12ephods-source/centinal26` repository scope. The repository API connector executor is `VERIFIED_SOFTWARE`; other target services remain connector-specific.
 
-The live GitHub connector is `VERIFIED_LIVE_READ_WRITE` for the currently authorized `12ephods-source/centinal26` scope. The repository `api_connector_executor` is `VERIFIED_SOFTWARE`; target authorization remains connector-specific.
-
-Other services remain partial until they cross:
-
-`ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`.
+Qualification ladder: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`.
 
 ## Core Invariants
 
-- Installed != authorized.
-- Queued != executed != verified.
-- Host/CI PASS != physical-device PASS.
-- Captured device evidence != verified enrollment != active worker.
-- Verified heartbeat software != real-device heartbeat.
-- One connector verified != all connectors verified.
-- Absence of observed evidence != evidence of absence.
+- installed != authorized;
+- queued != executed != verified;
+- host PASS != physical-device PASS;
+- captured evidence != verified enrollment != active worker;
+- verified heartbeat software != real-device heartbeat;
+- one connector verified != all connectors verified;
+- absence of observed evidence != evidence of absence.
 
-## Current Critical Path
+## Critical Path
 
-`real device capture -> controller verification -> verified heartbeat -> bounded Android worker execution -> remaining connector qualification -> final exact-head release state`
+`real device capture -> controller verification -> verified heartbeat -> bounded Android-worker execution -> remaining connector qualification -> final exact-head release state`
