@@ -1,9 +1,9 @@
 {
   "schema": "frost.automation.source_index.v1",
-  "version": "2.8",
+  "version": "2.9",
   "repository": "12ephods-source/centinal26",
   "canonical_branch": "main",
-  "snapshot_head": "5b4557294386c2791c5b1b3977ca3ea70f2b158d",
+  "snapshot_head": "e69a88ebbe15237d96b665bc86951c009d80caf5",
   "policy": {
     "production_rule": "Only content merged to canonical main is production source unless an immutable source commit is explicitly pinned for a physical or compatibility gate.",
     "open_pr_rule": "Open pull requests and their branches are candidates, not production source.",
@@ -11,13 +11,22 @@
     "history_rule": "Historical branches and superseded scripts remain available through Git history; source cleanup must preserve provenance and must not erase evidence, failed states, or superseded states.",
     "external_project_rule": "Physics and external product work in this repository is not Automation runtime source unless separately promoted through an Automation integration decision.",
     "file_library_rule": "A File Library artifact is not a fresh-phone canonical module until exact complete bytes are published to an immutable source and registered with validation metadata.",
-    "control_plane_rule": "Base44 and other connected services may hold coordination/evidence state but do not replace Git main as canonical software source."
+    "control_plane_rule": "Base44 and other connected services may hold coordination/evidence state but do not replace Git main as canonical software source.",
+    "defer_and_continue_rule": "When a work item hits a genuine external, credential, physical-device, authorization, platform, falsification, supersession, or negative-value boundary, record the blocker and resume condition in automation/DEFERRED_BLOCKERS.json, skip that item, and continue independent eligible work without promoting the blocked state."
   },
   "canonical_state_records": [
     "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md",
     "automation/PROJECT_STATE.json",
-    "PROJECT_STATE_AUTOMATION_OS.md"
+    "PROJECT_STATE_AUTOMATION_OS.md",
+    "automation/SOURCE_INDEX.json",
+    "automation/DEFERRED_BLOCKERS.json"
   ],
+  "canonical_deferred_blockers": {
+    "registry": "automation/DEFERRED_BLOCKERS.json",
+    "policy": "DEFER_AND_CONTINUE",
+    "resume_rule": "Resume a deferred item only when its recorded resume condition becomes observable; otherwise leave it deferred and continue independent work.",
+    "promotion_boundary": "Deferred or blocked work is never promoted by substitution, inference, host-only evidence, or queue presence."
+  },
   "canonical_software_roots": [
     "automation/",
     "src/centinal26/",
