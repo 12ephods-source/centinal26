@@ -1,12 +1,13 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "executors": [
     {
       "executor_id": "local_python_executor",
       "capabilities": ["local_python"],
       "authorization_required": true,
       "health_required": true,
-      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "verification_status": "HOST_INTEGRATION_VERIFIED",
+      "verification_evidence": "automation/runtime/tests/executor_integration_test.py",
       "module": "automation.runtime.executors.local_python_executor"
     },
     {
@@ -14,7 +15,8 @@
       "capabilities": ["repository_operation"],
       "authorization_required": true,
       "health_required": true,
-      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "verification_status": "HOST_INTEGRATION_VERIFIED",
+      "verification_evidence": "automation/runtime/tests/executor_integration_test.py",
       "module": "automation.runtime.executors.repository_executor"
     },
     {
@@ -22,7 +24,8 @@
       "capabilities": ["api_connector"],
       "authorization_required": true,
       "health_required": true,
-      "verification_status": "IMPLEMENTED_PENDING_CI",
+      "verification_status": "HOST_INTEGRATION_VERIFIED_TARGET_AUTHORIZATION_SEPARATE",
+      "verification_evidence": "automation/runtime/tests/executor_integration_test.py",
       "module": "automation.runtime.executors.api_connector_executor"
     },
     {
@@ -30,7 +33,9 @@
       "capabilities": ["android_worker"],
       "authorization_required": true,
       "health_required": true,
-      "verification_status": "PENDING_PHYSICAL_WORKER",
+      "verification_status": "HOST_CONTRACT_VERIFIED_PHYSICAL_WORKER_PENDING",
+      "verification_evidence": "automation/runtime/tests/executor_integration_test.py",
+      "physical_requirement": "GitHub issue #208 Phase A commissioning and bounded worker evidence",
       "module": "automation.runtime.executors.android_worker_executor"
     },
     {
@@ -39,7 +44,8 @@
       "roles": ["planner", "builder", "judge", "sre", "sentinel"],
       "authorization_required": true,
       "health_required": false,
-      "verification_status": "BEHAVIORAL_TESTS_PRESENT_CI_UNVERIFIED",
+      "verification_status": "HOST_BEHAVIORAL_AND_INTEGRATION_VERIFIED",
+      "verification_evidence": "tests/test_agent_execution_plane.py and automation/runtime/tests/executor_integration_test.py",
       "module": "centinal26.agent_execution_plane"
     }
   ],
@@ -53,5 +59,5 @@
     "require_health_check": true,
     "require_independent_validation": true
   },
-  "status": "normalized_pending_ci"
+  "status": "HOST_INTEGRATION_VERIFIED_ANDROID_PENDING_PHYSICAL"
 }
