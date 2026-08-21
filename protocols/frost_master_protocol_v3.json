@@ -1,0 +1,61 @@
+{
+  "protocol_id": "frost-master-project-protocol",
+  "version": "3.0",
+  "status": "candidate",
+  "protocol_file": "protocols/FROST_MASTER_PROJECT_PROTOCOL_v3.md",
+  "optimization_target": "maximum_verified_autonomous_progress",
+  "terminal_states": [
+    "VERIFIED_COMPLETE",
+    "EXTERNAL_BLOCKER",
+    "AUTHORIZATION_OR_PLATFORM_BOUNDARY",
+    "FALSIFIED_TERMINAL_GATE",
+    "SUPERSEDED",
+    "NEGATIVE_EXPECTED_VALUE"
+  ],
+  "default_lifecycle": [
+    "BUILD",
+    "TEST",
+    "DIAGNOSE",
+    "REPAIR",
+    "RETEST",
+    "INDEPENDENT_VERIFY",
+    "INTEGRATE",
+    "DEPLOY",
+    "VERIFY_DEPLOYMENT"
+  ],
+  "agent_roles": [
+    "planner",
+    "builder",
+    "judge",
+    "sre",
+    "sentinel",
+    "release"
+  ],
+  "selection_factors": [
+    "verified_task_performance",
+    "task_fit",
+    "evidence_quality",
+    "latency_cost",
+    "independence_value"
+  ],
+  "anti_loop_key": [
+    "objective_state",
+    "task",
+    "attempted_solution",
+    "error_signature",
+    "relevant_environment"
+  ],
+  "compact_agent_record": [
+    "goal",
+    "gate",
+    "state",
+    "action",
+    "evidence",
+    "result",
+    "confidence",
+    "blocker",
+    "next_action"
+  ],
+  "timestamp_format": "YYYY-MM-DD HH:MM:SS UTC±HH:MM",
+  "hash_algorithm": "sha256"
+}
