@@ -1,4 +1,3 @@
-import json
 from importlib import util
 from pathlib import Path
 
@@ -53,7 +52,7 @@ def test_bundle_manifest_hashes_are_self_consistent(tmp_path):
         "package_inventory_sources": ["android_packages_pm"],
     }
     module.write_bundle(tmp_path, evidence)
-    manifest = json.loads((tmp_path / "MANIFEST.sha256.json").read_text())
+    manifest = module.json.loads((tmp_path / "MANIFEST.sha256.json").read_text())
     assert set(manifest["files"]) == {"device_evidence.json", "validation_report.json"}
     for name, expected in manifest["files"].items():
         assert module.sha256_file(tmp_path / name) == expected
