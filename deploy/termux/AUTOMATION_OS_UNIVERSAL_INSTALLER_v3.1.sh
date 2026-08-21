@@ -7,10 +7,10 @@ REF="${FROST_AUTOMATION_REF:-agent/automation-os-universal-installer-v3}"
 RAW="https://raw.githubusercontent.com/12ephods-source/centinal26/$REF"
 PROFILE="${AUTOMATION_OS_PROFILE:-${1:-bootstrap}}"
 MGR_SHA256="2e4bcb3b85a8b9d405d43a2ee83fceac7d12b49742949359184b24c1e8d35219"
-REG_SHA256="ccba5f16b54a263e887ae634742cbe8416e5ae55f865ee9554fb8246641cdfd5"
+REG_SHA256="0a5999137378cdab0dbea0f6f189a352bb926ba27486fc452d48ee64429c478d"
 
-say(){ printf '[automation-os-v3.1.1] %s\n' "$*"; }
-die(){ printf '[automation-os-v3.1.1] ERROR: %s\n' "$*" >&2; exit 1; }
+say(){ printf '[automation-os-v3.1.2] %s\n' "$*"; }
+die(){ printf '[automation-os-v3.1.2] ERROR: %s\n' "$*" >&2; exit 1; }
 
 case "${PREFIX:-}" in *com.termux*) ;; *) die "Run this inside Termux on Android.";; esac
 pkg update -y
