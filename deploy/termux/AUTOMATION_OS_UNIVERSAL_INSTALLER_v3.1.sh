@@ -1,0 +1,52 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -Eeuo pipefail
+umask 077
+
+ROOT="${AUTOMATION_OS_ROOT:-$HOME/AutomationOS}"
+REF="${FROST_AUTOMATION_REF:-agent/automation-os-universal-installer-v3}"
+RAW="https://raw.githubusercontent.com/12ephods-source/centinal26/$REF"
+PROFILE="${AUTOMATION_OS_PROFILE:-${1:-bootstrap}}"
+MGR_SHA256="8e6276cecbbd7cd045f0f6cde44c763f5ba9c6f3cfe9ffd84beb705f9df2fbf8"
+REG_SHA256="ccba5f16b54a263e887ae634742cbe8416e5ae55f865ee9554fb8246641cdfd5"
+
+say(){ printf '[automation-os-v3.1] %s\n' "$*"; }
+die(){ printf '[automation-os-v3.1] ERROR: %s\n' "$*" >&2; exit 1; }
+
+case "${PREFIX:-}" in *com.termux*) ;; *) die "Run this inside Termux on Android.";; esac
+pkg update -y
+pkg install -y python curl coreutils git jq sqlite
+
+mkdir -p "$ROOT"/{bin,registry,state,cache,modules,logs,projects,config}
+curl -fsSL "$RAW/deploy/automation_os/module_manager.py" -o "$ROOT/bin/module_manager.py"
+curl -fsSL "$RAW/deploy/automation_os/registry.json" -o "$ROOT/registry/registry.json"
+
+echo "$MGR_SHA256  $ROOT/bin/module_manager.py" | sha256sum -c -
+echo "$REG_SHA256  $ROOT/registry/registry.json" | sha256sum -c -
+python -m py_compile "$ROOT/bin/module_manager.py"
+
+cat > "$ROOT/config/RESPONSE_POLICY.txt" <<'EOF'
+Begin substantive responses with:
+Yes, I would be happy to help you with that request,...
+
+End full detailed responses with:
+Would you like to continue automatically using all tools, apps, and programs without asking again for as long as possible?.
+EOF
+
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/frost-install" <<EOF
+#!/usr/bin/env bash
+exec python "$ROOT/bin/module_manager.py" "\$@"
+EOF
+chmod 700 "$HOME/.local/bin/frost-install" "$ROOT/bin/module_manager.py"
+
+AUTOMATION_OS_ROOT="$ROOT" python "$ROOT/bin/module_manager.py" self-test
+
+if [[ "$PROFILE" != "bootstrap" ]]; then
+  say "Installing profile: $PROFILE"
+  AUTOMATION_OS_ROOT="$ROOT" python "$ROOT/bin/module_manager.py" install "$PROFILE"
+else
+  say "Framework installed without executing project modules."
+fi
+
+say "Installed at $ROOT"
+say "Use: $HOME/.local/bin/frost-install list"
