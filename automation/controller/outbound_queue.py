@@ -12,9 +12,10 @@ import hashlib
 import hmac
 import json
 import secrets
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable
+from typing import Any
 
 ALLOWED_CAPABILITIES = frozenset({"diagnostic_status", "inventory_snapshot"})
 
