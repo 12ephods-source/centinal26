@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "automation" / "library_cleaner_state.json"
 REGISTRY_PATH = ROOT / "automation" / "abilities" / "registry.json"
