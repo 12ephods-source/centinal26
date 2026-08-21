@@ -90,6 +90,36 @@
         "removal": "mark this entry SUPERSEDED in a versioned successor registry and retain provenance"
       },
       "status": "VERIFIED"
+    },
+    {
+      "id": "termux/repository-recovery/v1",
+      "name": "Bounded Termux repository recovery",
+      "kind": "remediation-tool",
+      "source": {
+        "path": "deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh",
+        "lineage_pr": 86,
+        "reconstruction_branch": "feature/termux-repository-recovery-ability"
+      },
+      "interface": {
+        "doctor": "bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --doctor",
+        "repair": "FROST_ALLOW_PACKAGE_REPAIR=1 bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --repair",
+        "rollback": "FROST_ALLOW_PACKAGE_REPAIR=1 bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --rollback <repair-dir>"
+      },
+      "verification": {
+        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "tests": "tests/test_termux_repository_recovery_ability.py",
+        "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
+      },
+      "provenance": {
+        "origin": "bounded repository-recovery extraction from historical PR #86",
+        "upstream_source_policy_checked": "2026-08-21",
+        "authority_boundary": "repair and rollback require explicit local environment authorization; no signature bypass and no trust-root import"
+      },
+      "lifecycle": {
+        "rollback": "every repair preserves the pre-change apt source tree and automatically restores it after failed update/refresh paths",
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
+      },
+      "status": "EXPERIMENTAL"
     }
   ]
 }
