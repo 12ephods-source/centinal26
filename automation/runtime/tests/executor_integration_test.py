@@ -8,7 +8,7 @@ This is a simulation harness until real workers/connectors are enrolled.
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -39,7 +39,7 @@ class MockExecutor:
             evidence={
                 "task_id": task.task_id,
                 "executor": self.__class__.__name__,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
