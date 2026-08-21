@@ -5,7 +5,6 @@ from pathlib import Path
 
 from frost_core import continuity_schema
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "automation" / "continuity_schema_source.json"
 SCHEMA = ROOT / "schemas" / "continuity_migration_proposal.schema.json"
