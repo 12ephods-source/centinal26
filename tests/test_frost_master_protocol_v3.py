@@ -1,5 +1,5 @@
-import json
 from pathlib import Path
+import json
 
 
 PROTOCOL_MD = Path("protocols/FROST_MASTER_PROJECT_PROTOCOL_v3.md")
