@@ -32,11 +32,17 @@
       "mirrors": ["release validation ledger"],
       "forbidden": ["executor self-certification", "exit-code-only success"]
     },
-    "evidence_and_audit": {
-      "authority": "immutable evidence objects plus append-only provenance/audit ledger",
-      "writers": ["evidence acquisition", "canonical audit append"],
+    "evidence": {
+      "authority": "immutable evidence objects bound to source identity and content hash",
+      "writers": ["canonical evidence acquisition/ingestion path"],
       "mirrors": ["reports", "summaries", "provider metadata"],
-      "forbidden": ["summary replacing raw evidence", "silent history rewrite"]
+      "forbidden": ["summary replacing raw evidence", "silent evidence-byte replacement"]
+    },
+    "audit": {
+      "authority": "append-only provenance/audit ledger",
+      "writers": ["canonical audit append path"],
+      "mirrors": ["audit reports", "release validation ledger"],
+      "forbidden": ["silent history rewrite", "mutable replacement of prior audit events"]
     },
     "release_promotion": {
       "authority": "releases/RELEASE_CONTRACT.json plus exact evidence gates",
@@ -54,5 +60,5 @@
     "conversation/reconciler",
     "other provider integrations"
   ],
-  "adapter_rule": "Adapters may discover, transport, stage, execute registered capabilities when authorized, or mirror state; they do not own canonical project state, authorization, verification, or release promotion."
+  "adapter_rule": "Adapters may discover, transport, stage, execute registered capabilities when authorized, or mirror state; they do not own canonical project state, authorization, verification, evidence identity, audit history, or release promotion."
 }
