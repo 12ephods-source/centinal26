@@ -1,63 +1,28 @@
 # Automation OS / Frost Forge Project Consolidation
 
-Version: 2.4
-Status: CANONICAL / HOST_V1_VERIFIED_COMPLETE / PHYSICAL_GATE_EXTERNAL
+Version: 2.5
+Status: CANONICAL / HOST_V1_VERIFIED_COMPLETE / PHYSICAL_AND_PERSISTENCE_GATES_EXTERNAL
 Repository: `12ephods-source/centinal26`
 Canonical branch: `main`
-Observed verified production head for this refresh: `d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2`
+Observed verified production head for this refresh: `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`
 
 ## Source of Truth
 
-Primary evidence is Git history, exact-head CI, durable workflow ledgers, immutable artifacts, and explicit external-gate issues. This file is the canonical human continuation authority; `automation/PROJECT_STATE.json` is the machine continuation state; `PROJECT_STATE_AUTOMATION_OS.md` is the concise summary.
+Primary evidence is Git history, exact-head CI, durable workflow ledgers, immutable artifacts, explicit external-gate issues, and the live Base44 physical-gate records. This file is the canonical human continuation authority; `automation/PROJECT_STATE.json` is the machine continuation state; `PROJECT_STATE_AUTOMATION_OS.md` is the concise summary.
 
 ## Terminal Objective
 
-Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving authorization, recovery-root, physical-validation, provenance, and connector boundaries.
+Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving authorization, recovery-root, physical-validation, persistence, provenance, and connector boundaries.
 
 ## Canonical Pipeline
 
 `Intent -> Authorization -> Event/Queue -> Capability Selection -> Bounded Execution -> Verification -> Evidence/Audit -> State Update -> Controlled Evolution`
 
-## Control Plane
+## Verified Host State
 
-Frost Master Project Protocol v3 is canonical. Production roles are Planner, Builder, Judge, SRE, Sentinel, and Release. Judge and Sentinel are non-mutating by default; consequential mutations require independent Judge verification; protected recovery-root operations remain denied.
+Production includes Frost Master Project Protocol v3, deterministic governance, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, durable execution evidence, runtime executor contracts, the universal Termux installer, fail-closed module management, exact-source-bound Android evidence capture, controller enrollment verification, the canonical enrollment digest, worker heartbeat generation/verification, and one-run physical commissioning verification.
 
-PR #205 adds the autonomous question resolver for resolvable authorized A0-A2 decisions. A4, authorization/platform boundaries, and unknown-data boundaries remain fail-closed.
-
-The production baseline also includes deterministic governance invariants and schemas at commit `d369e0015963dbcf1b336c5d124fac6376fee91e`.
-
-## Verified Host Capabilities
-
-- Project Productizer with Protocol v3 provenance and independent Judge E2E validation.
-- Qualified multi-role Agent Execution Plane with durable issue #199 and retained task/evidence artifacts.
-- Named bounded reusable workflow profiles instead of arbitrary reusable command input.
-- Bounded authority policy, recovery-root deny policy, deterministic governance invariants, and independent Judge gate.
-- Runtime executor registry and local/repository/API/Android-worker contracts.
-- Manifest-driven universal Android/Termux installer with immutable module registry and fail-closed module manager.
-- Android/Termux device evidence capture, SHA-256 manifests, controller verification, and exact source-commit provenance binding.
-- Physical worker heartbeat record/controller verifier with device, boot, enrollment-digest, freshness, Android/Termux-signal, and record-hash binding.
-- Canonical `enrollment_digest` emitted only after successful controller verification, defined as SHA-256 of verified `MANIFEST.sha256.json`.
-- Pinned Termux keyring recovery path.
-- Autonomous question resolver for authorized resolvable A0-A2 decisions.
-
-## Canonical Lineage
-
-Active production lineage includes PRs #174, #177, #181, #190, #192, #193, #194, #196, #197, #200, #203, #204, #205, #206, #210, #213, and #214.
-
-PR #213 hardened the physical gate by binding device evidence to the exact executed Centinal26 commit and allowing controller rejection of wrong-revision bundles. All six exact-head qualification suites passed before merge.
-
-PR #214 completed the enrollment-to-heartbeat handoff by emitting the verified manifest SHA-256 as the canonical `enrollment_digest`. All six exact-head qualification suites passed before merge. Production commit: `d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2`.
-
-Superseded alternatives remain provenance only; accidental redundant PR #207 is closed and not part of the active path.
-
-## Durable Evidence
-
-Agent runtime verification after PR #200: run `32488911036`, issue #199, Judge `agent-tests` PASS, 9 tests PASS, task digest `984878fc3193a34e180ae46bdde81d3458fbe139c7043a2c257193a404d05743`, evidence digest `20681ea2c49fbe28f04b70f4c3366ed73c09f40945f0f2f253c5d39f3aea4f76`, artifact #9448948270 digest `sha256:7d2368ec67390701ca1ef589bfe559c5dc69d1a4025714e99c3aaf92a365c9d2`.
-
-External trackers:
-- issue #208 — Android/Termux physical qualification gate, pinned to production physical-gate revision `d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2`;
-- issue #209 — connector qualification matrix;
-- issue #199 — durable agent execution status.
+PR #217 is the current physical-commissioning software baseline. It merged as `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16` after all exact-head qualification suites passed. The pinned Android run now emits both enrollment evidence and a heartbeat bound to `sha256(MANIFEST.sha256.json)`; `verify_physical_commissioning.py` verifies the returned ZIP end to end.
 
 ## Release State
 
@@ -65,22 +30,36 @@ External trackers:
 
 `AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE = BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE`
 
+`AUTOMATION_PLATFORM_V1_PERSISTENCE = BLOCKED_ON_DEVICE_VALIDATED_AND_PHYSICAL_REBOOT`
+
 `AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS = PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES`
 
-## Physical Gate
+## Physical Gate — Phase A / DEVICE_VALIDATED
 
-Issue #208 is canonical and contains the exact immutable one-paste command and controller commands. Remaining facts must originate from one real authorized Android/Termux device:
+Issue #208 is canonical. Qualified commissioning revision: `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`.
 
-`pinned device capture -> controller verification against expected commit -> canonical enrollment digest -> fresh heartbeat bound to enrollment + boot session -> controller heartbeat verification -> one harmless bounded Android-worker task -> independent Judge evidence`
+Current Phase-A sequence:
 
-Host/CI cannot substitute for these observations. Captured evidence is not verified enrollment; verified enrollment is not an active worker; a verified heartbeat is not a successful worker task.
+`one pinned Android/Termux commissioning run -> preserve combined ZIP -> controller end-to-end verification -> observe/register Android worker -> one harmless bounded Android work item -> preserve event/lease chain and independent Judge evidence`
+
+The controller commissioning PASS establishes eligibility, not workload success. Phase A may promote only to `DEVICE_VALIDATED` eligibility after the bounded real-device work item also passes.
+
+## Persistence Gate — Phase B / PERSISTENT_VALIDATED
+
+The older Base44 P1-P5 physical policy is still binding for persistence and is not superseded by the narrower activation gate. After Phase A:
+
+`preserve pre-reboot identity/evidence -> physically reboot phone -> require changed boot_id -> worker/controller returns -> fresh verified heartbeat -> valid lease/event chain -> one harmless post-reboot bounded work item -> independent Judge evidence`
+
+Only Phase B PASS permits `PERSISTENT_VALIDATED` eligibility. Remote reboot is not accepted as physical reboot evidence.
+
+Live Base44 observation at reconciliation: three registered workers, zero Android/Termux workers, zero `AutomationRebootEvidence` rows; P1-P5 remain PENDING and are synchronized to issue #208 and the current physical-validation program.
 
 ## Connector Gate
 
 Issue #209 tracks connectors individually.
 
 Verified scopes:
-- GitHub: `VERIFIED_LIVE_READ_WRITE` for the currently authorized `12ephods-source/centinal26` repository scope.
+- GitHub: `VERIFIED_LIVE_READ_WRITE` for the authorized Centinal26 repository scope.
 - Gmail: `VERIFIED_REVERSIBLE_WRITE` using temporary unsent draft create + cleanup; no mail sent.
 - Google Calendar: `VERIFIED_REVERSIBLE_WRITE` using temporary private/transparent event create + delete + absence verification.
 - Google Drive: `VERIFIED_REVERSIBLE_WRITE` using temporary native Doc create + metadata readback + permanent delete.
@@ -95,7 +74,10 @@ The repository `api_connector_executor` is `VERIFIED_SOFTWARE`; target authoriza
 - queued != executed != verified;
 - installed != authorized;
 - host PASS != physical-device PASS;
-- captured device evidence != verified enrollment != active worker;
+- physical commissioning eligible != bounded worker task PASS;
+- device validated != persistent validated;
+- pre-reboot active worker != verified post-reboot worker return;
+- captured evidence != verified enrollment != active worker;
 - verified enrollment digest != verified heartbeat != successful worker task;
 - exact source provenance != device-origin verification;
 - reversible write verification != unrestricted connector authority;
@@ -104,6 +86,6 @@ The repository `api_connector_executor` is `VERIFIED_SOFTWARE`; target authoriza
 
 ## Critical Path
 
-`real device capture at d6dad40a... -> controller verification -> verified heartbeat -> bounded Android-worker execution -> remaining connector qualification -> final exact-head release state`
+`one-run Android commissioning at 32ba85c... -> controller commissioning verification -> bounded Android worker task -> physical reboot -> verified worker return -> post-reboot bounded task -> remaining connector qualification -> final exact-head release state`
 
 Continue automatically through all available bounded work; stop only at verified completion or a genuine physical/external, authorization/platform, falsification, supersession, or negative-value boundary.
