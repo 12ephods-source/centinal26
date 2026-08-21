@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "max_retries": 3,
+  "retry_states": [
+    "FAILED",
+    "TIMEOUT"
+  ],
+  "preserve_failure_history": true,
+  "verification_required_after_retry": true
+}
