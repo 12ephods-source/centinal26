@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any
 
 DEFAULT_REGISTRY = Path("automation/abilities/registry.json")
@@ -61,8 +61,8 @@ def validate_ability(ability: dict[str, Any]) -> list[str]:
     if isinstance(ability_id, str) and ability_id:
         if not ABILITY_ID_RE.fullmatch(ability_id):
             errors.append("id must use lowercase letters, digits, '.', '_', '/', or '-'")
-        if "//" in ability_id or "/../" in f"/{ability_id}/":
-            errors.append("id must not contain empty or parent path segments")
+        if any(segment in {"", ".", ".."} for segment in ability_id.split("/")):
+            errors.append("id must not contain empty, current, or parent path segments")
 
     status = ability.get("status")
     if status not in ALLOWED_STATUS:
