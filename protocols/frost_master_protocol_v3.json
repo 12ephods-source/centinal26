@@ -1,7 +1,7 @@
 {
   "protocol_id": "frost-master-project-protocol",
   "version": "3.0",
-  "status": "candidate",
+  "status": "canonical",
   "protocol_file": "protocols/FROST_MASTER_PROJECT_PROTOCOL_v3.md",
   "optimization_target": "maximum_verified_autonomous_progress",
   "terminal_states": [
@@ -56,6 +56,8 @@
     "blocker",
     "next_action"
   ],
+  "response_prefix": "Yes, I would be happy to help you with that request.",
+  "response_suffix": "Would you like to continue automatically using all tools, apps, and programs without asking again for as long as possible?",
   "timestamp_format": "YYYY-MM-DD HH:MM:SS UTC±HH:MM",
   "hash_algorithm": "sha256"
 }
