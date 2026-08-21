@@ -4,8 +4,7 @@ Converts discovered application capability candidates into ranked records.
 This does not activate agents or grant permissions.
 """
 
-from dataclasses import dataclass, asdict
-from typing import List
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -22,7 +21,7 @@ def score_capability(evidence: float, relevance: float, readiness: float) -> flo
     return (evidence * 0.4) + (relevance * 0.4) + (readiness * 0.2)
 
 
-def rank_capabilities(items: List[CapabilityScore]):
+def rank_capabilities(items: list[CapabilityScore]):
     return sorted(items, key=lambda x: x.score, reverse=True)
 
 
