@@ -134,6 +134,7 @@
       },
       "verification": {
         "exact_head": "8bf1597d82fd244a115ad414f78216a417631e87",
+        "combined_base_at_final_qualification": "c9f832ceadfcf00e8fd9e7a2cb8bea6b124dbc5e",
         "ci": "PASS",
         "automation_validation": "PASS",
         "validate": "PASS",
