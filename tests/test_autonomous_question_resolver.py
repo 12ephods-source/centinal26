@@ -1,3 +1,4 @@
+import sys
 from importlib import util
 from pathlib import Path
 
@@ -10,9 +11,11 @@ MODULE_PATH = (
 
 
 def load_module():
-    spec = util.spec_from_file_location("autonomous_question_resolver", MODULE_PATH)
+    module_name = "autonomous_question_resolver"
+    spec = util.spec_from_file_location(module_name, MODULE_PATH)
     module = util.module_from_spec(spec)
     assert spec.loader is not None
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 
