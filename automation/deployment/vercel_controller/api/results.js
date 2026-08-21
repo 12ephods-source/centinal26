@@ -1,4 +1,4 @@
-import { ALLOWED_CAPABILITIES, getJson, setJson, verifyRecord } from '../lib/core.js';
+import { ALLOWED_CAPABILITIES, decryptSecret, getJson, setJson, verifyRecord } from '../lib/core.js';
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -11,8 +11,10 @@ export default async function handler(request, response) {
   const deviceId = result.device_id;
   const registration = typeof deviceId === 'string' ? await getJson(`frost:device:${deviceId}`) : null;
   if (!registration || registration.status === 'REVOKED') return response.status(404).json({ status: 'DEVICE_NOT_REGISTERED' });
-  const secret = await getJson(`frost:secret:${deviceId}`);
-  if (!secret?.value || !verifyRecord(result, secret.value)) return response.status(401).json({ status: 'SIGNATURE_INVALID' });
+  const secretRecord = await getJson(`frost:secret:${deviceId}`);
+  if (!secretRecord) return response.status(401).json({ status: 'DEVICE_CREDENTIAL_MISSING' });
+  const secret = decryptSecret(secretRecord);
+  if (!verifyRecord(result, secret)) return response.status(401).json({ status: 'SIGNATURE_INVALID' });
   if (result.source_commit !== registration.source_commit) return response.status(409).json({ status: 'SOURCE_COMMIT_MISMATCH' });
   if (!ALLOWED_CAPABILITIES.has(result.capability)) return response.status(400).json({ status: 'CAPABILITY_NOT_ALLOWED' });
 
