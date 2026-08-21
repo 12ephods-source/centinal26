@@ -4,6 +4,14 @@ Version: Consolidated Record v2.0
 Date: 2026-08-21
 Status: SOFTWARE_V1_QUALIFIED / PHYSICAL_DEVICE_GATE_PENDING
 
+## Canonical Continuation Pointers
+
+This file is the concise production-state summary. For continuation and agent routing, use:
+
+- `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` — canonical human-readable continuation authority.
+- `automation/PROJECT_STATE.json` — canonical machine-readable continuation state.
+- Git history, exact-head CI evidence, and immutable artifacts remain the primary evidence if summaries diverge.
+
 ## Classification
 
 Primary project: Automation OS
@@ -130,4 +138,4 @@ NOT CLAIMED:
 
 ## Reopening Condition
 
-The next material project gate opens when at least one authorized physical phone executes the enrollment worker and returns a verifiable device manifest, heartbeat, and inventory package. At that point the Android execution path should be tested end to end before additional fleet devices are promoted.
+The next material external project gate opens when at least one authorized physical phone executes the enrollment worker and returns a verifiable device manifest, heartbeat, and inventory package. Internal software work may continue on the durable execution ledger and authority-policy reconciliation before that physical gate.
