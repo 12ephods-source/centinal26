@@ -75,7 +75,8 @@ def main() -> None:
         "authorization",
         "execution",
         "verification",
-        "evidence_and_audit",
+        "evidence",
+        "audit",
         "release_promotion",
     }
     assert set(domains) == required_domains
