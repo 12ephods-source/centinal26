@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-os.local/schemas/interop/adapter_manifest.schema.json",
+  "title": "Automation OS Interoperability Adapter Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "adapter_id",
+    "adapter_version",
+    "adapter_type",
+    "protocol",
+    "endpoint",
+    "authorization_state",
+    "trust_tier",
+    "discovery",
+    "auth_profile",
+    "session_state",
+    "health_lease",
+    "capabilities",
+    "artifact",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {"const": "automation-os.adapter/1.0"},
+    "adapter_id": {"enum": ["a2a", "mcp"]},
+    "adapter_version": {"type": "string", "minLength": 1},
+    "adapter_type": {"enum": ["declarative", "executable", "remote"]},
+    "protocol": {
+      "type": "object",
+      "required": ["family", "version"],
+      "properties": {
+        "family": {"enum": ["a2a", "mcp"]},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "endpoint": {"type": "string", "minLength": 1},
+    "authorization_state": {
+      "enum": ["unregistered", "registered", "authorized", "revoked", "expired", "quarantined"]
+    },
+    "trust_tier": {
+      "enum": ["CANONICAL", "COMPATIBLE_MODULE", "EXPERIMENTAL", "SUPERSEDED", "REJECTED"]
+    },
+    "discovery": {"type": "object"},
+    "auth_profile": {"$ref": "#/$defs/auth_profile"},
+    "session_state": {"$ref": "#/$defs/session_state"},
+    "health_lease": {"$ref": "#/$defs/health_lease"},
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/capability"}
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["sha256", "source", "license"],
+      "properties": {
+        "sha256": {"type": ["string", "null"]},
+        "source": {"type": ["string", "null"]},
+        "license": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "auth_profile": {
+      "type": "object",
+      "required": ["auth_type", "credential_binding", "storage_policy", "requires_user_presence", "delegation_allowed", "scopes"],
+      "properties": {
+        "auth_type": {"enum": ["none", "api_key", "bearer", "oauth2", "oidc", "mtls", "local_identity"]},
+        "credential_binding": {"enum": ["none", "issuer_bound", "device_bound", "worker_bound", "certificate_bound"]},
+        "storage_policy": {"enum": ["none", "memory_only", "os_keyring", "termux_file_0600", "external_secret_store"]},
+        "requires_user_presence": {"type": "boolean"},
+        "delegation_allowed": {"type": "boolean"},
+        "scopes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "issuer": {"type": ["string", "null"]},
+        "audience": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "session_state": {
+      "type": "object",
+      "required": ["state_id", "transport_semantics", "state_owner", "resumable", "protocol_state"],
+      "properties": {
+        "state_id": {"type": "string", "minLength": 1},
+        "transport_semantics": {"enum": ["stateless_request", "task_state", "application_state"]},
+        "state_owner": {"enum": ["none", "adapter", "automation_os", "remote_peer"]},
+        "resumable": {"type": "boolean"},
+        "protocol_state": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "health_lease": {
+      "type": "object",
+      "required": ["lease_id", "subject_id", "issued_at", "expires_at", "heartbeat_interval_s", "grace_s", "status", "last_seen_at", "renewal_counter"],
+      "properties": {
+        "lease_id": {"type": "string", "minLength": 1},
+        "subject_id": {"type": "string", "minLength": 1},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"},
+        "heartbeat_interval_s": {"type": "integer", "minimum": 1},
+        "grace_s": {"type": "integer", "minimum": 0},
+        "status": {"enum": ["healthy", "degraded", "stale", "offline", "quarantined"]},
+        "last_seen_at": {"type": "string", "format": "date-time"},
+        "renewal_counter": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "required": ["capability_id", "canonical_operation", "protocol_operation", "required_scopes", "side_effects", "verification", "timeout_ms", "concurrency_limit"],
+      "properties": {
+        "capability_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{2,127}$"},
+        "canonical_operation": {"type": "string", "minLength": 1},
+        "protocol_operation": {"type": "string", "minLength": 1},
+        "required_scopes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "side_effects": {"enum": ["none", "reversible", "irreversible"]},
+        "verification": {"enum": ["required", "optional", "none"]},
+        "timeout_ms": {"type": "integer", "minimum": 1, "maximum": 3600000},
+        "concurrency_limit": {"type": "integer", "minimum": 1, "maximum": 1024}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
