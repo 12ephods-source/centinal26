@@ -1,12 +1,12 @@
 """Health monitor scaffold for enrolled automation workers."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def health_record(worker_id: str) -> dict:
     return {
         "worker_id": worker_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "status": "UNKNOWN",
         "verification": "PENDING",
     }

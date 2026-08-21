@@ -5,7 +5,6 @@ capability score, availability, and verification state.
 """
 
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -16,7 +15,7 @@ class AgentCandidate:
     available: bool
 
 
-def select_agent(candidates: List[AgentCandidate]):
+def select_agent(candidates: list[AgentCandidate]):
     eligible = [
         c for c in candidates
         if c.verified and c.available

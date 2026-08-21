@@ -10,8 +10,8 @@ or activate agents.
 """
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 
 def load_inventory(path):
@@ -21,15 +21,14 @@ def load_inventory(path):
 
 def normalize_package(package_line):
     package = package_line
-    if package.startswith("package:"):
-        package = package[len("package:"):]
+    package = package.removeprefix("package:")
     return package.strip()
 
 
 def create_records(packages, device_id):
     return {
         "device_id": device_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "applications": [
             {
                 "package": normalize_package(p),

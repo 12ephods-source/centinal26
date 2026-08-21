@@ -4,7 +4,7 @@ This module defines the interface for processing verified tasks.
 It does not execute external actions without an authorized worker.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def create_task_record(task_id, payload):
@@ -12,7 +12,7 @@ def create_task_record(task_id, payload):
         "task_id": task_id,
         "payload": payload,
         "state": "QUEUED",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
 
 
