@@ -1,15 +1,44 @@
-# Automation OS Universal Installer v3.0
+# Automation OS Universal Installer v3.1
 
-This adds a manifest-driven Android/Termux installer framework.
+A manifest-driven Android/Termux deployment framework.
 
-Security invariants:
-- canonical remote modules are pinned to immutable Git commits and expected Git blob identities;
-- framework files are SHA-256 pinned by the versioned Termux bootstrap;
-- unregistered components fail closed;
-- no credentials or signing private keys are embedded;
-- Android permissions and user authentication are not bypassed.
+## Canonical installable modules
 
-Initial registered profile:
-- `android-fleet` -> `FROST_FLEET_BOOTSTRAP_v1.7.sh`
+- Centinal26/Frost core v1.0
+- Frost fleet v1.7
+- Hermes/C05 v1.0
+- Base44 worker v1.0
+- bounded capability provider v1.0
 
-This PR intentionally does not claim that Guardian, Sentinel, AICCEP, SDOS, Physics, or Cybersecurity workload packages have canonical install sources until those sources are separately registered and validated.
+All canonical modules are fetched from immutable Git commits and checked against
+expected Git blob identities before execution.
+
+## Profiles
+
+- `bootstrap`
+- `centinal26-core`
+- `android-fleet`
+- `hermes-c05`
+- `base44-worker`
+- `base44-capabilities`
+- `automation-core-current`
+
+Example:
+
+```bash
+AUTOMATION_OS_PROFILE=automation-core-current bash AUTOMATION_OS_UNIVERSAL_INSTALLER_v3.1.sh
+```
+
+The Base44 profiles may require interactive user-owned credentials.
+
+## Deliberately not promoted yet
+
+AICCEP-OS, GuardianLLM, SDOS, and Hermes Sentinel artifacts have been found, but
+are not represented as fresh-phone modules until exact complete sources are
+canonicalized and validated.
+
+## Security boundary
+
+This framework does not embed credentials, bypass Android permissions, or add
+arbitrary remote shell execution. Physical Android qualification remains a
+separate gate from host/CI validation.
