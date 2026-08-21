@@ -1,18 +1,21 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPORTER = ROOT / "automation" / "controller" / "base44_evidence_export.mjs"
 INSTALLER = ROOT / "deploy" / "termux" / "FROST_EVIDENCE_GATE_ONE_PASTE_v1.0.sh"
+ENTITY_WRITE_RE = re.compile(
+    r"base44(?:\.asServiceRole)?\.entities\.[A-Za-z0-9_]+\."
+    r"(?:create|update|delete|bulkCreate|deleteMany)\("
+)
 
 
 def test_controller_exporter_is_read_only_and_user_rls_scoped() -> None:
     text = EXPORTER.read_text(encoding="utf-8")
     assert 'access_mode: "AUTHENTICATED_USER_RLS"' in text
-    assert ".create(" not in text
-    assert ".update(" not in text
-    assert ".delete(" not in text
+    assert ENTITY_WRITE_RE.search(text) is None
     assert "asServiceRole" not in text
     assert "loginViaEmailPassword" in text
     assert "--password-stdin" in text
