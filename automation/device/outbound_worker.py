@@ -75,7 +75,7 @@ class WorkerConfig:
     max_backoff_seconds: int = 600
 
     @classmethod
-    def from_json(cls, path: Path) -> "WorkerConfig":
+    def from_json(cls, path: Path) -> WorkerConfig:
         raw = json.loads(path.read_text(encoding="utf-8"))
         return cls(
             device_id=raw["device_id"],
