@@ -4,13 +4,25 @@ on:
   push:
     paths:
       - 'automation/runtime/**'
+      - 'automation/execution/result_validator.py'
+      - 'src/centinal26/agent_execution_plane.py'
+      - 'tests/test_agent_execution_plane.py'
+      - '.github/workflows/executor_integration_validation.yml'
   pull_request:
     paths:
       - 'automation/runtime/**'
+      - 'automation/execution/result_validator.py'
+      - 'src/centinal26/agent_execution_plane.py'
+      - 'tests/test_agent_execution_plane.py'
+      - '.github/workflows/executor_integration_validation.yml'
+
+permissions:
+  contents: read
 
 jobs:
   executor-validation:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,8 +30,16 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
-      - name: Run executor integration harness
-        run: |
-          python automation/runtime/tests/executor_integration_test.py
+      - name: Install Centinal26 test dependencies
+        run: python -m pip install -e '.[dev]'
+
+      - name: Canonical agent execution tests
+        run: python -m pytest -q tests/test_agent_execution_plane.py
+
+      - name: Runtime executor integration harness
+        run: python automation/runtime/tests/executor_integration_test.py
+
+      - name: Automation state regression checks
+        run: python automation/ci/automation_test_suite.py
