@@ -152,6 +152,44 @@
       "status": "EXPERIMENTAL"
     },
     {
+      "id": "interop/a2a-mcp-contracts/v1",
+      "name": "A2A and MCP fail-closed interoperability contracts",
+      "kind": "interop-contract",
+      "source": {
+        "path": "src/centinal26/interop.py",
+        "schema": "schemas/interop/adapter_manifest.schema.json",
+        "lineage_pr": 160,
+        "reconstruction_branch": "feature/a2a-mcp-interop-v1"
+      },
+      "interface": {
+        "validate": "centinal26.interop.validate_manifest_dict",
+        "route_eligible": "centinal26.interop.is_route_eligible",
+        "select_route": "centinal26.interop.select_route"
+      },
+      "verification": {
+        "exact_head": "976ac5f1a45c74d7b7287005d83fc949fcf979ac",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_interop.py",
+        "a2a_spec_release": "1.0.0",
+        "a2a_wire_protocol": "1.0",
+        "mcp_protocol": "2026-07-28",
+        "connected_execution": "NOT_CONFIGURED_BY_CONTRACT"
+      },
+      "provenance": {
+        "origin": "current-main reconstruction of historical PR #160 with current A2A and MCP protocol semantics",
+        "authority_boundary": "contract validation and route eligibility only; no network client, credentials, remote executor, authorization source, or automatic federation status promotion"
+      },
+      "lifecycle": {
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation or schema references"
+      },
+      "status": "VERIFIED"
+    },
+    {
       "id": "termux/repository-recovery/v1",
       "name": "Bounded Termux repository recovery",
       "kind": "remediation-tool",
