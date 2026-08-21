@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLER = ROOT / "deploy" / "termux" / "FROST_EVIDENCE_GATE_ONE_PASTE_v1.0.sh"
 COLLECTOR = ROOT / "automation" / "device" / "evidence_gate_collector.py"
