@@ -17,6 +17,11 @@ from centinal26.hard_sandbox import SandboxUnavailable
 HARD_PROTECTED_PATHS = (
     "src/centinal26/hard_sandbox.py",
     "src/centinal26/evolution_sandbox.py",
+    "src/centinal26/agent_execution_plane.py",
+    "src/frost_core/objective_integrity.py",
+    "src/frost_core/runtime_governance.py",
+    "schemas/objective.schema.json",
+    "config/agent_authority.json",
     "scripts/controlled_evolution_hard.py",
     "scripts/controlled_evolution_loop.py",
     "scripts/run-controlled-evolution.sh",
