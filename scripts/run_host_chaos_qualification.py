@@ -5,8 +5,8 @@ import hashlib
 import json
 import sqlite3
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from frost_core.encrypted_backup import EncryptedBackupError, encrypt_backup
 from frost_core.manifest_policy import ManifestPolicyError, build_manifest
@@ -186,7 +186,7 @@ def run() -> dict[str, object]:
         with tempfile.TemporaryDirectory(prefix=f"frost-chaos-{name}-") as directory:
             try:
                 scenario(Path(directory))
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - chaos harness records all scenario failures.
                 results.append({"scenario": name, "status": "FAIL", "error": type(exc).__name__})
             else:
                 results.append({"scenario": name, "status": "PASS", "error": ""})
