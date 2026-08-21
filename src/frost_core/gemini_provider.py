@@ -6,9 +6,10 @@ import os
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any
 
 from .providers import ProviderAvailability, ProviderMaturity, ProviderRecord
 
@@ -249,7 +250,7 @@ class GeminiInteractionsProvider:
             passed = result.text.strip() == "GEMINI_OK"
             detail = "exact probe response" if passed else "unexpected probe response"
             response_sha256 = str(result.receipt["response_sha256"])
-        except Exception as exc:
+        except (OSError, RuntimeError, ValueError) as exc:
             return GeminiConnectedEvidence(
                 passed=False,
                 checked_at=_utc_now(),
