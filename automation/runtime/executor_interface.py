@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
+from centinal26.governance import validate_bundle
+
 
 @dataclass
 class ExecutionRequest:
@@ -29,6 +31,8 @@ class ExecutionRequest:
     capability_id: str
     payload: dict[str, Any] = field(default_factory=dict)
     authorization_status: str = "PENDING"
+    governance_bundle: dict[str, Any] | None = None
+    governance_required: bool = False
 
 
 @dataclass
@@ -63,7 +67,47 @@ class ExecutorRegistry:
     def get(self, capability_id: str):
         return self.executors.get(capability_id)
 
+    def _governance_gate(self, request: ExecutionRequest) -> ExecutionResult | None:
+        bundle = request.governance_bundle
+        if bundle is None:
+            if not request.governance_required:
+                return None
+            return ExecutionResult(
+                task_id=request.task_id,
+                status="GOVERNANCE_REQUIRED",
+                output={"reason": "governance bundle required before execution"},
+            )
+
+        violations = validate_bundle(bundle)
+        if violations:
+            return ExecutionResult(
+                task_id=request.task_id,
+                status="GOVERNANCE_REJECTED",
+                output={"violations": [item.as_dict() for item in violations]},
+            )
+
+        operations = bundle.get("operations", [])
+        matching = [
+            operation
+            for operation in operations
+            if operation.get("operation_id") == request.task_id
+            and operation.get("capability_id") == request.capability_id
+        ]
+        if len(matching) != 1:
+            return ExecutionResult(
+                task_id=request.task_id,
+                status="GOVERNANCE_REQUEST_MISMATCH",
+                output={
+                    "reason": "exactly one governed operation must match task and capability"
+                },
+            )
+        return None
+
     def execute(self, request: ExecutionRequest) -> ExecutionResult:
+        governance_result = self._governance_gate(request)
+        if governance_result is not None:
+            return governance_result
+
         executor = self.get(request.capability_id)
         if executor is None:
             return ExecutionResult(
