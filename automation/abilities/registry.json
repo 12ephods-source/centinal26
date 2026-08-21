@@ -171,7 +171,13 @@
         "rollback": "FROST_ALLOW_TRUST_BOOTSTRAP=1 bash deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh --rollback <bootstrap-dir>"
       },
       "verification": {
-        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "exact_head": "167d7028d18361e3fb9e48b31bd0bf94fa06a5bd",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
         "tests": "tests/test_termux_trust_bootstrap_ability.py",
         "upstream_commit": "da8b07830fd2049bc4df6119befceb565732e36b",
         "upstream_git_blob": "c5ed76a1b9a1f2bc2e296bdd5ca50cf1f1f12706",
@@ -187,7 +193,7 @@
         "rollback": "every bootstrap preserves prior share-key and apt trust-path state; failed post-write identity checks restore the prior trust state; explicit --rollback restores a preserved bootstrap snapshot",
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
       },
-      "status": "EXPERIMENTAL"
+      "status": "VERIFIED"
     }
   ]
 }
