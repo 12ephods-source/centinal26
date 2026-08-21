@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "policy": {
+    "missing_capability": "BUILD_TEST_REGISTER_REUSE_WHEN_AUTHORIZED",
+    "external_boundary": "RECORD_BLOCKER_AND_CONTINUE",
+    "requirements": [
+      "bounded_scope",
+      "source_preserved",
+      "tests_or_verification_preserved",
+      "provenance_preserved",
+      "interface_documented",
+      "rollback_or_removal_path",
+      "no_authority_expansion"
+    ]
+  },
+  "abilities": []
+}
