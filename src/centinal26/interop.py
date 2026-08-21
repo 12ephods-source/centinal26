@@ -147,7 +147,7 @@ class AdapterManifest:
 
 
 def _parse_datetime(value: str) -> datetime:
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    parsed = datetime.fromisoformat(value)
     if parsed.tzinfo is None:
         raise ValueError("timestamp must include an offset")
     return parsed.astimezone(UTC)
@@ -357,9 +357,12 @@ def validate_manifest_dict(
                 f"{capability.capability_id}: canonical operation is not registered for {manifest.adapter_id}"
             )
 
-    if any(capability.side_effects == "irreversible" for capability in manifest.capabilities):
-        if manifest.adapter_type == "remote" and manifest.auth_profile.auth_type == "none":
-            errors.append("remote irreversible capability cannot use auth_type=none")
+    if (
+        any(capability.side_effects == "irreversible" for capability in manifest.capabilities)
+        and manifest.adapter_type == "remote"
+        and manifest.auth_profile.auth_type == "none"
+    ):
+        errors.append("remote irreversible capability cannot use auth_type=none")
 
     try:
         issued = _parse_datetime(manifest.health_lease.issued_at)
