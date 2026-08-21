@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "authorization_rules": {
+    "default_state": "pending",
+    "require_explicit_permission": true,
+    "require_verification": true
+  },
+  "connectors": []
+}
