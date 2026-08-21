@@ -1,9 +1,8 @@
+import importlib
 import json
 import pathlib
 import subprocess
 import sys
-
-from centinal26.agent_execution_plane import run_task
 
 
 REQUIRED_OUTPUTS = {
@@ -16,6 +15,7 @@ REQUIRED_OUTPUTS = {
 
 
 def test_automation_platform_v1_end_to_end(tmp_path: pathlib.Path):
+    run_task = importlib.import_module("centinal26.agent_execution_plane").run_task
     repo = pathlib.Path(__file__).resolve().parents[1]
     source = tmp_path / "project.md"
     output = tmp_path / "productized"
