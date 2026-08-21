@@ -43,5 +43,5 @@
     "independent_review"
   ],
   "promotion_target": "VERIFIED",
-  "boundary": "host qualification and installation gating do not prove real Android UI execution or successful Library deletion"
+  "boundary": "host qualification does not prove real Android UI execution or successful Library deletion; qualification-before-auto-delete installation gating preserves that boundary"
 }
