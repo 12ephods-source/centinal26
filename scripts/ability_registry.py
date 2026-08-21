@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Register, validate, and list reusable Frost Forge abilities.
 
 This helper does not grant authority. It records tools/adapters that have already
@@ -30,7 +29,7 @@ ALLOWED_STATUS = {"EXPERIMENTAL", "VERIFIED", "SUPERSEDED", "BLOCKED"}
 def load_registry(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or not isinstance(data.get("abilities"), list):
-        raise ValueError("registry must contain an abilities list")
+        raise TypeError("registry must contain an abilities list")
     return data
 
 
@@ -72,7 +71,7 @@ def register_ability(path: Path, ability_path: Path) -> None:
     data = load_registry(path)
     ability = json.loads(ability_path.read_text(encoding="utf-8"))
     if not isinstance(ability, dict):
-        raise ValueError("ability file must contain a JSON object")
+        raise TypeError("ability file must contain a JSON object")
     errors = validate_ability(ability)
     if errors:
         raise ValueError("; ".join(errors))
@@ -113,7 +112,7 @@ def main() -> int:
             register_ability(args.registry, args.ability)
             print("ABILITY_REGISTERED")
             return 0
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}")
         return 2
     return 2
