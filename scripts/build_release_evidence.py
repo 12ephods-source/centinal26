@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -67,9 +66,11 @@ def _tracked_source_inventory() -> tuple[list[dict[str, Any]], int]:
 
 def build_manifest() -> dict[str, Any]:
     source_commit = _run_git("rev-parse", "HEAD").decode("ascii").strip()
-    status = _run_git("status", "--porcelain").decode("utf-8", errors="replace")
+    status = _run_git("status", "--porcelain", "--untracked-files=no").decode(
+        "utf-8", errors="replace"
+    )
     if status.strip():
-        raise RuntimeError("release evidence generation requires a clean tracked worktree")
+        raise RuntimeError("release evidence generation requires an unmodified tracked worktree")
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
