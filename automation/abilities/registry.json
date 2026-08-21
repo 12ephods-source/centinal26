@@ -90,6 +90,44 @@
         "removal": "mark this entry SUPERSEDED in a versioned successor registry and retain provenance"
       },
       "status": "VERIFIED"
+    },
+    {
+      "id": "frost-forge/termux-library-cleaner/v1",
+      "name": "Termux Library Cleaner",
+      "kind": "device-automation-tool",
+      "source": {
+        "path": "deploy/termux/library_cleaner/frost_library_cleanerd.py",
+        "installer": "deploy/termux/library_cleaner/install.sh",
+        "production_commit": "6f8137b075fc7048be1f855b0951779f709b4662"
+      },
+      "interface": {
+        "setup": "python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py setup",
+        "dry_run": "python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py dry-run",
+        "once": "python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py once",
+        "status": "python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py status",
+        "daemon": "python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py daemon"
+      },
+      "verification": {
+        "host_exact_head": "423a995c25d67cdee8d37a8715067bee26579072",
+        "ci": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_frost_library_cleaner.py",
+        "physical_device_execution": "PENDING_PHYSICAL",
+        "provider_ui_end_to_end": "NOT_YET_OBSERVED"
+      },
+      "provenance": {
+        "origin": "user-requested upload-slot cleanup daemon",
+        "pull_request": 242,
+        "authority_boundary": "authenticated visible Library UI only; no private provider endpoint; exact-name selection; archive and SHA-256 ledger required before delete"
+      },
+      "lifecycle": {
+        "rollback": "sv down $PREFIX/var/service/frost-library-cleaner and remove the runit service; archived deleted bytes remain under the configured local archive directory",
+        "removal": "mark SUPERSEDED or remove the experimental registry entry only in a versioned successor after preserving provenance"
+      },
+      "status": "EXPERIMENTAL"
     }
   ]
 }
