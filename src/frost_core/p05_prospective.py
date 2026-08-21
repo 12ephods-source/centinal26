@@ -14,7 +14,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("America/Mexico_City")
-RAIN_RE = re.compile(r"(?<![A-Z])[-+]?(?:SH|TS|FZ|VC)?(?:RA|DZ)(?![A-Z])")
+RAIN_RE = re.compile(r"(?<![A-Z])[-+]?(?:VC)?(?:SH|TS|FZ)?(?:RA|DZ)(?![A-Z])")
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 AWC_METAR = "https://aviationweather.gov/api/data/metar"
 UA = "Frost-P05/1.0 (+prospective-validation)"
@@ -92,8 +92,8 @@ def _append_audit(
     forecast_id: str | None,
     payload: dict,
 ) -> None:
-    prev = con.execute("SELECT event_hash FROM audit ORDER BY seq DESC LIMIT 1").fetchone()
-    prev_hash = prev[0] if prev else "0" * 64
+    previous = con.execute("SELECT event_hash FROM audit ORDER BY seq DESC LIMIT 1").fetchone()
+    prev_hash = previous[0] if previous else "0" * 64
     body = {
         "event_time": utc_now(),
         "event_type": event_type,
@@ -103,7 +103,8 @@ def _append_audit(
     }
     event_hash = sha(body)
     con.execute(
-        "INSERT INTO audit(event_time,event_type,forecast_id,payload_json,prev_hash,event_hash) VALUES(?,?,?,?,?,?)",
+        "INSERT INTO audit(event_time,event_type,forecast_id,payload_json,prev_hash,event_hash) "
+        "VALUES(?,?,?,?,?,?)",
         (
             body["event_time"],
             event_type,
@@ -178,9 +179,7 @@ def fetch_open_meteo(cohort: MMMXCohort) -> dict:
 
 
 def fetch_metars(cohort: MMMXCohort, hours: int = 360) -> list[dict]:
-    query = urllib.parse.urlencode(
-        {"ids": cohort.station, "format": "json", "hours": hours}
-    )
+    query = urllib.parse.urlencode({"ids": cohort.station, "format": "json", "hours": hours})
     data = _get_json(f"{AWC_METAR}?{query}")
     if not isinstance(data, list):
         raise RuntimeError("AWC response was not a JSON list")
@@ -256,10 +255,7 @@ def candidate_probability(data: dict, target: dt.date) -> float:
         hourly.get("time") or [], hourly.get("precipitation_probability") or []
     ):
         try:
-            if (
-                dt.datetime.fromisoformat(str(stamp)).date() == target
-                and probability is not None
-            ):
+            if dt.datetime.fromisoformat(str(stamp)).date() == target and probability is not None:
                 values.append(float(probability) / 100.0)
         except ValueError:
             pass
@@ -268,19 +264,31 @@ def candidate_probability(data: dict, target: dt.date) -> float:
     return max(values)
 
 
+def completed_baseline_days(target: dt.date, days: int = 14) -> list[dt.date]:
+    """Return the fully completed days available before a next-day issuance cutoff.
+
+    For target T issued during T-1, T-1 is incomplete and cannot enter the reference class.
+    The 14-day window is therefore T-15 through T-2 inclusive.
+    """
+    return [target - dt.timedelta(days=index) for index in range(days + 1, 1, -1)]
+
+
 def baseline_probability(
     rows: list[dict], target: dt.date, days: int = 14
 ) -> tuple[float, dict]:
     outcomes = []
-    for index in range(days, 0, -1):
-        outcome, _ = resolve_day(rows, target - dt.timedelta(days=index))
+    used_dates = []
+    for day in completed_baseline_days(target, days):
+        outcome, _ = resolve_day(rows, day)
         if outcome is not None:
             outcomes.append(outcome)
+            used_dates.append(str(day))
     wet = sum(outcomes)
     count = len(outcomes)
     return (wet + 1) / (count + 2), {
         "usable_days": count,
         "wet_days": wet,
+        "used_dates": used_dates,
         "smoothing": "Beta(1,1)",
     }
 
