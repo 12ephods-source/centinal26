@@ -1,14 +1,25 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AUTHORITY_PATH = ROOT / "automation" / "SECOND_BRAIN_AUTHORITY.json"
 PROJECT_STATE_PATH = ROOT / "automation" / "PROJECT_STATE.json"
+BLOCKERS_PATH = ROOT / "automation" / "DEFERRED_BLOCKERS.json"
 
 ALLOWED_CLASSIFICATIONS = {"CANONICAL_ALREADY", "PARTIAL", "NEW_REQUIRED"}
-ALLOWED_ACTIONS = {"REUSE", "BUILD_AFTER_INTEGRATION", "EXTEND_EXISTING_EXPORTS", "HARDEN", "EXTEND"}
+ALLOWED_ACTIONS = {
+    "REUSE",
+    "BUILD_AFTER_INTEGRATION",
+    "EXTEND_EXISTING_EXPORTS",
+    "HARDEN",
+    "EXTEND",
+}
 EXPECTED_RANKS = set(range(10, 19))
 CANONICAL_CONTINUITY_OWNER = "Centinal26 canonical continuity layer"
+QUALIFIED_HEAD = "3838b20ce9cbddb9ee5d73432726248dd88398e5"
+PRODUCTION_MERGE = "8c07f2f89de638f5d2b4e464250b7cf838d5f070"
 
 
 def load_authority() -> dict:
@@ -19,10 +30,16 @@ def load_project_state() -> dict:
     return json.loads(PROJECT_STATE_PATH.read_text(encoding="utf-8"))
 
 
+def load_blockers() -> dict:
+    return json.loads(BLOCKERS_PATH.read_text(encoding="utf-8"))
+
+
 def test_authority_map_is_well_formed() -> None:
     data = load_authority()
     assert data["schema"] == "frost.automation.second_brain_authority.v1"
-    assert data["status"] == "CANDIDATE"
+    assert data["version"] == "1.2.0"
+    assert data["status"] == "HOST_VERIFIED_EXTERNAL_GATES_PENDING"
+    assert data["source_commit"] == PRODUCTION_MERGE
     assert data["authorities"]["repository_and_release_governance"] == "centinal26/main"
     assert data["authorities"]["second_brain_role"].startswith("domain semantics")
 
@@ -57,12 +74,16 @@ def test_roadmap_10_through_18_have_unique_entries_and_owners() -> None:
         assert item["rationale"].strip()
 
 
-def test_existing_cas_is_reused_not_rebuilt() -> None:
+def test_host_qualified_and_partial_roadmap_boundaries_are_explicit() -> None:
     data = load_authority()
-    item = next(item for item in data["roadmap_overlap"] if item["rank"] == 10)
-    assert item["classification"] == "CANONICAL_ALREADY"
-    assert item["canonical_owner"] == "Frost CORE"
-    assert item["action"] == "REUSE"
+    by_rank = {item["rank"]: item for item in data["roadmap_overlap"]}
+    assert by_rank[10]["classification"] == "CANONICAL_ALREADY"
+    for rank in (12, 13, 14, 15, 16, 18):
+        assert by_rank[rank]["classification"] == "CANONICAL_ALREADY"
+        assert by_rank[rank]["action"] == "REUSE"
+    for rank in (11, 17):
+        assert by_rank[rank]["classification"] == "PARTIAL"
+        assert by_rank[rank]["action"] == "HARDEN"
 
 
 def test_second_brain_is_not_a_parallel_runtime_authority() -> None:
@@ -83,7 +104,8 @@ def test_knowledge_and_execution_task_authority_are_separate_without_split_state
     metadata_owners = {
         spec["metadata_owner"]
         for spec in entities.values()
-        if "metadata_owner" in spec and spec["metadata_owner"] not in {"Git", "Centinal26/Frost CORE"}
+        if "metadata_owner" in spec
+        and spec["metadata_owner"] not in {"Git", "Centinal26/Frost CORE"}
     }
     assert metadata_owners == {CANONICAL_CONTINUITY_OWNER}
 
@@ -100,9 +122,45 @@ def test_adapter_is_proposal_only_and_idempotent() -> None:
     assert "no_execution_authorization" in required
 
 
-def test_physical_validation_remains_separate() -> None:
+def test_exact_host_qualification_is_recorded() -> None:
+    verification = load_authority()["verification"]
+    assert verification["continuity_hardening_exact_head"] == QUALIFIED_HEAD
+    assert verification["continuity_hardening_production_merge"] == PRODUCTION_MERGE
+    for key in (
+        "ci",
+        "automation_validation",
+        "validate",
+        "automation_gates",
+        "federation_gates",
+        "mature_product_qualification",
+    ):
+        assert verification[key] == "PASS"
+    assert verification["python_matrix"] == ["3.11", "3.12", "3.13"]
+
+
+def test_external_and_physical_gates_remain_unpromoted() -> None:
     data = load_authority()
-    required = set(data["promotion_gate"]["required"])
-    assert "single_machine_continuation_authority_enforced" in required
-    assert "physical_device_validation_remains_separate" in required
-    assert data["promotion_gate"]["current_status"] == "AUTHORITY_MAP_DEFINED_ADAPTER_NOT_YET_IMPLEMENTED"
+    boundaries = data["external_boundaries"]
+    assert boundaries["real_age_encryption"] == "NOT_OBSERVED"
+    assert boundaries["off_device_replication_and_restore"] == "NOT_OBSERVED"
+    assert boundaries["android_termux_device_validation"] == {
+        "status": "PENDING_PHYSICAL",
+        "tracker_issue": 208,
+    }
+    assert boundaries["reboot_persistence"] == {
+        "status": "PENDING_PHYSICAL",
+        "tracker_issue": 208,
+    }
+    assert data["promotion_gate"]["current_status"] == (
+        "HOST_INTEGRATION_VERIFIED_EXTERNAL_AND_PHYSICAL_GATES_PENDING"
+    )
+
+
+def test_age_off_device_boundary_is_deferred_not_promoted() -> None:
+    items = {item["id"]: item for item in load_blockers()["items"]}
+    blocker = items["continuity_age_off_device_recovery"]
+    assert blocker["status"] == "DEFERRED_BLOCKED"
+    assert blocker["evidence"]["host_contract_validation"] == "PASS"
+    assert blocker["evidence"]["real_age_end_to_end_evidence"] == "NOT_OBSERVED"
+    assert blocker["evidence"]["off_device_replication_evidence"] == "NOT_OBSERVED"
+    assert blocker["evidence"]["software_merge"] == "PR #268"

@@ -18,7 +18,10 @@
     {
       "id": "vercel_controller_materialization",
       "status": "DEFERRED_BLOCKED",
-      "blocker_class": ["BLOCKED_CREDENTIAL", "EXTERNAL_PROVISIONING"],
+      "blocker_class": [
+        "BLOCKED_CREDENTIAL",
+        "EXTERNAL_PROVISIONING"
+      ],
       "evidence": {
         "software_merge": "PR #227",
         "production_commit": "e36ddbafec46d0a5d7da29b40633db5476a34a48",
@@ -31,7 +34,9 @@
     {
       "id": "android_termux_device_validation",
       "status": "DEFERRED_BLOCKED",
-      "blocker_class": ["EXTERNAL_PHYSICAL_EVIDENCE"],
+      "blocker_class": [
+        "EXTERNAL_PHYSICAL_EVIDENCE"
+      ],
       "tracker_issue": 208,
       "resume_condition": "Device-origin commissioning evidence from a real authorized Android/Termux device is available for controller verification.",
       "promotion_boundary": "Host, CI, emulator, or queued-work evidence cannot satisfy the physical-device gate."
@@ -39,11 +44,31 @@
     {
       "id": "android_reboot_persistence_validation",
       "status": "DEFERRED_BLOCKED",
-      "blocker_class": ["EXTERNAL_PHYSICAL_EVIDENCE"],
+      "blocker_class": [
+        "EXTERNAL_PHYSICAL_EVIDENCE"
+      ],
       "tracker_issue": 208,
       "depends_on": "android_termux_device_validation",
       "resume_condition": "DEVICE_VALIDATED evidence exists and a real physical reboot can be observed with changed boot identity, worker return, fresh heartbeat, valid lease/event chain, and post-reboot bounded work verification.",
       "promotion_boundary": "Device validation does not imply persistence validation."
+    },
+    {
+      "id": "continuity_age_off_device_recovery",
+      "status": "DEFERRED_BLOCKED",
+      "blocker_class": [
+        "PLATFORM_BOUNDARY",
+        "EXTERNAL_PROVISIONING"
+      ],
+      "evidence": {
+        "software_merge": "PR #268",
+        "exact_head": "3838b20ce9cbddb9ee5d73432726248dd88398e5",
+        "production_commit": "8c07f2f89de638f5d2b4e464250b7cf838d5f070",
+        "host_contract_validation": "PASS",
+        "real_age_end_to_end_evidence": "NOT_OBSERVED",
+        "off_device_replication_evidence": "NOT_OBSERVED"
+      },
+      "resume_condition": "A real age provider and valid recipient are available; ciphertext is independently verified, replicated to an independently identified off-device target, retrieved, re-hashed, decrypted, and recovery-verified.",
+      "promotion_boundary": "Fake-provider tests, local ciphertext, or host CI do not establish off-device disaster recovery."
     }
   ]
 }
