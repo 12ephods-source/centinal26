@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import pathlib
+import sys
 import unittest
 
 import numpy as np
@@ -14,6 +15,7 @@ SPEC = importlib.util.spec_from_file_location("finite_type_i_cocycle_scan", MODU
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError("could not load cocycle_scan.py")
 MODULE = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 
