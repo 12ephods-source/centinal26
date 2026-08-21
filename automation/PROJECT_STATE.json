@@ -4,8 +4,8 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "2.4",
-    "observed_production_head": "d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2"
+    "consolidation_version": "2.5",
+    "observed_production_head": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
   },
   "source_of_truth": {
     "primary_evidence": [
@@ -13,13 +13,14 @@
       "exact_head_ci",
       "durable_workflow_ledgers",
       "immutable_artifacts",
-      "external_gate_issues"
+      "external_gate_issues",
+      "base44_physical_gate_records"
     ],
     "human_continuation": "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md",
     "machine_continuation": "automation/PROJECT_STATE.json",
     "concise_summary": "PROJECT_STATE_AUTOMATION_OS.md"
   },
-  "terminal_objective": "Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving explicit authorization, provenance, physical-validation, and recovery-root boundaries.",
+  "terminal_objective": "Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving explicit authorization, provenance, physical-validation, persistence, and recovery-root boundaries.",
   "control_plane": {
     "active_protocol": "Frost Master Project Protocol v3",
     "status": "CANONICAL",
@@ -38,12 +39,13 @@
   "release_state": {
     "AUTOMATION_PLATFORM_V1_HOST": "VERIFIED_COMPLETE",
     "AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
+    "AUTOMATION_PLATFORM_V1_PERSISTENCE": "BLOCKED_ON_DEVICE_VALIDATED_AND_PHYSICAL_REBOOT",
     "AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS": "PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES"
   },
   "host_baseline": {
     "status": "FROZEN_VERIFIED_HOST_BASELINE",
-    "production_commit": "d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2",
-    "physical_gate_software_revision": "d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2"
+    "production_commit": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16",
+    "physical_gate_software_revision": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
   },
   "verified_production_capabilities": [
     "project_productizer",
@@ -76,6 +78,8 @@
     "canonical_verified_enrollment_digest",
     "physical_worker_heartbeat_evidence_record",
     "controller_side_worker_heartbeat_verifier",
+    "one_run_android_physical_commissioning_package",
+    "controller_end_to_end_physical_commissioning_verifier",
     "pinned_termux_keyring_recovery"
   ],
   "latest_agent_runtime_verification": {
@@ -98,19 +102,42 @@
   },
   "physical_gate": {
     "status": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
-    "qualified_source_commit": "d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2",
+    "qualified_source_commit": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16",
+    "commissioning_mode": "ONE_ANDROID_RUN_PLUS_CONTROLLER_VERIFICATION",
     "source_provenance_gate": "VERIFIED_SOFTWARE",
     "enrollment_digest_definition": "sha256(MANIFEST.sha256.json) after successful controller verification",
     "tracker_issue": 208,
-    "next_sequence": [
-      "run_pinned_termux_capture_on_real_authorized_device",
-      "preserve_zip_before_interpretation",
-      "controller_verify_expected_source_commit_and_bundle",
-      "emit_heartbeat_bound_to_verified_enrollment_digest",
-      "controller_verify_fresh_heartbeat_and_boot_binding",
-      "execute_one_harmless_bounded_android_worker_task",
-      "preserve_independent_judge_evidence"
-    ]
+    "phase_a_device_validated": {
+      "status": "PENDING_EXTERNAL",
+      "sequence": [
+        "run_pinned_termux_commissioning_on_real_authorized_device",
+        "preserve_combined_zip_before_interpretation",
+        "controller_verify_combined_package_and_expected_source_commit",
+        "observe_registered_android_worker",
+        "execute_one_harmless_bounded_android_worker_task",
+        "preserve_event_lease_and_independent_judge_evidence"
+      ],
+      "promotion": "DEVICE_VALIDATED_ELIGIBLE"
+    },
+    "phase_b_persistent_validated": {
+      "status": "BLOCKED_ON_PHASE_A",
+      "sequence": [
+        "preserve_pre_reboot_boot_identity_and_evidence",
+        "physically_reboot_android_device",
+        "observe_changed_boot_id",
+        "verify_termux_worker_return_and_fresh_heartbeat",
+        "verify_lease_heartbeat_event_chain",
+        "execute_one_harmless_post_reboot_bounded_work_item",
+        "preserve_post_reboot_independent_judge_evidence"
+      ],
+      "promotion": "PERSISTENT_VALIDATED_ELIGIBLE"
+    },
+    "base44_observation": {
+      "registered_workers": 3,
+      "registered_android_termux_workers": 0,
+      "reboot_evidence_records": 0,
+      "physical_gate_policy": "P1-P5_PENDING"
+    }
   },
   "connector_qualification": {
     "tracker_issue": 209,
@@ -148,6 +175,9 @@
     "queued != executed != verified",
     "installed != authorized",
     "host_ci_pass != physical_device_pass",
+    "physical_commissioning_eligible != bounded_worker_task_pass",
+    "device_validated != persistent_validated",
+    "pre_reboot_worker != verified_post_reboot_worker_return",
     "captured_device_evidence != controller_verified_enrollment != active_worker",
     "verified_enrollment_digest != verified_heartbeat != successful_worker_task",
     "exact_source_provenance != device_origin_verification",
@@ -172,17 +202,24 @@
     "206": "Physical-gate continuation state",
     "210": "Canonical state v2.3 synchronization",
     "213": "Exact source commit provenance for Android evidence",
-    "214": "Verified enrollment digest heartbeat handoff"
+    "214": "Verified enrollment digest heartbeat handoff",
+    "216": "Canonical state v2.4 synchronization",
+    "217": "One-run Android physical commissioning package"
   },
   "active_workstreams": [
     {
-      "id": "android_termux_physical_validation",
+      "id": "android_termux_device_validation",
       "status": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
       "tracker_issue": 208
     },
     {
       "id": "real_android_worker_execution",
-      "status": "BLOCKED_ON_VERIFIED_PHYSICAL_ENROLLMENT_AND_HEARTBEAT",
+      "status": "BLOCKED_ON_VERIFIED_PHYSICAL_COMMISSIONING",
+      "tracker_issue": 208
+    },
+    {
+      "id": "android_reboot_persistence_validation",
+      "status": "BLOCKED_ON_DEVICE_VALIDATED",
       "tracker_issue": 208
     },
     {
@@ -192,10 +229,11 @@
     }
   ],
   "critical_path": [
-    "complete_pinned_android_termux_physical_evidence_capture",
-    "controller_verify_physical_bundle_and_expected_source_commit",
-    "observe_and_verify_worker_heartbeat_bound_to_enrollment_digest",
+    "complete_one_run_android_physical_commissioning",
+    "controller_verify_combined_commissioning_package",
     "execute_one_bounded_android_worker_task",
+    "physically_reboot_and_verify_worker_return",
+    "execute_one_post_reboot_bounded_worker_task",
     "qualify_remaining_production_connectors_individually"
   ],
   "stop_conditions": [
