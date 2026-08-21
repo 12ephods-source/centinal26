@@ -43,6 +43,22 @@ TASK_EVENT_STATUS = {
     "TASK_COMPLETED": "COMPLETE",
     "TASK_FAILED": "FAILED",
 }
+TASK_EVENT_ALLOWED_PREVIOUS = {
+    "TASK_READY": frozenset({"DISCOVERED"}),
+    # Explicit user execution may authorize directly from DISCOVERED; automated
+    # execution normally records TASK_READY first.
+    "TASK_AUTHORIZED": frozenset({"DISCOVERED", "READY"}),
+    "TASK_STARTED": frozenset({"AUTHORIZED"}),
+    "TASK_EXECUTED": frozenset({"RUNNING"}),
+    "VERIFICATION_PASSED": frozenset({"EXECUTED"}),
+    "VERIFICATION_FAILED": frozenset({"EXECUTED"}),
+    "TASK_COMPLETED": frozenset({"VERIFIED"}),
+    # A task can fail at any non-terminal lifecycle point, including after
+    # verification if a later semantic postcondition cannot be committed.
+    "TASK_FAILED": frozenset(
+        {"DISCOVERED", "READY", "AUTHORIZED", "RUNNING", "EXECUTED", "VERIFIED"}
+    ),
+}
 TERMINAL_TASK_STATES = frozenset({"COMPLETE", "FAILED", "VERIFICATION_FAILED"})
 
 
@@ -171,8 +187,9 @@ class EventStore:
         self.db.execute("BEGIN IMMEDIATE")
         try:
             row = self.db.execute(
-                "SELECT event_hash FROM events ORDER BY seq DESC LIMIT 1"
+                "SELECT seq,event_hash FROM events ORDER BY seq DESC LIMIT 1"
             ).fetchone()
+            previous_seq = int(row["seq"]) if row else 0
             prev_hash = row["event_hash"] if row else GENESIS_HASH
             digest = _event_hash(
                 event_id=event_id,
@@ -182,6 +199,21 @@ class EventStore:
                 payload=normalized_payload,
                 prev_hash=prev_hash,
             )
+            candidate = Event(
+                seq=previous_seq + 1,
+                event_id=event_id,
+                ts=ts,
+                type=event_type,
+                entity_id=entity_id,
+                payload=normalized_payload,
+                prev_hash=prev_hash,
+                event_hash=digest,
+            )
+            # Fail before persistence. An append-only history must never be
+            # poisoned by an event whose lifecycle semantics are invalid.
+            current_state = rebuild_state(self.events())
+            reduce_event(current_state, candidate)
+
             cursor = self.db.execute(
                 """INSERT INTO events (
                     event_id, ts, type, entity_id, payload_json,
@@ -223,24 +255,27 @@ class EventStore:
         previous = GENESIS_HASH
         try:
             events = self.events()
+            for event in events:
+                if event.prev_hash != previous:
+                    return False
+                if event.type not in EVENT_TYPES:
+                    return False
+                expected = _event_hash(
+                    event_id=event.event_id,
+                    ts=event.ts,
+                    event_type=event.type,
+                    entity_id=event.entity_id,
+                    payload=event.payload,
+                    prev_hash=event.prev_hash,
+                )
+                if expected != event.event_hash:
+                    return False
+                previous = event.event_hash
+            # A cryptographically intact history is not valid canonical state
+            # if its deterministic lifecycle cannot be replayed.
+            rebuild_state(events)
         except (json.JSONDecodeError, StateTransitionError, TypeError, ValueError):
             return False
-        for event in events:
-            if event.prev_hash != previous:
-                return False
-            if event.type not in EVENT_TYPES:
-                return False
-            expected = _event_hash(
-                event_id=event.event_id,
-                ts=event.ts,
-                event_type=event.type,
-                entity_id=event.entity_id,
-                payload=event.payload,
-                prev_hash=event.prev_hash,
-            )
-            if expected != event.event_hash:
-                return False
-            previous = event.event_hash
         return True
 
     def count(self) -> int:
@@ -309,6 +344,15 @@ def _entity_id(event: Event, payload_key: str | None = None) -> str:
     return candidate
 
 
+def _validate_task_transition(task_id: str, current_status: str, event_type: str) -> None:
+    allowed = TASK_EVENT_ALLOWED_PREVIOUS[event_type]
+    if current_status not in allowed:
+        raise StateTransitionError(
+            f"illegal task transition for {task_id}: "
+            f"{current_status} --{event_type}--> {TASK_EVENT_STATUS[event_type]}"
+        )
+
+
 def reduce_event(state: ProjectState, event: Event) -> ProjectState:
     if event.seq <= state.last_seq:
         raise StateTransitionError("events must be reduced in strictly increasing sequence order")
@@ -337,6 +381,13 @@ def reduce_event(state: ProjectState, event: Event) -> ProjectState:
             raise StateTransitionError("DEPENDENCY_ADDED requires task_id and depends_on")
         if task_id not in state.tasks:
             raise StateTransitionError(f"unknown task: {task_id}")
+        if task_id == dependency_id:
+            raise StateTransitionError("task may not depend on itself")
+        task_status = str(state.tasks[task_id].get("status"))
+        if task_status not in {"DISCOVERED", "READY"}:
+            raise StateTransitionError(
+                f"dependencies are frozen after authorization: {task_id} is {task_status}"
+            )
         dependencies = set(state.tasks[task_id].get("dependencies", []))
         dependencies.add(dependency_id)
         state.tasks[task_id]["dependencies"] = sorted(dependencies)
@@ -344,6 +395,8 @@ def reduce_event(state: ProjectState, event: Event) -> ProjectState:
         task_id = _entity_id(event, "task_id")
         if task_id not in state.tasks:
             raise StateTransitionError(f"unknown task: {task_id}")
+        current_status = str(state.tasks[task_id].get("status"))
+        _validate_task_transition(task_id, current_status, event.type)
         state.tasks[task_id]["status"] = TASK_EVENT_STATUS[event.type]
         if event.payload:
             state.tasks[task_id]["last_event"] = dict(event.payload)
