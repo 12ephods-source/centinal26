@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from automation.agent_execution_plane import run_task
+from centinal26.agent_execution_plane import run_task
 
 
 def test_pass(tmp_path: Path):
