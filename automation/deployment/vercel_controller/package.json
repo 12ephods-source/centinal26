@@ -2,9 +2,6 @@
   "name": "frost-vercel-outbound-controller",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "@vercel/blob": "^1.1.1"
-  },
   "engines": {
     "node": ">=20"
   }
