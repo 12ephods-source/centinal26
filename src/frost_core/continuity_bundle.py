@@ -29,8 +29,7 @@ def _run_openssl(args: list[str]) -> None:
             ["openssl", *args],
             check=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=30,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
