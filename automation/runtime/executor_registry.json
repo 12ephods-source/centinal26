@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "executors": [],
+  "selection_policy": {
+    "require_verified_capability": true,
+    "require_authorized_executor": true,
+    "require_health_check": true
+  },
+  "status": "initialized"
+}
