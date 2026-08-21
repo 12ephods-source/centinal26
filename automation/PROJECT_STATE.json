@@ -1,0 +1,150 @@
+{
+  "schema": "frost.automation.project_state.v1",
+  "project": {
+    "name": "Automation OS / Frost Forge",
+    "repository": "12ephods-source/centinal26",
+    "canonical_branch": "main",
+    "consolidation_version": "2.0",
+    "observed_production_head_at_consolidation": "5c29afb664a5347f20f642b276ea6ba9a68e2842"
+  },
+  "source_of_truth": {
+    "primary_evidence": ["git_history", "exact_head_ci", "immutable_artifacts"],
+    "human_continuation": "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md",
+    "machine_continuation": "automation/PROJECT_STATE.json",
+    "concise_summary": "PROJECT_STATE_AUTOMATION_OS.md"
+  },
+  "terminal_objective": "Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving explicit validation and recovery-root boundaries.",
+  "invariant_pipeline": [
+    "INTENT",
+    "AUTHORIZATION",
+    "EVENT_OR_QUEUE",
+    "CAPABILITY_SELECTION",
+    "BOUNDED_EXECUTION",
+    "VERIFICATION",
+    "EVIDENCE_OR_AUDIT",
+    "STATE_UPDATE",
+    "CONTROLLED_EVOLUTION"
+  ],
+  "control_plane": {
+    "active_protocol": "Frost Master Project Protocol v3",
+    "status": "CANONICAL",
+    "historical_protocol": "Frost Master Project Protocol v2"
+  },
+  "release_state": {
+    "AUTOMATION_PLATFORM_V1_HOST": "VERIFIED_COMPLETE",
+    "AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE": "PENDING_PHYSICAL",
+    "AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS": "PARTIAL"
+  },
+  "verified_production_capabilities": [
+    "project_productizer",
+    "protocol_v2_artifacts_and_propagation_verifier",
+    "protocol_v3_execution_kernel",
+    "agent_qualification_fleet",
+    "bounded_agent_execution_plane",
+    "planner_builder_judge_sre_sentinel_roles",
+    "task_and_evidence_hashing",
+    "failure_complete_execution_records",
+    "event_driven_reusable_agent_workflow",
+    "runtime_executor_interface",
+    "executor_registry",
+    "local_python_executor",
+    "repository_executor",
+    "api_connector_executor",
+    "android_worker_executor_contract",
+    "executor_capability_metadata",
+    "executor_integration_ci",
+    "productizer_protocol_v3_provenance_binding",
+    "productizer_to_judge_e2e_host_validation",
+    "ci_validate_automation_federation_mature_product_gates"
+  ],
+  "latest_host_e2e_qualification": {
+    "pull_request": 194,
+    "qualified_head": "6ec6ed59ba8c4f9187bc584ba9fe0bb267c03017",
+    "gates": {
+      "CI": "PASS",
+      "validate": "PASS",
+      "federation-gates": "PASS",
+      "automation-gates": "PASS",
+      "Mature Product Qualification": "PASS"
+    },
+    "scope": "HOST_CI"
+  },
+  "validation_boundaries": [
+    "queued != executed != verified",
+    "installed != authorized",
+    "executor_available != executor_verified",
+    "host_ci_pass != physical_device_pass",
+    "integration_pass != production_external_connector_pass",
+    "evidence_existence != accessibility != acquisition != integrity != verification != interpretation",
+    "absence_of_observed_evidence != evidence_of_absence"
+  ],
+  "canonical_pr_lineage": {
+    "174": "Project Productizer",
+    "177": "Protocol v2 clean artifacts",
+    "181": "Protocol v3 execution-first control plane",
+    "187": "Automation OS Ruff convergence",
+    "190": "Operational Agent Execution Plane",
+    "192": "Event-driven failure-complete execution",
+    "193": "Runtime executor contract unification",
+    "194": "Productizer-to-Judge end-to-end closure"
+  },
+  "superseded_prs": [176, 180, 182, 183, 184, 185, 186, 188, 189, 191],
+  "active_workstreams": [
+    {
+      "id": "durable_agent_execution_ledger",
+      "status": "ACTIVE_IMPLEMENTATION",
+      "branch": "feature/agent-execution-ledger-v1",
+      "condition": "diverged_from_current_main",
+      "next_gate": "reconstruct_non_superseded_value_on_current_main_then_exact_head_qualification"
+    },
+    {
+      "id": "agent_authority_policy",
+      "status": "ACTIVE_CANDIDATE",
+      "pull_request": 179,
+      "next_gate": "reconcile_useful_authority_semantics_into_current_runtime_on_fresh_branch"
+    },
+    {
+      "id": "universal_android_termux_installer",
+      "status": "PENDING_PHYSICAL",
+      "pull_request": 175,
+      "next_gate": "real_enrolled_android_termux_install_reboot_verify_evidence"
+    },
+    {
+      "id": "production_connector_authorization",
+      "status": "PARTIAL",
+      "next_gate": "connector_specific_auth_live_execution_and_verification"
+    },
+    {
+      "id": "real_android_worker_execution",
+      "status": "PENDING_PHYSICAL",
+      "next_gate": "enrolled_device_manifest_heartbeat_inventory_execution_evidence"
+    }
+  ],
+  "artifact_states": {
+    "protocols/FROST_MASTER_PROJECT_PROTOCOL_v3.md": "CANONICAL",
+    "protocols/frost_master_protocol_v3.json": "CANONICAL",
+    "tools/project_productizer.py": "CANONICAL",
+    "src/centinal26/agent_execution_plane.py": "CANONICAL",
+    "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md": "CANONICAL_AFTER_MERGE",
+    "automation/PROJECT_STATE.json": "CANONICAL_AFTER_MERGE",
+    "feature/agent-execution-ledger-v1": "EXPERIMENTAL_ACTIVE_IMPLEMENTATION",
+    "PR_179": "EXPERIMENTAL_ACTIVE_CANDIDATE",
+    "PR_175": "EXPERIMENTAL_PENDING_PHYSICAL"
+  },
+  "critical_path": [
+    "merge_project_consolidation",
+    "reconstruct_and_merge_durable_agent_execution_ledger",
+    "reconcile_and_merge_agent_authority_policy",
+    "preserve_host_v1_baseline",
+    "complete_android_termux_physical_validation",
+    "qualify_production_connectors_individually"
+  ],
+  "stop_conditions": [
+    "VERIFIED_COMPLETE",
+    "EXTERNAL_BLOCKER",
+    "AUTHORIZATION_OR_PLATFORM_BOUNDARY",
+    "FALSIFIED_TERMINAL_GATE",
+    "SUPERSEDED",
+    "NEGATIVE_EXPECTED_VALUE"
+  ]
+}
