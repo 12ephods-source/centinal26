@@ -21,6 +21,12 @@ jobs:
           python-version: "${{ matrix.python-version }}"
       - run: python -m pip install --upgrade pip
       - run: pip install -e ".[dev]"
+      - name: Show Ruff canonical import diff
+        shell: bash
+        run: |
+          set +e
+          ruff check --fix --diff tests/test_continuity_schema.py tests/test_encrypted_backup.py
+          exit 0
       - run: ruff check .
       - run: pytest -q
 
