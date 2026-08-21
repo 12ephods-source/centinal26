@@ -4,20 +4,19 @@ Creates structured evidence records for runtime tasks.
 Evidence generation does not prove correctness; validation remains separate.
 """
 
-from datetime import datetime, timezone
-import json
 import hashlib
+import json
+from datetime import UTC, datetime
 
 
 def create_evidence(request, result=None, verification=None):
-    record = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+    return {
+        "timestamp": datetime.now(UTC).isoformat(),
         "request": request,
         "result": result,
         "verification": verification,
-        "status": "PENDING_VERIFICATION"
+        "status": "PENDING_VERIFICATION",
     }
-    return record
 
 
 def hash_record(record):
