@@ -40,7 +40,13 @@
         ]
       },
       "verification": {
-        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "exact_head": "aefd3bbeaa1b3c6c352b0f6b0e9de212c27cbce8",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
         "tests": "tests/test_ci_repair.py"
       },
       "provenance": {
@@ -50,7 +56,7 @@
       "lifecycle": {
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
       },
-      "status": "EXPERIMENTAL"
+      "status": "VERIFIED"
     },
     {
       "id": "frost-forge/ability-registry/v1",
