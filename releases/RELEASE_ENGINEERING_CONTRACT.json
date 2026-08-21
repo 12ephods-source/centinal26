@@ -4,6 +4,7 @@
   "canonical_release_contract": "releases/RELEASE_CONTRACT.json",
   "canonical_project_state": "automation/PROJECT_STATE.json",
   "authority_matrix": "releases/AUTHORITY_MATRIX.json",
+  "release_rings": "releases/RELEASE_RINGS.json",
   "principle": "Release promotion is evidence-gated; host completion cannot substitute for device, persistence, recovery, or authorization evidence.",
   "host_closeout_controls": [
     "exact_head_required_checks",
@@ -15,6 +16,8 @@
     "portable_bundle_resource_limits",
     "sqlite_snapshot_restore_drill",
     "rollback_preserves_prior_state",
+    "deterministic_host_chaos_campaign",
+    "release_ring_non_substitution",
     "fail_closed_unknown_or_stale_state"
   ],
   "required_generated_evidence": {
@@ -32,7 +35,8 @@
     "releases/AUTHORITY_MATRIX.json",
     "releases/CURRENT_RELEASE_STATE.json",
     "releases/COMPATIBILITY_MATRIX.json",
-    "releases/DEPRECATION_REGISTRY.json"
+    "releases/DEPRECATION_REGISTRY.json",
+    "releases/RELEASE_RINGS.json"
   ],
   "recovery_semantics": {
     "host_primitive": "frost_core.sqlite_recovery",
@@ -43,6 +47,21 @@
     "live_wal_or_shm_sidecars_block_restore": true,
     "host_recovery_test_does_not_promote_RECOVERY_VALIDATED": true
   },
+  "chaos_qualification": {
+    "runner": "scripts/run_host_chaos_qualification.py",
+    "schema": "automation.host_chaos_qualification/v1",
+    "scope": "HOST_ONLY",
+    "required_scenarios": [
+      "stale_alias_writer",
+      "wrong_restore_hash",
+      "live_wal_restore",
+      "corrupt_snapshot",
+      "interrupted_restore_temp",
+      "manifest_symlink",
+      "encrypted_backup_provider_missing"
+    ],
+    "physical_promotion_allowed": false
+  },
   "external_gates": {
     "physical_android_termux": {
       "tracker_issue": 208,
@@ -51,6 +70,11 @@
     "deployment_authorization": {
       "tracker_issue": 228,
       "may_be_substituted_by_repository_ci": false
+    },
+    "branch_protection": {
+      "tracker_issue": 271,
+      "server_side_readback_required": true,
+      "workflow_substitution_allowed": false
     },
     "library_cleaner_device_ui": {
       "tracker_issue": 245,
@@ -62,5 +86,5 @@
       "identity_domain_independent": true
     }
   },
-  "promotion_rule": "A generated release evidence manifest plus green host checks proves host release-engineering closure only. GA still requires every mandatory evidence class in RELEASE_CONTRACT.json."
+  "promotion_rule": "A generated release evidence manifest plus green host checks and host chaos PASS proves host release-engineering closure only. GA still requires every mandatory evidence class in RELEASE_CONTRACT.json."
 }
