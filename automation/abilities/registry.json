@@ -25,19 +25,8 @@
       },
       "interface": {
         "python": "centinal26.ci_repair.classify_failure",
-        "inputs": [
-          "failing_sha",
-          "failing_log",
-          "latest_sha",
-          "latest_equivalent_passed"
-        ],
-        "outputs": [
-          "failure_state",
-          "repair_kind",
-          "diagnostics",
-          "bounded_validation_commands",
-          "reason"
-        ]
+        "inputs": ["failing_sha", "failing_log", "latest_sha", "latest_equivalent_passed"],
+        "outputs": ["failure_state", "repair_kind", "diagnostics", "bounded_validation_commands", "reason"]
       },
       "verification": {
         "exact_head": "aefd3bbeaa1b3c6c352b0f6b0e9de212c27cbce8",
@@ -128,6 +117,44 @@
         "removal": "mark SUPERSEDED or remove the experimental registry entry only in a versioned successor after preserving provenance"
       },
       "status": "EXPERIMENTAL"
+    },
+    {
+      "id": "termux/repository-recovery/v1",
+      "name": "Bounded Termux repository recovery",
+      "kind": "remediation-tool",
+      "source": {
+        "path": "deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh",
+        "lineage_pr": 86,
+        "reconstruction_branch": "feature/termux-repository-recovery-v2"
+      },
+      "interface": {
+        "doctor": "bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --doctor",
+        "repair": "FROST_ALLOW_PACKAGE_REPAIR=1 bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --repair",
+        "rollback": "FROST_ALLOW_PACKAGE_REPAIR=1 bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --rollback <repair-dir>"
+      },
+      "verification": {
+        "exact_head": "8bf1597d82fd244a115ad414f78216a417631e87",
+        "combined_base_at_final_qualification": "c9f832ceadfcf00e8fd9e7a2cb8bea6b124dbc5e",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "prior_equivalent_head": "fde090da5828cb5decac4437cf3443b68dbf7af5",
+        "tests": "tests/test_termux_repository_recovery_ability.py",
+        "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
+      },
+      "provenance": {
+        "origin": "bounded repository-recovery extraction from historical PR #86, reconstructed after concurrent registry advancement",
+        "upstream_source_policy_checked": "2026-08-21",
+        "authority_boundary": "repair and rollback require explicit local environment authorization; no signature bypass and no trust-root import"
+      },
+      "lifecycle": {
+        "rollback": "every repair preserves the pre-change apt source tree and automatically restores it after failed update/refresh paths",
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
+      },
+      "status": "VERIFIED"
     }
   ]
 }
