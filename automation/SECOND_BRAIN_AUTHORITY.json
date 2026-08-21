@@ -1,0 +1,153 @@
+{
+  "schema": "frost.automation.second_brain_authority.v1",
+  "version": "1.0.0",
+  "status": "CANDIDATE",
+  "source_commit": "fcb51a1ad16789d32ac4e819c11890fde5761f53",
+  "purpose": "Prevent duplicate sources of truth while integrating AI-First Second Brain v0.2.0 semantics into the canonical Automation OS architecture.",
+  "invariants": [
+    "one_canonical_owner_per_state_category",
+    "historical_aiccep_v1_1_database_is_not_silently_rewritten",
+    "execution_success_is_not_verification",
+    "artifact_bytes_and_knowledge_metadata_may_have_distinct_authorities",
+    "host_validation_is_not_physical_device_validation",
+    "adapter_ingest_is_idempotent_and_provenance_preserving",
+    "integration_does_not_grant_execution_authority"
+  ],
+  "authorities": {
+    "repository_and_release_governance": "centinal26/main",
+    "automation_control_plane": "centinal26/automation",
+    "project_continuity_and_knowledge_metadata": "AICCEP-OS v1.1.0",
+    "shared_artifact_identity_atomicity_and_bounded_execution": "Frost CORE / src/frost_core + canonical Automation runtime",
+    "research_agent_application_layer": "AAARD",
+    "second_brain_role": "domain semantics and migration source; not an independent canonical runtime"
+  },
+  "roadmap_overlap": [
+    {
+      "rank": 10,
+      "capability": "content_addressed_artifact_storage",
+      "classification": "CANONICAL_ALREADY",
+      "canonical_owner": "Frost CORE",
+      "action": "REUSE",
+      "rationale": "Canonical Automation history already provides immutable content-addressed artifact staging and hashing."
+    },
+    {
+      "rank": 11,
+      "capability": "encrypted_off_device_backup_rotation",
+      "classification": "NEW_REQUIRED",
+      "canonical_owner": "AICCEP-OS continuity layer",
+      "action": "BUILD_AFTER_INTEGRATION",
+      "rationale": "AICCEP and Second Brain have backup primitives, but encrypted off-device disaster-recovery policy is not established as canonical."
+    },
+    {
+      "rank": 12,
+      "capability": "signed_portable_export_import_bundle",
+      "classification": "PARTIAL",
+      "canonical_owner": "AICCEP-OS continuity layer",
+      "action": "EXTEND_EXISTING_EXPORTS",
+      "rationale": "Exports, manifests, checksums, and audit anchors exist in prior lines; a single signed portable interchange contract remains to be unified."
+    },
+    {
+      "rank": 13,
+      "capability": "optimistic_multiwriter_concurrency",
+      "classification": "NEW_REQUIRED",
+      "canonical_owner": "AICCEP-OS continuity layer",
+      "action": "BUILD_AFTER_INTEGRATION",
+      "rationale": "Execution leases exist elsewhere, but knowledge-record revision conflict handling is not established as a canonical multiwriter contract."
+    },
+    {
+      "rank": 14,
+      "capability": "polymorphic_relation_integrity",
+      "classification": "PARTIAL",
+      "canonical_owner": "AICCEP-OS continuity layer",
+      "action": "HARDEN",
+      "rationale": "AICCEP already has typed relationships; Second Brain adds stronger lifecycle and reference constraints that should be integrated rather than duplicated."
+    },
+    {
+      "rank": 15,
+      "capability": "versioned_json_schema_governance",
+      "classification": "PARTIAL",
+      "canonical_owner": "Centinal26 governance",
+      "action": "EXTEND",
+      "rationale": "Centinal26 already contains deterministic governance and schema contracts; knowledge-domain schemas should join that governance surface."
+    },
+    {
+      "rank": 16,
+      "capability": "hardened_manifest_semantics",
+      "classification": "PARTIAL",
+      "canonical_owner": "Frost CORE",
+      "action": "HARDEN",
+      "rationale": "Hashing and immutable manifests exist, but a single explicit policy for symlinks, hardlinks, exclusions, permissions, sparse files, and recursion is still useful."
+    },
+    {
+      "rank": 17,
+      "capability": "orphan_reconciliation_and_garbage_collection",
+      "classification": "NEW_REQUIRED",
+      "canonical_owner": "AICCEP-OS continuity layer",
+      "action": "BUILD_AFTER_INTEGRATION",
+      "rationale": "Knowledge-state reconciliation needs a non-destructive orphan detector before any garbage collection can be authorized."
+    },
+    {
+      "rank": 18,
+      "capability": "single_source_schema_generation",
+      "classification": "NEW_REQUIRED",
+      "canonical_owner": "Centinal26 governance",
+      "action": "BUILD_AFTER_INTEGRATION",
+      "rationale": "Schema SQL, migrations, JSON contracts, installer payloads, and documentation should derive from one governed source instead of drifting independently."
+    }
+  ],
+  "entity_authority": {
+    "project": {"metadata_owner": "AICCEP-OS", "byte_owner": "Git or Frost CORE according to artifact type"},
+    "theory_claim": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for attached artifacts"},
+    "experiment": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for immutable artifacts"},
+    "run": {"metadata_owner": "AICCEP-OS", "execution_owner": "Centinal26/Frost CORE", "byte_owner": "Frost CORE"},
+    "finding": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for evidence artifacts"},
+    "evidence": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE"},
+    "decision": {"metadata_owner": "AICCEP-OS"},
+    "environment": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for captured manifests"},
+    "artifact": {"metadata_owner": "AICCEP-OS", "identity_and_bytes_owner": "Frost CORE"},
+    "code_module": {"metadata_owner": "AICCEP-OS", "source_owner": "Git"},
+    "test_plan": {"metadata_owner": "AICCEP-OS", "execution_owner": "Centinal26/Frost CORE"},
+    "security_case": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for evidence"},
+    "knowledge_task": {"metadata_owner": "AICCEP-OS"},
+    "execution_task": {"metadata_owner": "Centinal26/Frost CORE"},
+    "ai_session": {"metadata_owner": "AICCEP-OS", "byte_owner": "Frost CORE for immutable transcript/tool artifacts"},
+    "knowledge_revision": {"metadata_owner": "AICCEP-OS"},
+    "source_revision": {"metadata_owner": "Git"}
+  },
+  "adapter_contract": {
+    "direction": "second_brain_v0_2_to_canonical_proposal",
+    "write_mode": "proposal_only",
+    "required_properties": [
+      "schema_validation",
+      "stable_identity_mapping",
+      "source_record_hash",
+      "epistemic_status_preservation",
+      "relationship_preservation",
+      "artifact_hash_verification",
+      "revision_lineage_preservation",
+      "idempotent_reingest",
+      "failure_atomicity",
+      "no_implicit_truth_promotion",
+      "no_execution_authorization"
+    ],
+    "forbidden": [
+      "silent_aiccep_database_rewrite",
+      "duplicate_artifact_byte_store",
+      "duplicate_execution_runtime",
+      "automatic_contradiction_resolution",
+      "automatic_epistemic_promotion",
+      "arbitrary_shell_execution"
+    ]
+  },
+  "promotion_gate": {
+    "required": [
+      "authority_map_tests_pass",
+      "adapter_differential_tests_pass",
+      "duplicate_ingest_is_idempotent",
+      "artifact_hashes_preserved",
+      "knowledge_semantics_preserved",
+      "physical_device_validation_remains_separate"
+    ],
+    "current_status": "AUTHORITY_MAP_DEFINED_ADAPTER_NOT_YET_IMPLEMENTED"
+  }
+}
