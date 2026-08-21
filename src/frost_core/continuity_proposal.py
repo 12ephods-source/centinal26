@@ -203,13 +203,18 @@ class ContinuityProposalAdapter:
             if key in seen:
                 continue
             seen.add(key)
-            result.append(
-                {
-                    "source_id": source_id,
-                    "relation": relation,
-                    "target_id": target_id,
-                }
-            )
+            relationship: Json = {
+                "source_id": source_id,
+                "relation": relation,
+                "target_id": target_id,
+            }
+            source_endpoint_type = str(raw.get("source_endpoint_type") or "").strip()
+            target_endpoint_type = str(raw.get("target_endpoint_type") or "").strip()
+            if source_endpoint_type:
+                relationship["source_endpoint_type"] = source_endpoint_type
+            if target_endpoint_type:
+                relationship["target_endpoint_type"] = target_endpoint_type
+            result.append(relationship)
         result.sort(key=lambda item: (item["source_id"], item["relation"], item["target_id"]))
         return result
 
