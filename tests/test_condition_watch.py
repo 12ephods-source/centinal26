@@ -37,8 +37,18 @@ def test_crash_after_claim_is_recovered_after_lease_expiry(tmp_path):
     assert second is not None
     assert second.delivery_id == first.delivery_id
     assert second.attempt_count == 2
-    assert ledger.acknowledge_delivery(second.delivery_id, "worker-b", delivered_at=23)
-    assert not ledger.acknowledge_delivery(second.delivery_id, "worker-b", delivered_at=24)
+    assert ledger.acknowledge_delivery(
+        second.delivery_id,
+        "worker-b",
+        attempt_count=second.attempt_count,
+        delivered_at=23,
+    )
+    assert not ledger.acknowledge_delivery(
+        second.delivery_id,
+        "worker-b",
+        attempt_count=second.attempt_count,
+        delivered_at=24,
+    )
 
     state = ledger.get("target")
     assert state["terminal_notified_at"] == 23
@@ -56,6 +66,7 @@ def test_retryable_delivery_failure_returns_to_pending(tmp_path):
         claim.delivery_id,
         "worker-a",
         "network down",
+        attempt_count=claim.attempt_count,
         retryable=True,
         failed_at=3,
     )
@@ -78,6 +89,7 @@ def test_terminal_delivery_failure_does_not_requeue(tmp_path):
         claim.delivery_id,
         "worker-a",
         "invalid destination",
+        attempt_count=claim.attempt_count,
         retryable=False,
     )
     assert ledger.delivery(decision.delivery_id)["status"] == "FAILED_TERMINAL"
@@ -125,9 +137,71 @@ def test_wrong_worker_cannot_acknowledge_or_fail_claim(tmp_path):
     assert claim is not None
 
     with pytest.raises(PermissionError):
-        ledger.acknowledge_delivery(claim.delivery_id, "worker-b")
+        ledger.acknowledge_delivery(
+            claim.delivery_id,
+            "worker-b",
+            attempt_count=claim.attempt_count,
+        )
     with pytest.raises(PermissionError):
-        ledger.fail_delivery(claim.delivery_id, "worker-b", "nope")
+        ledger.fail_delivery(
+            claim.delivery_id,
+            "worker-b",
+            "nope",
+            attempt_count=claim.attempt_count,
+        )
+
+
+def test_stale_attempt_cannot_complete_reclaimed_lease_with_reused_worker_id(tmp_path):
+    ledger = ConditionWatchLedger(tmp_path / "watch.sqlite3")
+    ledger.observe("target", "PASS", terminal_states=TERMINAL, observed_at=1)
+
+    stale = ledger.claim_delivery("shared-worker", now=2, lease_seconds=10)
+    assert stale is not None
+    active = ledger.claim_delivery("shared-worker", now=13, lease_seconds=10)
+    assert active is not None
+    assert active.attempt_count == stale.attempt_count + 1
+
+    with pytest.raises(PermissionError, match="another attempt"):
+        ledger.acknowledge_delivery(
+            stale.delivery_id,
+            stale.lease_owner,
+            attempt_count=stale.attempt_count,
+            delivered_at=14,
+        )
+    with pytest.raises(PermissionError, match="another attempt"):
+        ledger.fail_delivery(
+            stale.delivery_id,
+            stale.lease_owner,
+            "stale terminal failure",
+            attempt_count=stale.attempt_count,
+            retryable=False,
+            failed_at=15,
+        )
+
+    delivery = ledger.delivery(active.delivery_id)
+    assert delivery["status"] == "DELIVERING"
+    assert delivery["attempt_count"] == active.attempt_count
+    assert ledger.acknowledge_delivery(
+        active.delivery_id,
+        active.lease_owner,
+        attempt_count=active.attempt_count,
+        delivered_at=16,
+    )
+
+
+@pytest.mark.parametrize("attempt_count", [0, -1, True, 1.5, "1"])
+def test_completion_attempt_count_must_be_positive_integer(tmp_path, attempt_count):
+    ledger = ConditionWatchLedger(tmp_path / "watch.sqlite3")
+    ledger.observe("target", "PASS", terminal_states=TERMINAL)
+    claim = ledger.claim_delivery("worker")
+    assert claim is not None
+
+    with pytest.raises(ValueError, match="positive integer"):
+        ledger.acknowledge_delivery(
+            claim.delivery_id,
+            claim.lease_owner,
+            attempt_count=attempt_count,
+        )
 
 
 def test_legacy_v1_rows_are_migrated_to_explicit_uncertainty(tmp_path):

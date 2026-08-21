@@ -115,11 +115,13 @@ def test_legacy_control_planes_consolidate_under_one_authority(tmp_path: Path) -
     assert watch.acknowledge_delivery(
         claim.delivery_id,
         "fixture-worker",
+        attempt_count=claim.attempt_count,
         delivered_at=201.0,
     )
     assert not watch.acknowledge_delivery(
         claim.delivery_id,
         "fixture-worker",
+        attempt_count=claim.attempt_count,
         delivered_at=202.0,
     )
 
