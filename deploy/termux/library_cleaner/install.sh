@@ -10,11 +10,13 @@ pkg install -y python android-tools termux-services coreutils >/dev/null
 
 mkdir -p "$APP" "$SERVICE/log" "$HOME/.termux/boot"
 install -m 0644 "$SOURCE_DIR/frost_library_cleanerd.py" "$APP/frost_library_cleanerd.py"
+install -m 0644 "$SOURCE_DIR/package_evidence.py" "$APP/package_evidence.py"
 
 if [ ! -e "$HOME/storage/downloads" ]; then
   termux-setup-storage || true
 fi
 mkdir -p "$HOME/storage/downloads/FrostForgeLibraryArchive" || true
+mkdir -p "$HOME/storage/downloads/FrostForgeLibraryCleanerEvidence" || true
 
 echo "[2/5] Installing runit service"
 cat > "$SERVICE/run" <<'EOF'
@@ -57,6 +59,7 @@ If ADB is not connected, enable Android Wireless debugging and pair once:
 Useful commands:
   python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py status
   python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py once
+  python ~/.local/share/frost-library-cleaner/package_evidence.py
   sv down "$PREFIX/var/service/frost-library-cleaner"
   sv up "$PREFIX/var/service/frost-library-cleaner"
 EOF
