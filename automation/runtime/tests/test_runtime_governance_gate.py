@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from automation.runtime.executor_interface import ExecutionRequest, ExecutionResult, ExecutorRegistry
+from automation.runtime.executor_interface import (
+    ExecutionRequest,
+    ExecutionResult,
+    ExecutorRegistry,
+)
 
 
 @dataclass
