@@ -32,6 +32,7 @@ def verify_bundle(root: Path, expected_source_commit: str | None = None) -> dict
         "integrity": "FAILED",
         "software_provenance": "UNVERIFIED",
         "device_origin": "UNVERIFIED",
+        "device_profile": None,
         "inventory": "UNVERIFIED",
         "enrollment": "REJECTED",
         "worker_activation": "REJECTED",
@@ -108,6 +109,12 @@ def verify_bundle(root: Path, expected_source_commit: str | None = None) -> dict
         result["errors"].append("device-origin invariants failed")
         return result
     result["device_origin"] = "VERIFIED_ANDROID_SIGNAL_SET"
+
+    device_profile = evidence.get("device_profile")
+    if not isinstance(device_profile, dict) or report.get("device_profile") != device_profile:
+        result["errors"].append("device profile missing or inconsistent")
+        return result
+    result["device_profile"] = device_profile
 
     package_sources = evidence.get("package_inventory_sources", [])
     if package_sources:
