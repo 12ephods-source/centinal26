@@ -106,7 +106,13 @@
         "rollback": "FROST_ALLOW_PACKAGE_REPAIR=1 bash deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh --rollback <repair-dir>"
       },
       "verification": {
-        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "exact_head": "fde090da5828cb5decac4437cf3443b68dbf7af5",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
         "tests": "tests/test_termux_repository_recovery_ability.py",
         "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
       },
@@ -119,7 +125,7 @@
         "rollback": "every repair preserves the pre-change apt source tree and automatically restores it after failed update/refresh paths",
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
       },
-      "status": "EXPERIMENTAL"
+      "status": "VERIFIED"
     }
   ]
 }
