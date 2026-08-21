@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Standard execution evidence package schema",
+  "required_records": [
+    "execution_request",
+    "authorization_record",
+    "executor_health",
+    "execution_result",
+    "verification_result"
+  ],
+  "promotion_requires": [
+    "validated_result",
+    "audit_reference"
+  ]
+}
