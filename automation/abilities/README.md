@@ -20,14 +20,17 @@ Use this sequence:
 
 Each ability requires:
 
-- `id`: stable machine identifier.
+- `id`: stable lowercase machine identifier using letters, digits, `.`, `_`, `/`, or `-`.
 - `name`: concise human name.
 - `kind`: tool, adapter, verifier, collector, runner, or other bounded capability class.
-- `source`: repository path/commit/artifact identity.
-- `interface`: invocation contract and input/output shape.
-- `verification`: tests, CI, independent checks, or physical evidence as applicable.
-- `provenance`: origin and lineage.
+- `source`: non-empty repository path/commit/artifact identity object.
+- `interface`: non-empty invocation contract and input/output shape object.
+- `verification`: non-empty tests, CI, independent checks, or physical evidence object as applicable.
+- `provenance`: non-empty origin and lineage object.
+- `lifecycle`: non-empty object containing at least one explicit `rollback` or `removal` path.
 - `status`: `EXPERIMENTAL`, `VERIFIED`, `SUPERSEDED`, or `BLOCKED`.
+
+The registry document itself is schema- and policy-validated before registration. A new entry is validated both before and after insertion, duplicate IDs fail closed, and the updated registry is written by atomic replacement so an interrupted normal write does not leave a partially serialized registry.
 
 A registered ability remains subject to the same authorization, evidence, side-effect, and physical-vs-host boundaries as any other executor.
 
