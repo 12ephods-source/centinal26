@@ -1,18 +1,18 @@
 # Automation OS Project State Consolidation
 
-Version: Consolidated Record v2.3
+Version: Consolidated Record v2.4
 Date: 2026-08-21
-Status: HOST_V1_VERIFIED_COMPLETE / PHYSICAL_GATE_EXTERNAL / GITHUB_CONNECTOR_VERIFIED
+Status: HOST_V1_VERIFIED_COMPLETE / PHYSICAL_GATE_EXTERNAL / MULTIPLE_CONNECTOR_SCOPES_VERIFIED
 
 Canonical records: `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` and `automation/PROJECT_STATE.json`. Git history, exact-head CI, durable ledgers, immutable artifacts, and external-gate issues remain primary evidence.
 
-Observed verified host production head before this state PR: `8920d6a30f2566299230be70ba26df67400e64da`.
+Observed verified production head for this refresh: `d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2`.
 
 ## Verified Host State
 
-Production includes Protocol v3, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, durable agent evidence issue #199, runtime executor contracts, universal Termux installer, fail-closed module manager, Android evidence capture/controller verification, worker heartbeat record/controller verification software, pinned Termux keyring recovery, and the autonomous question resolver for authorized resolvable A0-A2 decisions.
+Production includes Protocol v3, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, deterministic governance invariants/schemas, durable agent evidence issue #199, runtime executor contracts, universal Termux installer, fail-closed module manager, Android evidence capture/controller verification, exact source-commit provenance binding, canonical verified enrollment digest, worker heartbeat record/controller verification software, pinned Termux keyring recovery, and the autonomous question resolver for authorized resolvable A0-A2 decisions.
 
-PR #205 exact head `4e603cc44ff559eda6e28cc287665fe3b6bb21ae` passed CI, Automation Validation, Executor Integration Validation, validate, automation-gates, federation-gates, and Mature Product Qualification. A4 and unresolved authorization/platform/unknown-data boundaries remain fail-closed.
+PR #213 bound physical evidence to the exact executed Centinal26 source commit and added controller rejection of wrong-revision bundles. PR #214 defined `enrollment_digest` as SHA-256 of the controller-verified `MANIFEST.sha256.json` for the heartbeat handoff. Both passed all six exact-head qualification suites before merge.
 
 ## Release State
 
@@ -20,17 +20,31 @@ PR #205 exact head `4e603cc44ff559eda6e28cc287665fe3b6bb21ae` passed CI, Automat
 
 `AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE = BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE`
 
-`AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS = PARTIAL_WITH_GITHUB_VERIFIED`
+`AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS = PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES`
 
 ## Physical Gate
 
-Issue #208 is canonical. Required next evidence: real Android/Termux capture -> controller bundle verification -> heartbeat bound to verified enrollment and boot session -> controller heartbeat verification -> one bounded Android-worker task -> preserved independent Judge evidence.
+Issue #208 is canonical and pinned to qualified source revision `d6dad40a087140c2efa25eec7eac5ad6f4c7bfd2`.
 
-Host PASS, device capture, verified enrollment, verified heartbeat, and worker execution remain separate states.
+Required evidence sequence:
+
+`pinned real Android/Termux capture -> controller verification against expected source commit -> verified enrollment digest -> fresh heartbeat bound to enrollment + boot session -> controller heartbeat verification -> one bounded Android-worker task -> preserved independent Judge evidence`
+
+Host PASS, device capture, exact source provenance, verified enrollment, verified heartbeat, and worker execution remain separate states.
 
 ## Connector Gate
 
-Issue #209 tracks connectors individually. GitHub is `VERIFIED_LIVE_READ_WRITE` for the currently authorized `12ephods-source/centinal26` repository scope. The repository API connector executor is `VERIFIED_SOFTWARE`; other target services remain connector-specific.
+Issue #209 tracks connectors individually.
+
+- GitHub: `VERIFIED_LIVE_READ_WRITE` for the authorized Centinal26 repository scope.
+- Gmail: `VERIFIED_REVERSIBLE_WRITE` via temporary unsent draft create + cleanup; no email sent.
+- Google Calendar: `VERIFIED_REVERSIBLE_WRITE` via temporary private/transparent event create + delete + absence verification.
+- Google Drive: `VERIFIED_REVERSIBLE_WRITE` via temporary native Doc create + metadata verification + permanent delete.
+- Google Contacts: `AUTHENTICATED_READ_VERIFIED`.
+- Notion: `AUTHENTICATED_READ_VERIFIED`.
+- Linear: `AUTHENTICATED_READ_VERIFIED`.
+
+The repository API connector executor is `VERIFIED_SOFTWARE`; other target services remain connector-specific.
 
 Qualification ladder: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`.
 
@@ -40,10 +54,12 @@ Qualification ladder: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EX
 - queued != executed != verified;
 - host PASS != physical-device PASS;
 - captured evidence != verified enrollment != active worker;
-- verified heartbeat software != real-device heartbeat;
+- verified enrollment digest != verified heartbeat != successful worker task;
+- exact source provenance != device-origin verification;
+- reversible write verification != unrestricted connector authority;
 - one connector verified != all connectors verified;
 - absence of observed evidence != evidence of absence.
 
 ## Critical Path
 
-`real device capture -> controller verification -> verified heartbeat -> bounded Android-worker execution -> remaining connector qualification -> final exact-head release state`
+`real device capture at d6dad40a... -> controller verification -> verified heartbeat -> bounded Android-worker execution -> remaining connector qualification -> final exact-head release state`
