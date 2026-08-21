@@ -1,0 +1,39 @@
+{
+  "schema": "automation.release_rings/v1",
+  "order": [
+    "DEV",
+    "INTERNAL",
+    "DEVICE_CANARY",
+    "FLEET_CANARY",
+    "GA"
+  ],
+  "rings": {
+    "DEV": {
+      "evidence": ["STATIC_VALIDATED"],
+      "scope": "development-only"
+    },
+    "INTERNAL": {
+      "evidence": ["HOST_VALIDATED"],
+      "scope": "qualified host/internal execution only"
+    },
+    "DEVICE_CANARY": {
+      "evidence": ["DEVICE_VALIDATED"],
+      "scope": "one exact verified physical worker/enrollment identity"
+    },
+    "FLEET_CANARY": {
+      "evidence": ["PERSISTENT_VALIDATED", "RECOVERY_VALIDATED"],
+      "scope": "multiple independently qualified device identities when available"
+    },
+    "GA": {
+      "evidence": ["GA"],
+      "scope": "release contract fully satisfied"
+    }
+  },
+  "rules": [
+    "rings may not be skipped",
+    "host evidence may not promote DEVICE_CANARY",
+    "one device may not promote FLEET_CANARY by duplication or cross-device evidence mixing",
+    "a rollback or serious invariant failure demotes to the highest ring whose evidence remains valid",
+    "release-ring status is separate from connector availability and scientific/security claim status"
+  ]
+}
