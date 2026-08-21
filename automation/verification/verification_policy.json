@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "rules": {
+    "discovered_requires_classification": true,
+    "classified_requires_verification": true,
+    "verified_requires_evidence": true,
+    "promotion_requires_authorization": true
+  },
+  "statuses": [
+    "unknown",
+    "pending",
+    "verified",
+    "rejected"
+  ]
+}
