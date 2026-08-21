@@ -39,7 +39,7 @@ jobs:
         run: python -m pytest -q tests/test_agent_execution_plane.py
 
       - name: Runtime executor integration harness
-        run: python automation/runtime/tests/executor_integration_test.py
+        run: python -m automation.runtime.tests.executor_integration_test
 
       - name: Automation state regression checks
         run: python automation/ci/automation_test_suite.py
