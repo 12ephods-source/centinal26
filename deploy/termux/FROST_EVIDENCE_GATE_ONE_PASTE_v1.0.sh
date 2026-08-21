@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_URL="https://github.com/12ephods-source/centinal26.git"
 APP_ROOT="${HOME}/.local/share/frost-evidence-gate/repo"
 STATE_ROOT="${FROST_EVIDENCE_STATE_ROOT:-${HOME}/.local/share/frost-evidence-gate}"
+SDK_ROOT="${STATE_ROOT}/controller-sdk"
 BIN_DIR="${HOME}/bin"
 REF="${FROST_EVIDENCE_COLLECTOR_REF:-main}"
 
@@ -13,13 +14,13 @@ if [ -z "${PREFIX:-}" ] || [[ "${PREFIX}" != *com.termux* ]]; then
 fi
 
 pkg update -y
-pkg install -y git python coreutils curl age
+pkg install -y git python coreutils curl age nodejs
 if ! pkg install -y rclone; then
   printf 'WARNING: rclone is not installed; off-device round-trip remains blocked.\n' >&2
 fi
 
-mkdir -p "$(dirname "${APP_ROOT}")" "${STATE_ROOT}" "${BIN_DIR}"
-chmod 700 "${STATE_ROOT}"
+mkdir -p "$(dirname "${APP_ROOT}")" "${STATE_ROOT}" "${SDK_ROOT}" "${BIN_DIR}"
+chmod 700 "${STATE_ROOT}" "${SDK_ROOT}"
 
 if [ -d "${APP_ROOT}/.git" ]; then
   git -C "${APP_ROOT}" fetch --all --prune
@@ -47,10 +48,20 @@ fi
 
 COLLECTOR_SHA="$(git -C "${APP_ROOT}" rev-parse HEAD)"
 COLLECTOR="${APP_ROOT}/automation/device/evidence_gate_collector.py"
+CONTROLLER_EXPORT_SOURCE="${APP_ROOT}/automation/controller/base44_evidence_export.mjs"
+CONTROLLER_EXPORTER="${SDK_ROOT}/base44_evidence_export.mjs"
 if [ ! -f "${COLLECTOR}" ]; then
   printf 'ERROR: collector missing at selected revision %s.\n' "${COLLECTOR_SHA}" >&2
   exit 2
 fi
+if [ ! -f "${CONTROLLER_EXPORT_SOURCE}" ]; then
+  printf 'ERROR: controller evidence exporter missing at selected revision %s.\n' "${COLLECTOR_SHA}" >&2
+  exit 2
+fi
+
+cp "${CONTROLLER_EXPORT_SOURCE}" "${CONTROLLER_EXPORTER}"
+chmod 600 "${CONTROLLER_EXPORTER}"
+npm install --prefix "${SDK_ROOT}" --no-save --package-lock=false @base44/sdk >/dev/null
 
 cat > "${BIN_DIR}/frost-evidence-gate" <<EOF
 #!/data/data/com.termux/files/usr/bin/bash
@@ -66,6 +77,50 @@ exec python "\${COLLECTOR}" "\$@"
 EOF
 chmod 700 "${BIN_DIR}/frost-evidence-gate"
 
+cat > "${BIN_DIR}/frost-controller-evidence" <<EOF
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+EXPORTER=${CONTROLLER_EXPORTER@Q}
+case "\${1:-}" in
+  export)
+    shift
+    if [ -z "\${BASE44_EVIDENCE_EMAIL:-}" ]; then
+      read -r -p 'Base44 email: ' BASE44_EVIDENCE_EMAIL
+    fi
+    if [ ! -t 0 ]; then
+      printf 'ERROR: controller export requires an interactive terminal for password entry.\n' >&2
+      exit 2
+    fi
+    read -r -s -p 'Base44 password: ' BASE44_EVIDENCE_PASSWORD
+    printf '\n' >&2
+    printf '%s\n' "\${BASE44_EVIDENCE_PASSWORD}" | node "\${EXPORTER}" \
+      --email "\${BASE44_EVIDENCE_EMAIL}" --password-stdin "\$@"
+    unset BASE44_EVIDENCE_PASSWORD
+    ;;
+  verify)
+    shift
+    if [ "\${1:-}" = "" ]; then
+      printf 'Usage: frost-controller-evidence verify BUNDLE.json [--phase phase-a|phase-b] [--max-age-seconds N]\n' >&2
+      exit 2
+    fi
+    bundle="\$1"
+    shift
+    exec node "\${EXPORTER}" --verify-bundle "\${bundle}" "\$@"
+    ;;
+  self-test)
+    exec node "\${EXPORTER}" --self-test
+    ;;
+  *)
+    printf 'Usage:\n' >&2
+    printf '  frost-controller-evidence export --worker-instance ID [--job-id ID] [--contract-id ID] [--proposal-key KEY]\n' >&2
+    printf '  frost-controller-evidence verify BUNDLE.json --phase phase-a|phase-b\n' >&2
+    printf '  frost-controller-evidence self-test\n' >&2
+    exit 2
+    ;;
+esac
+EOF
+chmod 700 "${BIN_DIR}/frost-controller-evidence"
+
 case ":${PATH}:" in
   *":${BIN_DIR}:"*) ;;
   *)
@@ -78,19 +133,25 @@ printf '\nCollector revision: %s\n' "${COLLECTOR_SHA}"
 printf 'State root: %s\n\n' "${STATE_ROOT}"
 
 "${BIN_DIR}/frost-evidence-gate" --state-root "${STATE_ROOT}" doctor
+"${BIN_DIR}/frost-controller-evidence" self-test
 
 if command -v age-keygen >/dev/null 2>&1; then
   "${BIN_DIR}/frost-evidence-gate" --state-root "${STATE_ROOT}" init-age
 fi
 
-printf '\nInstalled command: frost-evidence-gate\n'
+printf '\nInstalled commands: frost-evidence-gate, frost-controller-evidence\n'
 printf '\nRecommended sequence:\n'
 printf '  1. frost-evidence-gate doctor\n'
 printf '  2. frost-evidence-gate commission\n'
 printf '  3. frost-evidence-gate worker-once --config /path/to/worker.json\n'
-printf '  4. rclone config   # only if no external remote is configured yet\n'
-printf '  5. frost-evidence-gate offdevice-roundtrip --source <commissioning.zip> --identity "%s/keys/age-identity.txt" --remote <remote:path>\n' "${STATE_ROOT}"
-printf '  6. frost-evidence-gate arm-reboot --worker-config /path/to/worker.json\n'
-printf '  7. Perform a PHYSICAL reboot from the device UI; do not use a remote reboot.\n'
-printf '  8. frost-evidence-gate status\n\n'
+printf '  4. frost-controller-evidence export --worker-instance <ID> --job-id <JOB> --contract-id <CONTRACT> > "%s/controller_phase_a.json"\n' "${STATE_ROOT}"
+printf '  5. frost-controller-evidence verify "%s/controller_phase_a.json" --phase phase-a\n' "${STATE_ROOT}"
+printf '  6. rclone config   # only if no external remote is configured yet\n'
+printf '  7. frost-evidence-gate offdevice-roundtrip --source <commissioning.zip> --identity "%s/keys/age-identity.txt" --remote <remote:path>\n' "${STATE_ROOT}"
+printf '  8. frost-evidence-gate arm-reboot --worker-config /path/to/worker.json\n'
+printf '  9. Perform a PHYSICAL reboot from the device UI; do not use a remote reboot.\n'
+printf ' 10. Run/complete the post-reboot bounded job.\n'
+printf ' 11. frost-controller-evidence export --worker-instance <ID> --job-id <POST_REBOOT_JOB> --contract-id <CONTRACT> --proposal-key <KEY> > "%s/controller_phase_b.json"\n' "${STATE_ROOT}"
+printf ' 12. frost-controller-evidence verify "%s/controller_phase_b.json" --phase phase-b\n' "${STATE_ROOT}"
+printf ' 13. frost-evidence-gate status\n\n'
 printf 'The tool never marks an external or physical gate complete merely because host tests pass.\n'
