@@ -1,5 +1,5 @@
-import importlib.util
 import json
+from importlib import util
 from pathlib import Path
 
 
@@ -13,8 +13,8 @@ MODULE_PATH = (
 
 
 def load_module():
-    spec = importlib.util.spec_from_file_location("capture_device_evidence", MODULE_PATH)
-    module = importlib.util.module_from_spec(spec)
+    spec = util.spec_from_file_location("capture_device_evidence", MODULE_PATH)
+    module = util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
