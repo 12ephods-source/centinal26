@@ -6,7 +6,6 @@ import pytest
 
 from frost_core import encrypted_backup
 
-
 RECIPIENT = "age1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
 
 
