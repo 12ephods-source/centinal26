@@ -1,0 +1,37 @@
+name: Project Productizer
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'project_exports/**'
+      - 'tools/project_productizer.py'
+
+permissions:
+  contents: read
+
+jobs:
+  productize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Self-test
+        run: |
+          mkdir -p /tmp/productizer-test
+          printf '%s\n' 'Goal: build a reusable installer. Problem: duplicate automation is blocked. Verified conclusion: event-driven execution is preferred.' > /tmp/productizer-test/input.md
+          python tools/project_productizer.py /tmp/productizer-test/input.md -o /tmp/productizer-test/out
+          test -s /tmp/productizer-test/out/PROMPT_BOOTSTRAP.md
+          test -s /tmp/productizer-test/out/FEATURE_REGISTRY.json
+          test -s /tmp/productizer-test/out/MANIFEST.json
+      - name: Productize project exports
+        if: ${{ hashFiles('project_exports/**') != '' }}
+        run: python tools/project_productizer.py project_exports -o productized_project
+      - name: Upload productized project
+        if: ${{ hashFiles('project_exports/**') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: productized-project
+          path: productized_project/
