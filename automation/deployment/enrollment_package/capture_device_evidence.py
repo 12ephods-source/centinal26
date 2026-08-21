@@ -25,12 +25,36 @@ def utc_now() -> str:
 
 def run_command(command: list[str], timeout: int = 20) -> dict[str, Any]:
     if shutil.which(command[0]) is None:
-        return {"command": command, "available": False, "returncode": None, "stdout": "", "stderr": "command unavailable"}
+        return {
+            "command": command,
+            "available": False,
+            "returncode": None,
+            "stdout": "",
+            "stderr": "command unavailable",
+        }
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
-        return {"command": command, "available": True, "returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+        return {
+            "command": command,
+            "available": True,
+            "returncode": result.returncode,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+        }
     except subprocess.TimeoutExpired as exc:
-        return {"command": command, "available": True, "returncode": None, "stdout": exc.stdout or "", "stderr": "timeout"}
+        return {
+            "command": command,
+            "available": True,
+            "returncode": None,
+            "stdout": exc.stdout or "",
+            "stderr": "timeout",
+        }
 
 
 def sha256_file(path: Path) -> str:
@@ -49,6 +73,31 @@ def normalize_commit(value: str | None) -> str | None:
     return candidate if re.fullmatch(r"[0-9a-f]{40}", candidate) else None
 
 
+def getprop_value(output: str, key: str) -> str | None:
+    pattern = re.compile(rf"^\[{re.escape(key)}\]: \[(.*)\]$", re.MULTILINE)
+    match = pattern.search(output)
+    return match.group(1).strip() if match and match.group(1).strip() else None
+
+
+def termux_variable(output: str, key: str) -> str | None:
+    pattern = re.compile(rf"^{re.escape(key)}=(.*)$", re.MULTILINE)
+    match = pattern.search(output)
+    return match.group(1).strip() if match and match.group(1).strip() else None
+
+
+def termux_section_value(output: str, heading: str) -> str | None:
+    lines = output.splitlines()
+    try:
+        index = next(i for i, line in enumerate(lines) if line.strip() == heading)
+    except StopIteration:
+        return None
+    for line in lines[index + 1 :]:
+        value = line.strip()
+        if value:
+            return value
+    return None
+
+
 def detect_android() -> dict[str, Any]:
     prefix = os.environ.get("PREFIX", "")
     signals = {
@@ -58,8 +107,38 @@ def detect_android() -> dict[str, Any]:
         "system_build_prop": Path("/system/build.prop").exists(),
         "termux_prefix": "com.termux" in prefix,
     }
-    is_android = bool(signals["ANDROID_ROOT"] or signals["system_build_prop"] or signals["termux_prefix"])
+    is_android = bool(
+        signals["ANDROID_ROOT"]
+        or signals["system_build_prop"]
+        or signals["termux_prefix"]
+    )
     return {"is_android": is_android, "signals": signals}
+
+
+def normalized_device_profile(commands: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    getprop = commands["getprop"]["stdout"] if commands["getprop"]["returncode"] == 0 else ""
+    termux_info = (
+        commands["termux_info"]["stdout"]
+        if commands["termux_info"]["returncode"] == 0
+        else ""
+    )
+    uname = commands["uname"]["stdout"].strip() if commands["uname"]["returncode"] == 0 else None
+    return {
+        "manufacturer": getprop_value(getprop, "ro.product.manufacturer"),
+        "model": getprop_value(getprop, "ro.product.model"),
+        "android_version": getprop_value(getprop, "ro.build.version.release"),
+        "android_sdk": getprop_value(getprop, "ro.build.version.sdk"),
+        "cpu_architecture": termux_section_value(termux_info, "Packages CPU architecture:")
+        or platform.machine(),
+        "kernel": uname,
+        "termux_version": os.environ.get("TERMUX_VERSION")
+        or termux_variable(termux_info, "TERMUX_VERSION"),
+        "termux_tools_version": termux_section_value(termux_info, "termux-tools version:"),
+        "termux_user_id": os.environ.get("TERMUX__USER_ID")
+        or termux_variable(termux_info, "TERMUX__USER_ID"),
+        "termux_exec_proc_self_exe": os.environ.get("TERMUX_EXEC__PROC_SELF_EXE")
+        or termux_variable(termux_info, "TERMUX_EXEC__PROC_SELF_EXE"),
+    }
 
 
 def collect(device_id: str, source_commit: str | None = None) -> dict[str, Any]:
@@ -84,11 +163,15 @@ def collect(device_id: str, source_commit: str | None = None) -> dict[str, Any]:
     if observed_commit is None and commands["git_head"]["returncode"] == 0:
         observed_commit = normalize_commit(commands["git_head"]["stdout"])
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "captured_at_utc": utc_now(),
         "device_id": device_id,
-        "status": "DEVICE_EVIDENCE_CAPTURED" if android["is_android"] else "HOST_ONLY_NOT_DEVICE_EVIDENCE",
-        "physical_device_gate": "EVIDENCE_CAPTURED_UNVERIFIED" if android["is_android"] else "NOT_APPLICABLE_HOST",
+        "status": "DEVICE_EVIDENCE_CAPTURED"
+        if android["is_android"]
+        else "HOST_ONLY_NOT_DEVICE_EVIDENCE",
+        "physical_device_gate": "EVIDENCE_CAPTURED_UNVERIFIED"
+        if android["is_android"]
+        else "NOT_APPLICABLE_HOST",
         "software_provenance": {
             "repository": "12ephods-source/centinal26",
             "source_commit": observed_commit,
@@ -102,12 +185,14 @@ def collect(device_id: str, source_commit: str | None = None) -> dict[str, Any]:
             "android_detection": android,
             "boot_id": read_optional("/proc/sys/kernel/random/boot_id"),
         },
+        "device_profile": normalized_device_profile(commands),
         "package_inventory_sources": package_sources,
         "commands": commands,
         "claims": {
             "device_origin": "OBSERVED" if android["is_android"] else "FAILED",
             "integrity": "UNVERIFIED_UNTIL_MANIFEST_CHECK",
             "software_provenance": "OBSERVED" if observed_commit else "MISSING",
+            "device_profile": "OBSERVED_UNVERIFIED",
             "enrollment": "PENDING_CONTROLLER_VERIFICATION",
             "worker_activation": "PENDING_CONTROLLER_VERIFICATION",
         },
@@ -116,21 +201,31 @@ def collect(device_id: str, source_commit: str | None = None) -> dict[str, Any]:
 
 def write_bundle(output_dir: Path, evidence: dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "device_evidence.json").write_text(json.dumps(evidence, indent=2, sort_keys=True), encoding="utf-8")
+    (output_dir / "device_evidence.json").write_text(
+        json.dumps(evidence, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     summary = {
         "device_id": evidence["device_id"],
         "captured_at_utc": evidence["captured_at_utc"],
         "status": evidence["status"],
         "physical_device_gate": evidence["physical_device_gate"],
         "source_commit": evidence.get("software_provenance", {}).get("source_commit"),
+        "device_profile": evidence.get("device_profile", {}),
         "package_inventory_sources": evidence["package_inventory_sources"],
     }
-    (output_dir / "validation_report.json").write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+    (output_dir / "validation_report.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     manifest = {"schema_version": "1.0", "generated_at_utc": utc_now(), "files": {}}
     for path in sorted(output_dir.iterdir()):
         if path.name != "MANIFEST.sha256.json":
             manifest["files"][path.name] = sha256_file(path)
-    (output_dir / "MANIFEST.sha256.json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+    (output_dir / "MANIFEST.sha256.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
 
 
 def main() -> int:
@@ -150,6 +245,7 @@ def main() -> int:
                 "output": str(output),
                 "physical_device_gate": evidence["physical_device_gate"],
                 "source_commit": evidence["software_provenance"]["source_commit"],
+                "device_profile": evidence["device_profile"],
             },
             indent=2,
         )

@@ -13,6 +13,12 @@ from automation.device.verify_worker_heartbeat import canonical_record_sha256
 SOURCE_COMMIT = "a" * 40
 DEVICE_ID = "test-android-device"
 BOOT_ID = "11111111-2222-3333-4444-555555555555"
+DEVICE_PROFILE = {
+    "manufacturer": "samsung",
+    "model": "SM-A155M",
+    "android_version": "16",
+    "cpu_architecture": "aarch64",
+}
 
 
 def _write_json(path: Path, value: dict) -> None:
@@ -21,7 +27,7 @@ def _write_json(path: Path, value: dict) -> None:
 
 def _build_package(root: Path) -> None:
     evidence = {
-        "schema_version": "1.0",
+        "schema_version": "1.2",
         "captured_at_utc": datetime.now(UTC).isoformat(),
         "device_id": DEVICE_ID,
         "status": "DEVICE_EVIDENCE_CAPTURED",
@@ -39,6 +45,7 @@ def _build_package(root: Path) -> None:
                 },
             },
         },
+        "device_profile": DEVICE_PROFILE,
         "package_inventory_sources": ["android_packages_pm"],
     }
     report = {
@@ -46,6 +53,7 @@ def _build_package(root: Path) -> None:
         "status": "DEVICE_EVIDENCE_CAPTURED",
         "physical_device_gate": "EVIDENCE_CAPTURED_UNVERIFIED",
         "source_commit": SOURCE_COMMIT,
+        "device_profile": DEVICE_PROFILE,
     }
     _write_json(root / "device_evidence.json", evidence)
     _write_json(root / "validation_report.json", report)
@@ -89,6 +97,7 @@ def test_one_shot_commissioning_verifies_enrollment_and_heartbeat(tmp_path: Path
     result = verify_commissioning(tmp_path, SOURCE_COMMIT)
     assert result["status"] == "VERIFIED_PHYSICAL_COMMISSIONING_ELIGIBLE"
     assert result["enrollment"]["integrity"] == "VERIFIED"
+    assert result["enrollment"]["device_profile"]["model"] == "SM-A155M"
     assert result["heartbeat"]["eligible"] is True
     assert result["worker_activation"] == "VERIFIED_ACTIVE_ELIGIBLE"
 

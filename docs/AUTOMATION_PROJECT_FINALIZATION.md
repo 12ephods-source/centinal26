@@ -1,72 +1,69 @@
 # Automation Project Finalization
 
-This document defines the completion boundary for the current Centinal26 Automation release line.
+This document defines the current completion boundary for the Centinal26 Automation release line.
 
 ## Completion target
 
-The current product release target is `1.0.0` on the event-kernel-based Centinal26 runtime. The historical RC3/RC4 reconstruction lineage remains preserved as provenance and recovery evidence, but it no longer controls the current product release decision.
+The current Automation/Frost Forge host platform is host-verified. Physical Android validation and reboot persistence are separate evidence gates and cannot be inferred from host CI, historical finalizers, issue metadata, or simulation.
 
-This separation is intentional:
+Historical RC3/RC4/RC9 and issue-#64 machinery remains preserved as provenance and compatibility material. It is not the current physical acceptance standard unless an explicitly versioned successor decision reinstates it.
 
-- historical RC4 recovery asks whether exact earlier parent artifacts can be recovered and reconstructed faithfully;
-- current Centinal26 qualification asks whether the present runtime is safe, bounded, persistent, recoverable, and operational on the real Android/Termux execution node.
+## Canonical physical tracker
 
-A missing historical artifact must remain reported as missing. It does not become reconstructed provenance, but it also does not invalidate a separately verified current implementation.
+GitHub issue #208 is the canonical Automation v1 Android/Termux physical qualification tracker. The qualified commissioning source is read from `automation/PROJECT_STATE.json`; do not substitute a moving branch or an older finalizer-only source.
 
-## Single physical finalization path
+The canonical physical sequence is divided into two promotion layers.
 
-GitHub issue #64 is the single current physical release gate. The Android worker accepts only `automation.github_job/v2` with command `automation_project_finalize_v1`.
+### Phase A — DEVICE_VALIDATED eligibility
 
-The pre-reboot phase performs:
+1. Run the pinned one-run Android/Termux commissioning package on an authorized real device.
+2. Preserve the returned `guardian_physical_validation_<timestamp>.zip` unchanged.
+3. Independently verify manifest integrity, exact source commit, Android/Termux origin signals, boot identity, package inventory, normalized device profile, verified enrollment digest, and the heartbeat bound to that enrollment and boot session.
+4. Observe/register the same Android worker in the canonical control plane.
+5. Dispatch one harmless bounded Android-worker qualification task.
+6. Preserve authorization, task/result/evidence digests, lease/event chain, and independent Judge evidence.
 
-1. best-effort exact RC4 parent recovery for historical provenance only;
-2. real Android/Termux runtime check;
-3. local controller work claim and completion;
-4. expired-lease recovery;
-5. heartbeat advancement;
-6. event-chain validation;
-7. preparation of transparent Termux:Boot hooks.
+A controller result of `VERIFIED_PHYSICAL_COMMISSIONING_ELIGIBLE` establishes commissioning eligibility only. It does not by itself establish successful workload execution or `DEVICE_VALIDATED`.
 
-It then stops at `AWAITING_REBOOT`. No component is authorized to reboot the phone remotely.
+### Phase B — PERSISTENT_VALIDATED eligibility
 
-After the user physically reboots the Android device, the post-reboot phase proves:
+After Phase A passes:
 
-1. boot identity changed;
-2. Termux:Boot returned the controller/node;
-3. heartbeat is fresh;
-4. post-reboot work completes;
-5. the event chain remains valid;
-6. an unsupported worker command is rejected fail-closed;
-7. a bounded watchdog recovery drill succeeds;
-8. 61 healthy samples over at least 3500 seconds complete on one boot;
-9. the device publishes a bounded evidence comment to the active GitHub issue;
-10. a separate Python verifier recomputes the release decision from raw evidence and hashes.
+1. preserve pre-reboot device/boot/worker/enrollment evidence;
+2. physically reboot the phone locally;
+3. require a different post-reboot boot ID;
+4. require the Termux worker/controller to return;
+5. verify a fresh heartbeat bound to the same verified enrollment identity;
+6. verify lease, heartbeat, event-chain, and evidence continuity;
+7. complete one harmless bounded post-reboot work item;
+8. preserve independent Judge evidence.
 
-Only then may the physical issue close and the control plane proceed to GA promotion.
+No automation component is authorized to substitute a remote reboot for the physical reboot observation.
 
-## Automatic GA promotion
+## Historical finalization machinery
 
-The user has authorized automatic project completion. That authorization does not relax any validation gate.
+The following components may remain in the repository for provenance, historical recovery, compatibility testing, or explicitly authorized legacy reproduction:
 
-After independently verified physical evidence is observed, the Automation Intelligence Controller may automatically prepare and merge the final release metadata only when the exact candidate head passes all repository qualification gates and no authority boundary has widened.
+- issue #64 release-gate records;
+- `automation_project_finalize_v1`;
+- `automation_os_physical_ga_rc9_integrity`;
+- RC3/RC4/RC9 artifacts and recovery scripts;
+- earlier GitHub issue workers and finalizer scripts.
 
-The release controller must preserve the distinction between:
+They must not be treated as the default current physical path. The manual `.github/workflows/request-physical-ga.yml` workflow is intentionally guidance-only and reads the current commissioning source from the canonical project state rather than creating a legacy RC9 device job.
+
+## Release promotion
+
+Automatic project completion does not relax validation gates. Release promotion requires evidence appropriate to every active gate and fresh exact-head repository qualification. Maintain at least these distinctions:
 
 - `HOST_VALIDATED`
-- `PHYSICAL_VALIDATED`
+- `DEVICE_VALIDATED`
+- `PERSISTENT_VALIDATED`
 - `READY_FOR_GA_PROMOTION`
 - `GA`
 
-## Historical RC4 provenance
-
-`deploy/termux/recover-rc4-parent-inputs.sh` remains preserved. The physical finalizer attempts it opportunistically and records its report. A successful recovery improves historical provenance. A missing exact parent remains an explicit historical gap.
-
-Historical RC4 recovery is not a current Centinal26 GA gate.
-
-## GitHub Pages
-
-The repository website is optional operator UI. GitHub Pages deployment currently requires repository-owner enablement that the connected GitHub App cannot grant. This permission boundary does not block the runtime release. The site source remains preserved, and `deploy/termux/serve-site.sh` remains a local fallback.
+A later release may impose additional endurance, autonomy, recovery, security, or commercial-readiness gates. Such gates must be versioned and recorded rather than silently imported from a superseded release path.
 
 ## Authority boundary
 
-The finalization path does not add arbitrary remote shell, caller-selected commands, remote reboot, privilege escalation, or unverified execution. GitHub issues remain proposal/transport records; the physical worker executes one fixed semantic finalization command.
+The canonical physical path does not add arbitrary remote shell, caller-selected commands, remote reboot, privilege escalation, or unverified execution. Device-origin evidence, controller verification, bounded execution, and independent verification remain separate stages.
