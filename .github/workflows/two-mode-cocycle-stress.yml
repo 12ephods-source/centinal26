@@ -1,0 +1,130 @@
+name: Two-mode finite Type-I cocycle stress
+
+on:
+  push:
+    branches: ["agent/two-mode-cocycle-stress"]
+    paths:
+      - "candidates/two-mode-cocycle-stress/**"
+      - ".github/workflows/two-mode-cocycle-stress.yml"
+  pull_request:
+    paths:
+      - "candidates/two-mode-cocycle-stress/**"
+      - ".github/workflows/two-mode-cocycle-stress.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - run: python -m pip install --upgrade pip
+      - run: >-
+          python -m pip install
+          -r candidates/two-mode-cocycle-stress/requirements.txt
+          ruff==0.16.3
+
+      - name: Lint candidate
+        id: lint
+        continue-on-error: true
+        run: >-
+          ruff check
+          candidates/two-mode-cocycle-stress/two_mode_scan.py
+          candidates/two-mode-cocycle-stress/test_two_mode_scan.py
+
+      - name: Generate evidence
+        id: scan
+        continue-on-error: true
+        run: >-
+          python candidates/two-mode-cocycle-stress/two_mode_scan.py
+          --output two-mode-cocycle-python-${{ matrix.python-version }}.json
+
+      - name: Evaluate strict gate
+        id: strict
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("two-mode-cocycle-python-${{ matrix.python-version }}.json")
+          payload = json.loads(path.read_text())
+          status = payload["validation_summary"]["overall_status"]
+          print(json.dumps(payload["validation_summary"], indent=2, sort_keys=True))
+          raise SystemExit(0 if status == "PASS_TWO_MODE_FINITE_TYPE_I_STRESS" else 1)
+          PY
+
+      - name: Run regression tests
+        id: tests
+        continue-on-error: true
+        run: >-
+          python -m unittest discover
+          -s candidates/two-mode-cocycle-stress
+          -p 'test_*.py'
+          -v
+
+      - name: Publish diagnostic summary
+        if: always() && github.event_name == 'pull_request' && matrix.python-version == '3.12'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+          STRICT_OUTCOME: ${{ steps.strict.outcome }}
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = Path("two-mode-cocycle-python-3.12.json")
+          lines = [
+              "## Two-mode cocycle CI diagnostic",
+              "",
+              f"- lint: `{os.environ['LINT_OUTCOME']}`",
+              f"- evidence generation: `{os.environ['SCAN_OUTCOME']}`",
+              f"- strict gate: `{os.environ['STRICT_OUTCOME']}`",
+              f"- regression tests: `{os.environ['TEST_OUTCOME']}`",
+          ]
+          if report.exists():
+              payload = json.loads(report.read_text())
+              summary = payload.get("validation_summary", {})
+              lines.extend([
+                  "",
+                  f"Overall: `{summary.get('overall_status')}`",
+                  "",
+                  "```json",
+                  json.dumps(summary, indent=2, sort_keys=True),
+                  "```",
+              ])
+          else:
+              lines.extend(["", "No JSON evidence file was produced."])
+          Path("two-mode-ci-comment.md").write_text("\n".join(lines) + "\n")
+          PY
+          gh pr comment "$PR_NUMBER" --body-file two-mode-ci-comment.md
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: two-mode-cocycle-python-${{ matrix.python-version }}
+          path: two-mode-cocycle-python-${{ matrix.python-version }}.json
+          if-no-files-found: warn
+
+      - name: Enforce fail-closed outcome
+        if: always()
+        run: |
+          test "${{ steps.lint.outcome }}" = "success"
+          test "${{ steps.scan.outcome }}" = "success"
+          test "${{ steps.strict.outcome }}" = "success"
+          test "${{ steps.tests.outcome }}" = "success"
