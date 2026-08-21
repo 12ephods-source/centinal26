@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { del as deleteBlob, get as getBlob, put as putBlob } from '@vercel/blob';
 
 export const ALLOWED_CAPABILITIES = new Set(['diagnostic_status', 'inventory_snapshot']);
 
@@ -63,6 +64,27 @@ export function decryptSecret(record) {
   return plaintext.toString('utf8');
 }
 
+function redisConfigured() {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+function blobConfigured() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+export function stateBackendName() {
+  const requested = process.env.FROST_STATE_BACKEND?.trim().toLowerCase();
+  if (requested) {
+    if (!['blob', 'redis'].includes(requested)) throw new Error('STATE_BACKEND_INVALID');
+    if (requested === 'blob' && !blobConfigured()) throw new Error('BLOB_NOT_CONFIGURED');
+    if (requested === 'redis' && !redisConfigured()) throw new Error('REDIS_NOT_CONFIGURED');
+    return requested;
+  }
+  if (blobConfigured()) return 'blob';
+  if (redisConfigured()) return 'redis';
+  throw new Error('STATE_BACKEND_NOT_CONFIGURED');
+}
+
 function redisConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -70,7 +92,7 @@ function redisConfig() {
   return { url: url.replace(/\/$/, ''), token };
 }
 
-export async function redis(command, ...args) {
+async function redis(command, ...args) {
   const { url, token } = redisConfig();
   const response = await fetch(url, {
     method: 'POST',
@@ -84,12 +106,53 @@ export async function redis(command, ...args) {
   return payload.result;
 }
 
+function blobPath(key) {
+  return `frost-state/${Buffer.from(key, 'utf8').toString('base64url')}.json`;
+}
+
+async function getBlobJson(key) {
+  const result = await getBlob(blobPath(key), { access: 'private', useCache: false });
+  if (!result || result.statusCode !== 200) return null;
+  const text = await new Response(result.stream).text();
+  const envelope = JSON.parse(text);
+  if (!envelope || typeof envelope !== 'object' || !Object.hasOwn(envelope, 'value')) {
+    throw new Error('BLOB_STATE_INVALID');
+  }
+  if (envelope.expires_at && Date.parse(envelope.expires_at) <= Date.now()) {
+    await deleteBlob(blobPath(key));
+    return null;
+  }
+  return envelope.value;
+}
+
+async function setBlobJson(key, value, ttlSeconds = null) {
+  const pathname = blobPath(key);
+  if (value === null) {
+    await deleteBlob(pathname);
+    return null;
+  }
+  const envelope = {
+    value,
+    expires_at: ttlSeconds == null ? null : new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+  };
+  return putBlob(pathname, JSON.stringify(envelope), {
+    access: 'private',
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: 'application/json',
+    cacheControlMaxAge: 0,
+  });
+}
+
 export async function getJson(key) {
+  if (stateBackendName() === 'blob') return getBlobJson(key);
   const raw = await redis('GET', key);
   return raw == null ? null : JSON.parse(raw);
 }
 
 export async function setJson(key, value, ttlSeconds = null) {
+  if (stateBackendName() === 'blob') return setBlobJson(key, value, ttlSeconds);
+  if (value === null) return redis('DEL', key);
   const text = JSON.stringify(value);
   if (ttlSeconds == null) return redis('SET', key, text);
   return redis('SET', key, text, 'EX', String(ttlSeconds));

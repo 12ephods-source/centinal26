@@ -1,0 +1,140 @@
+name: Vercel Controller Bootstrap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automation/deployment/vercel_controller/**"
+      - ".github/workflows/vercel-controller-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_SCOPE: ete5
+      VERCEL_PROJECT: frost-forge-controller
+      CONTROLLER_ROOT: automation/deployment/vercel_controller
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Detect authorized Vercel deployment credential
+        id: preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERCEL_TOKEN:-}" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "VERCEL_TOKEN repository secret is not configured; deployment is BLOCKED_CREDENTIAL." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Vercel deployment credential is present; proceeding without printing it." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Install Vercel CLI
+        if: steps.preflight.outputs.available == 'true'
+        run: npm install --global vercel@latest
+
+      - name: Verify Vercel authentication
+        if: steps.preflight.outputs.available == 'true'
+        run: vercel whoami --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color
+
+      - name: Ensure controller project exists
+        if: steps.preflight.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if vercel project inspect "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color >/dev/null 2>&1; then
+            echo "Project already exists." >> "$GITHUB_STEP_SUMMARY"
+          else
+            vercel project add "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color
+            echo "Created Vercel project $VERCEL_PROJECT." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Link deployment artifact
+        if: steps.preflight.outputs.available == 'true'
+        working-directory: ${{ env.CONTROLLER_ROOT }}
+        run: vercel link --yes --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color
+
+      - name: Ensure controller secrets
+        if: steps.preflight.outputs.available == 'true'
+        working-directory: ${{ env.CONTROLLER_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          env_names="$(vercel env ls --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color 2>/dev/null || true)"
+          ensure_secret() {
+            local name="$1"
+            local value="$2"
+            if grep -q "$name" <<<"$env_names"; then
+              return 0
+            fi
+            printf '%s' "$value" | vercel env add "$name" production --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color >/dev/null
+          }
+          admin_secret="$(node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('base64url'))")"
+          credential_key="$(node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('base64url'))")"
+          ensure_secret FROST_CONTROLLER_ADMIN_SECRET "$admin_secret"
+          ensure_secret FROST_CONTROLLER_CREDENTIAL_KEY "$credential_key"
+          if ! grep -q 'FROST_STATE_BACKEND' <<<"$env_names"; then
+            printf '%s' 'blob' | vercel env add FROST_STATE_BACKEND production --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color >/dev/null
+          fi
+          unset admin_secret credential_key
+          echo "Controller secrets are present; values were never printed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ensure first-party private Blob state store
+        if: steps.preflight.outputs.available == 'true'
+        working-directory: ${{ env.CONTROLLER_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          env_names="$(vercel env ls --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color 2>/dev/null || true)"
+          if grep -q 'BLOB_READ_WRITE_TOKEN' <<<"$env_names"; then
+            echo "Private Blob state store is already connected." >> "$GITHUB_STEP_SUMMARY"
+          else
+            vercel blob create-store frost-forge-controller-state \
+              --access private \
+              --environment production \
+              --yes \
+              --scope "$VERCEL_SCOPE" \
+              --token "$VERCEL_TOKEN" \
+              --no-color
+            echo "Created and connected first-party private Blob state store." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Deploy controller to production
+        if: steps.preflight.outputs.available == 'true'
+        id: deploy
+        working-directory: ${{ env.CONTROLLER_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployment="$(vercel deploy --prod --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color 2>&1 | tee /tmp/vercel-deploy.log | tail -n 1)"
+          if [[ "$deployment" != https://* ]]; then
+            cat /tmp/vercel-deploy.log
+            echo "Deployment did not return a Vercel URL." >&2
+            exit 1
+          fi
+          echo "url=$deployment" >> "$GITHUB_OUTPUT"
+          echo "Production deployment: $deployment" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify deployed controller health
+        if: steps.preflight.outputs.available == 'true'
+        working-directory: ${{ env.CONTROLLER_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(vercel curl /api/health --deployment '${{ steps.deploy.outputs.url }}' --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color)"
+          status="$(printf '%s' "$health" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);process.stdout.write(String(x.status||''))})")"
+          if [[ "$status" != "READY" ]]; then
+            printf '%s\n' "$health"
+            echo "Controller health did not reach READY." >&2
+            exit 1
+          fi
+          echo "Controller /api/health independently returned READY." >> "$GITHUB_STEP_SUMMARY"

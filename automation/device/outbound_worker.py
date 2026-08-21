@@ -14,6 +14,7 @@ import json
 import os
 import platform
 import random
+import secrets
 import time
 import urllib.error
 import urllib.request
@@ -232,6 +233,16 @@ class Worker:
         request.add_header("Accept", "application/json")
         request.add_header("Content-Type", "application/json")
         request.add_header("X-Frost-Device", self.config.device_id)
+
+        request_auth = {
+            "device_id": self.config.device_id,
+            "method": method.upper(),
+            "timestamp": utc_now().isoformat(),
+            "nonce": secrets.token_hex(16),
+        }
+        request.add_header("X-Frost-Request-Timestamp", request_auth["timestamp"])
+        request.add_header("X-Frost-Request-Nonce", request_auth["nonce"])
+        request.add_header("X-Frost-Request-Signature", sign_record(request_auth, self.secret))
         if body is not None:
             request.add_header("X-Frost-Signature", sign_record(body, self.secret))
         with urllib.request.urlopen(request, timeout=30) as response:
