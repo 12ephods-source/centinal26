@@ -4,8 +4,10 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "2.5",
-    "observed_production_head": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
+    "consolidation_version": "2.6",
+    "observed_production_head": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+    "runtime_governance_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
+    "physical_commissioning_source": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
   },
   "source_of_truth": {
     "primary_evidence": [
@@ -34,17 +36,27 @@
     "deterministic_governance": {
       "status": "VERIFIED_COMPLETE_HOST",
       "production_commit": "d369e0015963dbcf1b336c5d124fac6376fee91e"
+    },
+    "objective_integrity": {
+      "status": "VERIFIED_COMPLETE_HOST",
+      "foundation_pull_request": 159,
+      "runtime_enforcement_pull_request": 220,
+      "runtime_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
+      "production_merge_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+      "boundary": "mutating or consequential agent execution requires canonical current authorized objective plus Guardian-issued scoped capability token before subprocess invocation"
     }
   },
   "release_state": {
     "AUTOMATION_PLATFORM_V1_HOST": "VERIFIED_COMPLETE",
+    "AUTOMATION_PLATFORM_V1_RUNTIME_GOVERNANCE": "VERIFIED_COMPLETE_HOST",
     "AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
     "AUTOMATION_PLATFORM_V1_PERSISTENCE": "BLOCKED_ON_DEVICE_VALIDATED_AND_PHYSICAL_REBOOT",
     "AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS": "PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES"
   },
   "host_baseline": {
     "status": "FROZEN_VERIFIED_HOST_BASELINE",
-    "production_commit": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16",
+    "production_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+    "runtime_governance_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
     "physical_gate_software_revision": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
   },
   "verified_production_capabilities": [
@@ -52,6 +64,12 @@
     "protocol_v3_execution_kernel",
     "autonomous_question_resolver_a0_a2",
     "deterministic_governance_invariants_and_schemas",
+    "objective_integrity_registry",
+    "canonical_runtime_objective_enforcement",
+    "guardian_provenanced_capability_token_gate",
+    "current_objective_alias_binding",
+    "action_network_secret_destructive_scope_enforcement",
+    "controlled_evolution_authority_path_hard_protection",
     "agent_qualification_fleet",
     "bounded_agent_execution_plane",
     "planner_builder_judge_sre_sentinel_release_roles",
@@ -67,6 +85,7 @@
     "executor_registry",
     "repository_api_android_executor_contracts",
     "executor_integration_ci",
+    "condition_watch_attempt_fencing",
     "productizer_to_judge_e2e_host_validation",
     "manifest_driven_universal_termux_installer",
     "immutable_module_registry",
@@ -82,18 +101,29 @@
     "controller_end_to_end_physical_commissioning_verifier",
     "pinned_termux_keyring_recovery"
   ],
-  "latest_agent_runtime_verification": {
-    "authority_merge_commit": "883673d8ae03be09d0db0cc646e9a0c7b4ab692a",
-    "workflow_run": 32488911036,
-    "durable_issue": 199,
-    "role": "judge",
-    "profile": "agent-tests",
-    "result": "PASS",
-    "tests": "9 passed",
-    "task_digest": "984878fc3193a34e180ae46bdde81d3458fbe139c7043a2c257193a404d05743",
-    "evidence_digest": "20681ea2c49fbe28f04b70f4c3366ed73c09f40945f0f2f253c5d39f3aea4f76",
-    "artifact_id": 9448948270,
-    "artifact_digest": "sha256:7d2368ec67390701ca1ef589bfe559c5dc69d1a4025714e99c3aaf92a365c9d2"
+  "runtime_governance_verification": {
+    "pull_request": 220,
+    "exact_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
+    "merge_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+    "required_workflows": {
+      "validate": "PASS",
+      "CI": "PASS",
+      "automation-gates": "PASS",
+      "federation-gates": "PASS",
+      "Mature Product Qualification": "PASS",
+      "Executor Integration Validation": "PASS",
+      "hard-sandbox": "PASS"
+    },
+    "fail_closed_cases": [
+      "missing_objective_context",
+      "missing_or_wrong_immutable_reference",
+      "non_executable_authorization_evaluation",
+      "invalid_objective_provenance",
+      "superseded_current_objective",
+      "non_guardian_capability_token",
+      "task_objective_root_binding_mismatch",
+      "action_network_secret_or_destructive_scope_amplification"
+    ]
   },
   "external_gate_trackers": {
     "physical_android_termux": 208,
@@ -133,9 +163,10 @@
       "promotion": "PERSISTENT_VALIDATED_ELIGIBLE"
     },
     "base44_observation": {
+      "observed_on": "2026-08-21",
       "registered_workers": 3,
       "registered_android_termux_workers": 0,
-      "reboot_evidence_records": 0,
+      "queued_unclaimed_physical_jobs": 8,
       "physical_gate_policy": "P1-P5_PENDING"
     }
   },
@@ -146,25 +177,19 @@
       "scope": "currently authorized 12ephods-source/centinal26 repository scope"
     },
     "gmail": {
-      "status": "VERIFIED_REVERSIBLE_WRITE",
-      "evidence": "temporary unsent draft create then Trash; no email sent"
+      "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
+      "evidence": "isolated self-send, exact-subject readback, then Trash cleanup"
     },
     "google_calendar": {
-      "status": "VERIFIED_REVERSIBLE_WRITE",
-      "evidence": "temporary private transparent event create, delete, absence verification"
+      "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
+      "evidence": "isolated private non-blocking event create, exact readback, then delete"
     },
     "google_drive": {
-      "status": "VERIFIED_REVERSIBLE_WRITE",
-      "evidence": "temporary native Doc create, metadata readback, permanent delete"
+      "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
+      "evidence": "isolated folder create, exact fetch/readback, then permanent delete; rejected first delete URL shape caused no unrelated mutation"
     },
     "google_contacts": {
-      "status": "AUTHENTICATED_READ_VERIFIED"
-    },
-    "notion": {
-      "status": "AUTHENTICATED_READ_VERIFIED"
-    },
-    "linear": {
-      "status": "AUTHENTICATED_READ_VERIFIED"
+      "status": "AUTHENTICATED_READ_VERIFIED_WRITE_SURFACE_UNAVAILABLE"
     },
     "repository_api_connector_executor": {
       "status": "VERIFIED_SOFTWARE",
@@ -175,6 +200,8 @@
     "queued != executed != verified",
     "installed != authorized",
     "host_ci_pass != physical_device_pass",
+    "objective_proposal != authorized_objective",
+    "judge_verification != objective_authorization != capability_token_scope",
     "physical_commissioning_eligible != bounded_worker_task_pass",
     "device_validated != persistent_validated",
     "pre_reboot_worker != verified_post_reboot_worker_return",
@@ -186,6 +213,8 @@
     "absence_of_observed_evidence != evidence_of_absence"
   ],
   "canonical_pr_lineage": {
+    "159": "Objective integrity foundation",
+    "163": "Condition-watch attempt fencing",
     "174": "Project Productizer",
     "177": "Protocol v2 clean artifacts",
     "181": "Protocol v3 execution-first control plane",
@@ -204,7 +233,8 @@
     "213": "Exact source commit provenance for Android evidence",
     "214": "Verified enrollment digest heartbeat handoff",
     "216": "Canonical state v2.4 synchronization",
-    "217": "One-run Android physical commissioning package"
+    "217": "One-run Android physical commissioning package",
+    "220": "Runtime objective and capability enforcement"
   },
   "active_workstreams": [
     {
@@ -234,7 +264,7 @@
     "execute_one_bounded_android_worker_task",
     "physically_reboot_and_verify_worker_return",
     "execute_one_post_reboot_bounded_worker_task",
-    "qualify_remaining_production_connectors_individually"
+    "make_final_evidence_gated_release_decision"
   ],
   "stop_conditions": [
     "VERIFIED_COMPLETE",
