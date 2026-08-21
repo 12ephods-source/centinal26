@@ -20,6 +20,10 @@ def _digest(value: Any) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+class AliasConflict(RuntimeError):
+    """An optimistic alias update observed a different canonical head."""
+
+
 @dataclass(frozen=True)
 class StoredObject:
     object_id: str
@@ -105,11 +109,7 @@ class CanonicalObjectStore:
         kind = str(kind).strip()
         if not kind:
             raise ValueError("kind may not be empty")
-        envelope = {
-            "schema": self.SCHEMA_VERSION,
-            "kind": kind,
-            "payload": payload,
-        }
+        envelope = {"schema": self.SCHEMA_VERSION, "kind": kind, "payload": payload}
         object_id = _digest(envelope)
         body_json = json.dumps(envelope, sort_keys=True, separators=(",", ":"))
         now = time.time() if captured_at is None else float(captured_at)
@@ -129,10 +129,7 @@ class CanonicalObjectStore:
 
     def get(self, object_id: str) -> StoredObject:
         with self._connect() as db:
-            row = db.execute(
-                "SELECT * FROM objects WHERE object_id=?",
-                (object_id,),
-            ).fetchone()
+            row = db.execute("SELECT * FROM objects WHERE object_id=?", (object_id,)).fetchone()
         if row is None:
             raise KeyError(object_id)
         body = json.loads(row["body_json"])
@@ -150,8 +147,7 @@ class CanonicalObjectStore:
         with self._connect() as db:
             for object_id in (parent_id, child_id):
                 found = db.execute(
-                    "SELECT 1 FROM objects WHERE object_id=?",
-                    (object_id,),
+                    "SELECT 1 FROM objects WHERE object_id=?", (object_id,)
                 ).fetchone()
                 if found is None:
                     raise KeyError(object_id)
@@ -161,16 +157,29 @@ class CanonicalObjectStore:
                 (parent_id, relation, child_id, time.time()),
             )
 
+    def link_typed(
+        self,
+        parent_id: str,
+        parent_kind: str,
+        relation: str,
+        child_id: str,
+        child_kind: str,
+    ) -> None:
+        parent = self.get(parent_id)
+        child = self.get(child_id)
+        if parent.kind != parent_kind:
+            raise ValueError(f"parent kind mismatch: expected {parent_kind}, got {parent.kind}")
+        if child.kind != child_kind:
+            raise ValueError(f"child kind mismatch: expected {child_kind}, got {child.kind}")
+        self.link(parent_id, relation, child_id)
+
     def point(self, alias: str, object_id: str, *, at: float | None = None) -> None:
         alias = str(alias).strip()
         if not alias:
             raise ValueError("alias may not be empty")
         now = time.time() if at is None else float(at)
         with self._connect() as db:
-            found = db.execute(
-                "SELECT 1 FROM objects WHERE object_id=?",
-                (object_id,),
-            ).fetchone()
+            found = db.execute("SELECT 1 FROM objects WHERE object_id=?", (object_id,)).fetchone()
             if found is None:
                 raise KeyError(object_id)
             db.execute(
@@ -180,17 +189,62 @@ class CanonicalObjectStore:
                 (alias, object_id, now),
             )
             db.execute(
-                """INSERT INTO alias_history(alias,object_id,updated_at)
-                   VALUES (?,?,?)""",
+                "INSERT INTO alias_history(alias,object_id,updated_at) VALUES (?,?,?)",
                 (alias, object_id, now),
+            )
+
+    def point_if_current(
+        self,
+        alias: str,
+        expected_object_id: str | None,
+        new_object_id: str,
+        *,
+        at: float | None = None,
+    ) -> None:
+        """Atomically compare-and-swap an alias without lost updates.
+
+        ``expected_object_id=None`` means the alias must not yet exist. A failed
+        comparison leaves both the alias and alias history unchanged.
+        """
+
+        alias = str(alias).strip()
+        if not alias:
+            raise ValueError("alias may not be empty")
+        now = time.time() if at is None else float(at)
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            found = db.execute(
+                "SELECT 1 FROM objects WHERE object_id=?", (new_object_id,)
+            ).fetchone()
+            if found is None:
+                raise KeyError(new_object_id)
+            row = db.execute("SELECT object_id FROM aliases WHERE alias=?", (alias,)).fetchone()
+            current = None if row is None else str(row["object_id"])
+            if current != expected_object_id:
+                raise AliasConflict(
+                    f"alias {alias!r} expected {expected_object_id!r}, observed {current!r}"
+                )
+            if current is None:
+                db.execute(
+                    "INSERT INTO aliases(alias,object_id,updated_at) VALUES (?,?,?)",
+                    (alias, new_object_id, now),
+                )
+            else:
+                changed = db.execute(
+                    """UPDATE aliases SET object_id=?,updated_at=?
+                       WHERE alias=? AND object_id=?""",
+                    (new_object_id, now, alias, expected_object_id),
+                ).rowcount
+                if changed != 1:
+                    raise AliasConflict(f"alias {alias!r} changed concurrently")
+            db.execute(
+                "INSERT INTO alias_history(alias,object_id,updated_at) VALUES (?,?,?)",
+                (alias, new_object_id, now),
             )
 
     def resolve(self, alias: str) -> StoredObject:
         with self._connect() as db:
-            row = db.execute(
-                "SELECT object_id FROM aliases WHERE alias=?",
-                (alias,),
-            ).fetchone()
+            row = db.execute("SELECT object_id FROM aliases WHERE alias=?", (alias,)).fetchone()
         if row is None:
             raise KeyError(alias)
         return self.get(row["object_id"])
@@ -198,9 +252,7 @@ class CanonicalObjectStore:
     def list_kind(self, kind: str) -> list[StoredObject]:
         with self._connect() as db:
             rows = db.execute(
-                """SELECT object_id FROM objects
-                   WHERE kind=? ORDER BY created_at,object_id""",
-                (kind,),
+                "SELECT object_id FROM objects WHERE kind=? ORDER BY created_at,object_id", (kind,)
             ).fetchall()
         return [self.get(row["object_id"]) for row in rows]
 
@@ -215,10 +267,41 @@ class CanonicalObjectStore:
 
     def counts(self) -> dict[str, int]:
         with self._connect() as db:
-            rows = db.execute(
-                "SELECT kind,COUNT(*) AS n FROM objects GROUP BY kind"
-            ).fetchall()
+            rows = db.execute("SELECT kind,COUNT(*) AS n FROM objects GROUP BY kind").fetchall()
         return {row["kind"]: int(row["n"]) for row in rows}
+
+    def integrity_report(self) -> dict[str, Any]:
+        """Return non-destructive structural/orphan diagnostics.
+
+        Unaliased immutable objects are reported only as informational history;
+        they are never classified as safe to delete. Garbage collection remains
+        an explicit higher-authority operation outside this store.
+        """
+
+        with self._connect() as db:
+            foreign_keys = [tuple(row) for row in db.execute("PRAGMA foreign_key_check").fetchall()]
+            without_provenance = [
+                row["object_id"]
+                for row in db.execute(
+                    """SELECT o.object_id FROM objects o
+                       LEFT JOIN provenance p ON p.object_id=o.object_id
+                       WHERE p.object_id IS NULL ORDER BY o.object_id"""
+                ).fetchall()
+            ]
+            unaliased_count = int(
+                db.execute(
+                    """SELECT COUNT(*) FROM objects o
+                       LEFT JOIN aliases a ON a.object_id=o.object_id
+                       WHERE a.object_id IS NULL"""
+                ).fetchone()[0]
+            )
+        return {
+            "status": "PASS" if not foreign_keys and not without_provenance else "REVIEW",
+            "foreign_key_violations": foreign_keys,
+            "objects_without_provenance": without_provenance,
+            "unaliased_immutable_objects": unaliased_count,
+            "garbage_collection_authorized": False,
+        }
 
     def ingest_many(
         self,
@@ -226,7 +309,4 @@ class CanonicalObjectStore:
         records: Iterable[Mapping[str, Any]],
         **provenance: Any,
     ) -> list[str]:
-        return [
-            self.put(kind, dict(record), **provenance)
-            for record in records
-        ]
+        return [self.put(kind, dict(record), **provenance) for record in records]

@@ -1,0 +1,52 @@
+{
+  "schema": "frost.automation.continuity_model_source.v1",
+  "model_version": "1.0.0",
+  "proposal_schema": "frost.automation.continuity_migration_proposal.v1",
+  "entity_types": [
+    "ai_session",
+    "artifact_metadata",
+    "code_module",
+    "decision",
+    "environment",
+    "evidence",
+    "experiment",
+    "finding",
+    "knowledge_revision",
+    "knowledge_task",
+    "project",
+    "run",
+    "security_case",
+    "test_plan",
+    "theory_claim",
+    "workbench_capture"
+  ],
+  "epistemic_statuses": [
+    "Verified",
+    "Reported",
+    "Derived",
+    "Proposed",
+    "Speculative",
+    "Rejected",
+    "Superseded",
+    "Partially implemented",
+    "Reconstructed",
+    "Unknown"
+  ],
+  "relationship": {
+    "required": ["source_id", "relation", "target_id"],
+    "optional": ["source_endpoint_type", "target_endpoint_type"]
+  },
+  "artifact": {
+    "required": ["artifact_id", "sha256", "verification"],
+    "optional": ["media_type", "logical_ref"],
+    "sha256_pattern": "^[0-9a-f]{64}$"
+  },
+  "authority_invariants": {
+    "status": "PROPOSAL_ONLY",
+    "machine_continuation": "automation/PROJECT_STATE.json",
+    "execution_authority": false,
+    "automatic_epistemic_promotion": false,
+    "automatic_contradiction_resolution": false,
+    "alias_or_current_pointer_update": false
+  }
+}
