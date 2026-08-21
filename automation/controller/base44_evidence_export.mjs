@@ -19,7 +19,14 @@ function canonical(value) {
 }
 
 function sha256(value) {
-  return createHash("sha256").update(typeof value === "string" ? value : canonical(value)).digest("hex");
+  const payload = typeof value === "string" ? value : canonical(value);
+  if (typeof payload !== "string") throw new Error("canonical payload must be a string");
+  return createHash("sha256").update(payload).digest("hex");
+}
+
+function finalizeBundle(bundle) {
+  const { bundle_sha256: _ignored, ...unsigned } = bundle;
+  return { ...unsigned, bundle_sha256: sha256(unsigned) };
 }
 
 function parseArgs(argv) {
@@ -101,20 +108,32 @@ async function collect(base44, options) {
 
   const selectedJobId = options.jobId || jobs[0]?.id || null;
   if (selectedJobId && !jobs.some((record) => record.id === selectedJobId)) {
-    jobs = [
-      ...(await maybeGet(base44.entities.AutomationJob, selectedJobId)),
-      ...jobs,
-    ];
+    jobs = [...(await maybeGet(base44.entities.AutomationJob, selectedJobId)), ...jobs];
   }
 
   const leases = selectedJobId
-    ? await filtered(base44.entities.AutomationLease, { job_id: selectedJobId }, "-updated_date", options.limit)
+    ? await filtered(
+        base44.entities.AutomationLease,
+        { job_id: selectedJobId },
+        "-updated_date",
+        options.limit,
+      )
     : [];
   const audits = selectedJobId
-    ? await filtered(base44.entities.AutomationAudit, { job_id: selectedJobId }, "sequence", options.limit)
+    ? await filtered(
+        base44.entities.AutomationAudit,
+        { job_id: selectedJobId },
+        "sequence",
+        options.limit,
+      )
     : [];
   const results = selectedJobId
-    ? await filtered(base44.entities.AutomationResult, { job_id: selectedJobId }, "-created_date", options.limit)
+    ? await filtered(
+        base44.entities.AutomationResult,
+        { job_id: selectedJobId },
+        "-created_date",
+        options.limit,
+      )
     : [];
 
   const rebootEvidence = await filtered(
@@ -164,7 +183,9 @@ async function collect(base44, options) {
       )
     : [];
 
-  const fleetMetrics = await base44.entities.AutomationFleetMetric.list("-captured_at", 20, 0);
+  const fleetMetrics = asArray(
+    await base44.entities.AutomationFleetMetric.list("-captured_at", 20, 0),
+  );
 
   const records = {
     workers: workerRecords,
@@ -178,12 +199,12 @@ async function collect(base44, options) {
     work_contracts: workContracts,
     judge_role_results: judgeRoleResults,
     verification_verdicts: verificationVerdicts,
-    fleet_metrics: asArray(fleetMetrics),
+    fleet_metrics: fleetMetrics,
   };
   const collectionSha256 = Object.fromEntries(
     Object.entries(records).map(([name, value]) => [name, sha256(value)]),
   );
-  const bundle = {
+  return {
     schema: SCHEMA,
     exported_at: new Date().toISOString(),
     app_id: options.appId,
@@ -198,8 +219,6 @@ async function collect(base44, options) {
     records,
     collection_sha256: collectionSha256,
   };
-  bundle.bundle_sha256 = sha256(bundle);
-  return bundle;
 }
 
 function selfTest() {
@@ -207,13 +226,13 @@ function selfTest() {
   const b = { a: [3, { x: null, y: true }], z: 2 };
   if (canonical(a) !== canonical(b)) throw new Error("canonical ordering failed");
   if (sha256(a) !== sha256(b)) throw new Error("canonical digest failed");
-  const probe = {
+  const finalized = finalizeBundle({
     schema: SCHEMA,
     records: { workers: [] },
     collection_sha256: { workers: sha256([]) },
-  };
-  probe.bundle_sha256 = sha256(probe);
-  if (!/^[0-9a-f]{64}$/.test(probe.bundle_sha256)) throw new Error("digest format failed");
+  });
+  const { bundle_sha256: digest, ...unsigned } = finalized;
+  if (digest !== sha256(unsigned)) throw new Error("bundle digest recomputation failed");
   process.stdout.write(JSON.stringify({ status: "PASS", schema: SCHEMA }) + "\n");
 }
 
@@ -225,7 +244,9 @@ async function main() {
   }
   if (!options.workerInstance) throw new Error("--worker-instance is required");
   if (!options.email) throw new Error("--email is required");
-  if (!options.passwordStdin) throw new Error("--password-stdin is required; password arguments are forbidden");
+  if (!options.passwordStdin) {
+    throw new Error("--password-stdin is required; password arguments are forbidden");
+  }
 
   const password = await readPasswordFromStdin();
   const { createClient } = await import("@base44/sdk");
@@ -237,11 +258,12 @@ async function main() {
     id: me?.id || null,
     role: me?.role || null,
   };
-  bundle.bundle_sha256 = sha256({ ...bundle, bundle_sha256: undefined });
-  process.stdout.write(JSON.stringify(bundle, null, 2) + "\n");
+  process.stdout.write(JSON.stringify(finalizeBundle(bundle), null, 2) + "\n");
 }
 
 main().catch((error) => {
-  process.stderr.write(JSON.stringify({ status: "BLOCKED", error: String(error?.message || error) }) + "\n");
+  process.stderr.write(
+    JSON.stringify({ status: "BLOCKED", error: String(error?.message || error) }) + "\n",
+  );
   process.exitCode = 2;
 });
