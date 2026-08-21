@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "invariant_id": "NO_IMPLICIT_ORGANIZER_BLUETOOTH_IDENTITY_MERGE",
+  "status": "CANONICAL_CANDIDATE",
+  "severity": "BLOCKING",
+  "scope": [
+    "organizer",
+    "automation",
+    "bluetooth_guard",
+    "evidence_correlation"
+  ],
+  "statement": "Organizer/Automation identity and Bluetooth device-observation identity are independent domains and MUST NOT be implicitly merged, reused, promoted, or inferred across namespaces.",
+  "namespaces": {
+    "organizer": [
+      "org_user_id",
+      "org_object_id",
+      "worker_id",
+      "account_id"
+    ],
+    "bluetooth": [
+      "bt_device_id",
+      "bt_observation_id",
+      "bluetooth_address",
+      "bluetooth_name",
+      "bond_state",
+      "acl_event_id"
+    ]
+  },
+  "forbidden": [
+    "reuse organizer identifiers as bluetooth identifiers",
+    "reuse bluetooth identifiers as organizer identifiers",
+    "promote bluetooth address or name to a human/operator identity",
+    "inherit Organizer/Automation DEVICE_VALIDATED or PERSISTENT_VALIDATED from Bluetooth validation",
+    "inherit Bluetooth validation state from Organizer/Automation worker qualification",
+    "correlate the domains solely because values are textually equal"
+  ],
+  "permitted_cross_domain_binding": {
+    "method": "explicit_relationship_or_provenance_edge",
+    "requirements": [
+      "independent source evidence",
+      "explicit relationship type",
+      "confidence recorded separately from severity",
+      "no human attribution unless independently supported",
+      "source identifiers preserved without replacement"
+    ]
+  },
+  "physical_gate_domains": {
+    "organizer_automation": {
+      "tracker": "github_issue_208",
+      "device_validated": "independent"
+    },
+    "bluetooth_guard": {
+      "tracker": "github_issue_261",
+      "bluetooth_device_validated": "independent",
+      "bluetooth_persistent_validated": "independent"
+    }
+  },
+  "fail_closed_rule": "Any ambiguous or missing cross-domain identity evidence leaves the relationship unbound.",
+  "epistemic_boundary": "A Bluetooth identifier is evidence about a Bluetooth device observation, not proof of the human operator.",
+  "supersession_rule": "A later policy may supersede this invariant only by explicitly preserving or narrowing the no-implicit-merge guarantee."
+}
