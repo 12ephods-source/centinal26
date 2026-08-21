@@ -46,9 +46,9 @@ Historical artifacts are not rewritten merely to replace old names. See `docs/WA
 
 Every consequential operation follows:
 
-`Intent → Authorization → Event/Queue → Capability Selection → Bounded Execution → Independent Verification → Evidence/Audit → State Update → Controlled Evolution`
+`Intent → Authorization → Event/Queue → Capability Selection → Bounded Execution → Verification → Evidence/Audit → State Update → Controlled Evolution`
 
-No module may bypass authorization, bounded execution, verification, or audit to gain convenience or autonomy.
+Consequential verification must be independent where the applicable gate requires it. No module may bypass authorization, bounded execution, verification, or audit to gain convenience or autonomy.
 
 ## Quick start
 
