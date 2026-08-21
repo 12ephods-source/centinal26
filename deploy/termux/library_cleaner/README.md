@@ -65,7 +65,21 @@ The runit service is installed at `$PREFIX/var/service/frost-library-cleaner` an
 - state: `~/.local/share/frost-library-cleaner/state.json`
 - append-only archive ledger: `~/.local/share/frost-library-cleaner/archive-ledger.jsonl`
 - UI snapshots: `~/.local/share/frost-library-cleaner/ui-snapshots/`
+- service logs: `~/.local/share/frost-library-cleaner/service-log/`
 - archived bytes: `~/storage/downloads/FrostForgeLibraryArchive/`
+- evidence bundles: `~/storage/downloads/FrostForgeLibraryCleanerEvidence/`
+
+After a dry-run or real cleanup cycle, package the review evidence with:
+
+```sh
+python ~/.local/share/frost-library-cleaner/package_evidence.py
+```
+
+The packager creates one ZIP plus a sibling `.sha256` file. By default it includes daemon state, ledger, UI snapshots, service logs, an evidence manifest, and a SHA-256/size index of every locally archived Library item without duplicating the archived bytes into the ZIP. To include those archived bytes too, use:
+
+```sh
+python ~/.local/share/frost-library-cleaner/package_evidence.py --include-archived-files
+```
 
 Stop the daemon with:
 
