@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "required": [
+    "device_id",
+    "device_type",
+    "owner_authorization",
+    "inventory_source",
+    "timestamp"
+  ],
+  "verification": {
+    "inventory_verified": false,
+    "permissions_verified": false
+  }
+}
