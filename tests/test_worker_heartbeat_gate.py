@@ -1,13 +1,30 @@
 from datetime import UTC, datetime, timedelta
+from importlib import util
+from pathlib import Path
 
-from automation.device.heartbeat import create_heartbeat
-from automation.device.verify_worker_heartbeat import verify_heartbeat
+ROOT = Path(__file__).resolve().parents[1]
+HEARTBEAT_PATH = ROOT / "automation" / "device" / "heartbeat.py"
+VERIFY_PATH = ROOT / "automation" / "device" / "verify_worker_heartbeat.py"
+
+
+def load_module(name: str, path: Path):
+    spec = util.spec_from_file_location(name, path)
+    module = util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+heartbeat_module = load_module("worker_heartbeat", HEARTBEAT_PATH)
+verify_module = load_module("verify_worker_heartbeat", VERIFY_PATH)
+create_heartbeat = heartbeat_module.create_heartbeat
+verify_heartbeat = verify_module.verify_heartbeat
 
 
 def make_android_heartbeat(monkeypatch):
     monkeypatch.setenv("ANDROID_ROOT", "/system")
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
-    monkeypatch.setattr("automation.device.heartbeat.read_optional", lambda _: "boot-123")
+    monkeypatch.setattr(heartbeat_module, "read_optional", lambda _: "boot-123")
     return create_heartbeat("phone-1", "enroll-digest", sequence=7)
 
 
