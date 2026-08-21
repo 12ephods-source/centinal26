@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "mode": "AUTO_ANSWER_EXECUTE_VERIFY_CONTINUE",
+  "auto_execute_classes": ["A0", "A1", "A2"],
+  "decision_order": [
+    "existing_context",
+    "project_defaults",
+    "tool_or_evidence_resolution",
+    "action_value_ranking",
+    "authorization_boundary"
+  ],
+  "action_value": {
+    "positive_terms": [
+      "goal_advancement",
+      "information_gain",
+      "dependency_unblocking",
+      "falsification_value",
+      "reusable_capability_value"
+    ],
+    "negative_terms": ["execution_cost", "expected_risk", "duplication_cost"]
+  },
+  "ask_user_only_when": [
+    "no_authorized_resolvable_option",
+    "A3_without_specific_authority",
+    "A4_without_exact_explicit_authority",
+    "authentication_or_platform_consent_required",
+    "materially_ambiguous_intent_not_resolvable_from_evidence"
+  ],
+  "invariants": [
+    "never_promote_proposed_to_implemented_without_execution",
+    "never_weaken_tests_to_obtain_pass",
+    "preserve_failures_and_provenance",
+    "stop_at_real_authorization_or_platform_boundaries"
+  ]
+}
