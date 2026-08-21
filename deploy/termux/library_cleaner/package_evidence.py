@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Package Frost Forge Library Cleaner evidence into a deterministic review bundle."""
 
 from __future__ import annotations
@@ -67,7 +66,7 @@ def package_evidence(
     timestamp: str | None = None,
 ) -> tuple[Path, Path, dict[str, object]]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = timestamp or dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = timestamp or dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
     zip_path = output_dir / f"FrostForgeLibraryCleanerEvidence_{timestamp}.zip"
     checksum_path = zip_path.with_suffix(zip_path.suffix + ".sha256")
 
