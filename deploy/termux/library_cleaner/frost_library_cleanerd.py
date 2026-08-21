@@ -47,9 +47,9 @@ DEFAULT_CONFIG = {
         r"(?i)^FILE_LIBRARY_CLEANUP_(?:REPORT|MANIFEST)\.(?:md|json)$",
     ],
     "never_delete_patterns": [
-        r"(?i)\bCURRENT\b",
-        r"(?i)\bCANONICAL\b",
-        r"(?i)\bPHYSICAL\b.*\bEVIDENCE\b",
+        r"(?i)(?:^|[^a-z0-9])CURRENT(?:$|[^a-z0-9])",
+        r"(?i)(?:^|[^a-z0-9])CANONICAL(?:$|[^a-z0-9])",
+        r"(?i)(?:^|[^a-z0-9])PHYSICAL(?:$|[^a-z0-9]).*EVIDENCE",
         r"(?i)^device_evidence\.json$",
         r"(?i)^validation_report\.json$",
         r"(?i)^MANIFEST\.sha256\.json$",
