@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "executors": [],
+  "registration_requirements": {
+    "capability_match": true,
+    "authorization": true,
+    "health_check": true,
+    "evidence_output": true
+  }
+}
