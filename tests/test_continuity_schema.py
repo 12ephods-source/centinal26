@@ -1,7 +1,11 @@
 import json
 from pathlib import Path
 
-from frost_core.continuity_schema import generate_json_schema, generate_markdown, load_source
+from frost_core.continuity_schema import (
+    generate_json_schema,
+    generate_markdown,
+    load_source,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
