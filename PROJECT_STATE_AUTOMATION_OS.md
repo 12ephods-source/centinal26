@@ -1,22 +1,24 @@
 # Automation OS Project State Consolidation
 
-Version: Consolidated Record v2.6
+Version: Consolidated Record v2.7
 Date: 2026-08-21
 Status: HOST_V1_VERIFIED_COMPLETE / RUNTIME_GOVERNANCE_ENFORCED / DEVICE_AND_PERSISTENCE_GATES_EXTERNAL / MULTIPLE_CONNECTOR_SCOPES_VERIFIED
 
 Canonical records: `AUTOMATION_OS_RUNTIME_CONSOLIDATION.md` and `automation/PROJECT_STATE.json`. Git history, exact-head CI, durable ledgers, immutable artifacts, external-gate issues, and live Base44 gate records remain primary evidence.
 
-Observed integrated host head for this refresh: `bec9b92398920fafd61e4c89ce0b284f9c17b62e`.
+Observed production head before this refresh: `e36ddbafec46d0a5d7da29b40633db5476a34a48`.
 Runtime-governance exact-head validation source: `427f8e884352839e11fcd99cfcdd51643fb1f2ab`.
-Qualified physical-commissioning source remains: `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`.
+Qualified physical-commissioning source: `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`.
 
 ## Verified Host State
 
-Production includes Protocol v3, deterministic governance, Productizer -> Judge E2E validation, the bounded multi-role execution plane, durable evidence, executor contracts, the universal Termux installer, exact source provenance for Android evidence, canonical verified enrollment digest, worker heartbeat verification, and the one-run physical commissioning package/controller verifier.
+Production includes Protocol v3, deterministic governance, Productizer -> Judge E2E validation, the bounded multi-role execution plane, durable evidence, reconciled executor contracts, the universal Termux installer, exact source provenance for Android evidence, normalized Android/Termux device-profile capture, canonical verified enrollment digest, worker heartbeat verification, the one-run physical commissioning package/controller verifier, and the Vercel durable-controller bootstrap.
 
-PR #159 added the fail-closed objective-integrity foundation. PR #220 then closed its runtime-placement gap: mutating or consequential agent execution now resolves immutable authorized-objective, authorization-evaluation, and Guardian-issued capability-token objects from the canonical object store; verifies current-objective and provenance bindings; and applies action/network/secret/destructive scope before subprocess invocation. Missing, stale, superseded, malformed, or over-broad authority fails closed. The authority implementation, schema, execution boundary, policy, and runtime gate are hard-protected from ordinary controlled evolution.
-
-PR #220 exact head `427f8e884352839e11fcd99cfcdd51643fb1f2ab` passed `validate`, `CI`, `automation-gates`, `federation-gates`, `Mature Product Qualification`, `Executor Integration Validation`, and `hard-sandbox` before merge.
+Recent reconciliations:
+- PR #222 / `ea6195aee431a134985f0b02429f1855a4f93adb`: Protocol v3 canonical status and exact response envelope fixed and regression-tested.
+- PR #225 / `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`: canonical Android commissioning hardening, normalized device profile, issue-#208 documentation, RC9 normal trigger retired.
+- PR #226 / `73859661e4104f392f6ad197ab5aa3ba6fb20246`: executor-registry verification state reconciled; Android remains physical-pending.
+- PR #227 / `e36ddbafec46d0a5d7da29b40633db5476a34a48`: Vercel first-party durable controller bootstrap; live deployment remains authorization/token dependent.
 
 ## Release State
 
@@ -32,34 +34,40 @@ PR #220 exact head `427f8e884352839e11fcd99cfcdd51643fb1f2ab` passed `validate`,
 
 ## Phase A — DEVICE_VALIDATED
 
-Issue #208 remains canonical and the current commissioning source revision is `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`.
+Issue #208 is canonical. Current commissioning source: `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`.
 
-`one pinned Android commissioning run -> preserve combined ZIP -> controller end-to-end verification -> register/observe Android worker -> one bounded Android worker task -> independent Judge evidence`
+`one pinned Android commissioning run -> preserve combined ZIP -> controller end-to-end verification -> normalized device-profile consistency -> register/observe Android worker -> one bounded Android worker task -> independent Judge evidence`
+
+The user-supplied comparison profile currently reports Samsung `SM-A155M`, Android 16, aarch64, Termux `googleplay.2026.06.21`, termux-tools 3.0.9, and kernel `6.12.38-android16-5-abA155MUBSBEZG1-4k`. It remains user-supplied/unverified until reproduced in the source-bound device bundle and controller-verified.
 
 A commissioning PASS alone does not imply the bounded worker task passed.
 
 ## Phase B — PERSISTENT_VALIDATED
 
-The live Base44 P1-P5 policy preserves the stronger persistence gate:
-
 `preserve pre-reboot evidence -> physical reboot -> changed boot_id -> worker return -> fresh verified heartbeat -> valid lease/event chain -> one bounded post-reboot work item -> independent Judge evidence`
 
 Phase A PASS permits `DEVICE_VALIDATED` eligibility. Phase B PASS permits `PERSISTENT_VALIDATED` eligibility. No stage skipping.
 
-Current Base44 observation on 2026-08-21: three registered workers, zero Android/Termux workers, eight queued unclaimed physical-device-dependent jobs, and P1-P5 all PENDING. This is absence of current Android-worker evidence, not evidence that no qualifying device evidence can exist.
+Legacy issue #64/RC9/finalizer paths are provenance/compatibility only, not the current acceptance path.
 
 ## Connector Gate
 
 Issue #209 tracks connectors individually.
 
 - GitHub: `VERIFIED_LIVE_READ_WRITE` for the authorized Centinal26 scope.
-- Gmail: `VERIFIED_REVERSIBLE_LIVE_WRITE` by isolated self-send, exact-subject readback, and Trash cleanup.
-- Google Calendar: `VERIFIED_REVERSIBLE_LIVE_WRITE` by isolated private event create, exact readback, and delete.
-- Google Drive: `VERIFIED_REVERSIBLE_LIVE_WRITE` by isolated folder create, exact readback, and permanent delete; one rejected delete-URL shape was preserved as a connector-surface error and caused no unrelated mutation.
-- Google Contacts: current connector surface provides authenticated read/search but no write operation to qualify.
-- Other connector maturity remains target- and operation-specific; no connector-wide authority is inferred from one passing probe.
+- Base44: `VERIFIED_LIVE_READ_WRITE` for the authorized Automation entity scope.
+- Gmail: `VERIFIED_REVERSIBLE_LIVE_WRITE` for the tested bounded path.
+- Google Calendar: `VERIFIED_REVERSIBLE_LIVE_WRITE`.
+- Google Drive: `VERIFIED_REVERSIBLE_LIVE_WRITE`.
+- Google Contacts: `AUTHENTICATED_READ_VERIFIED_WRITE_SURFACE_UNAVAILABLE`.
+- Notion: `AUTHENTICATED_READ_VERIFIED`.
+- Linear: `AUTHENTICATED_READ_VERIFIED`.
 
-Qualification ladder: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`.
+Qualification remains operation- and scope-specific. No connector-wide unrestricted authority is inferred.
+
+## Automation Topology
+
+One canonical physical watcher remains active: `6a88614d12e8819183a02d32288b5f10`. The duplicate physical watcher `6a886b66af108191ab79637891732a39` is paused. The retained watcher resolves the current physical source from canonical machine state.
 
 ## Core Invariants
 
@@ -70,13 +78,11 @@ Qualification ladder: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EX
 - Judge verification != objective authorization != capability-token scope;
 - commissioning eligible != successful bounded worker task;
 - device validated != persistent validated;
-- pre-reboot active != verified post-reboot return;
+- descriptive device profile != authorization or physical PASS;
 - reversible write verification != unrestricted connector authority;
 - one connector verified != all connectors verified;
 - absence of observed evidence != evidence of absence.
 
 ## Critical Path
 
-All currently actionable host/runtime-governance work is integrated. The release-critical path is now external physical fact acquisition:
-
-`one-run Android commissioning at 32ba85c... -> controller verification -> bounded Android task -> physical reboot -> verified return -> post-reboot bounded task -> final evidence-gated promotion decision`.
+`one-run Android commissioning at 9c0925e... -> controller verification -> bounded Android task -> DEVICE_VALIDATED -> physical reboot -> verified return -> post-reboot bounded task -> PERSISTENT_VALIDATED -> final evidence-gated promotion decision`

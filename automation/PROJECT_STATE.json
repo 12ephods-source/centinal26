@@ -4,10 +4,10 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "2.6",
-    "observed_production_head": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+    "consolidation_version": "2.7",
+    "observed_production_head_before_refresh": "e36ddbafec46d0a5d7da29b40633db5476a34a48",
     "runtime_governance_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
-    "physical_commissioning_source": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
+    "physical_commissioning_source": "9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483"
   },
   "source_of_truth": {
     "primary_evidence": [
@@ -22,10 +22,16 @@
     "machine_continuation": "automation/PROJECT_STATE.json",
     "concise_summary": "PROJECT_STATE_AUTOMATION_OS.md"
   },
-  "terminal_objective": "Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving explicit authorization, provenance, physical-validation, persistence, and recovery-root boundaries.",
+  "terminal_objective": "Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving explicit authorization, provenance, physical-validation, persistence, connector, and recovery-root boundaries.",
   "control_plane": {
     "active_protocol": "Frost Master Project Protocol v3",
     "status": "CANONICAL",
+    "protocol_canonicalization": {
+      "pull_request": 222,
+      "production_commit": "ea6195aee431a134985f0b02429f1855a4f93adb",
+      "status": "VERIFIED_COMPLETE_HOST",
+      "notes": "Protocol v3 status and exact response envelope are regression-tested."
+    },
     "autonomous_question_resolver": {
       "status": "VERIFIED_COMPLETE_HOST",
       "pull_request": 205,
@@ -44,6 +50,20 @@
       "runtime_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
       "production_merge_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
       "boundary": "mutating or consequential agent execution requires canonical current authorized objective plus Guardian-issued scoped capability token before subprocess invocation"
+    },
+    "executor_registry_reconciliation": {
+      "status": "VERIFIED_COMPLETE_HOST",
+      "pull_request": 226,
+      "production_commit": "73859661e4104f392f6ad197ab5aa3ba6fb20246",
+      "canonical_registry": "automation/runtime/executor_registry.json",
+      "boundary": "Android executor host-contract PASS does not imply physical-worker PASS"
+    },
+    "vercel_controller": {
+      "status": "VERIFIED_HOST_SOFTWARE",
+      "pull_request": 227,
+      "production_commit": "e36ddbafec46d0a5d7da29b40633db5476a34a48",
+      "scope": "first-party durable controller bootstrap with private state and replay-protected polling",
+      "deployment_boundary": "live deployment/provisioning remains dependent on available Vercel authorization/token state"
     }
   },
   "release_state": {
@@ -54,14 +74,18 @@
     "AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS": "PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES"
   },
   "host_baseline": {
-    "status": "FROZEN_VERIFIED_HOST_BASELINE",
-    "production_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
+    "status": "FROZEN_VERIFIED_HOST_BASELINE_WITH_LATER_QUALIFIED_EXTENSIONS",
+    "runtime_governance_production_commit": "bec9b92398920fafd61e4c89ce0b284f9c17b62e",
     "runtime_governance_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
-    "physical_gate_software_revision": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16"
+    "protocol_v3_canonicalization_commit": "ea6195aee431a134985f0b02429f1855a4f93adb",
+    "physical_gate_software_revision": "9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483",
+    "executor_registry_reconciliation_commit": "73859661e4104f392f6ad197ab5aa3ba6fb20246",
+    "latest_observed_host_extension_commit": "e36ddbafec46d0a5d7da29b40633db5476a34a48"
   },
   "verified_production_capabilities": [
     "project_productizer",
     "protocol_v3_execution_kernel",
+    "protocol_v3_exact_response_envelope_regression",
     "autonomous_question_resolver_a0_a2",
     "deterministic_governance_invariants_and_schemas",
     "objective_integrity_registry",
@@ -82,7 +106,7 @@
     "named_bounded_execution_profiles",
     "durable_agent_execution_issue_ledger",
     "runtime_executor_interface",
-    "executor_registry",
+    "executor_registry_truth_state",
     "repository_api_android_executor_contracts",
     "executor_integration_ci",
     "condition_watch_attempt_fencing",
@@ -91,6 +115,7 @@
     "immutable_module_registry",
     "fail_closed_module_manager",
     "android_termux_device_evidence_capture_software",
+    "normalized_android_termux_device_profile_evidence",
     "controller_side_device_evidence_verifier",
     "exact_source_commit_device_evidence_binding",
     "controller_expected_source_commit_gate",
@@ -99,7 +124,8 @@
     "controller_side_worker_heartbeat_verifier",
     "one_run_android_physical_commissioning_package",
     "controller_end_to_end_physical_commissioning_verifier",
-    "pinned_termux_keyring_recovery"
+    "pinned_termux_keyring_recovery",
+    "vercel_first_party_durable_controller_bootstrap"
   ],
   "runtime_governance_verification": {
     "pull_request": 220,
@@ -113,17 +139,7 @@
       "Mature Product Qualification": "PASS",
       "Executor Integration Validation": "PASS",
       "hard-sandbox": "PASS"
-    },
-    "fail_closed_cases": [
-      "missing_objective_context",
-      "missing_or_wrong_immutable_reference",
-      "non_executable_authorization_evaluation",
-      "invalid_objective_provenance",
-      "superseded_current_objective",
-      "non_guardian_capability_token",
-      "task_objective_root_binding_mismatch",
-      "action_network_secret_or_destructive_scope_amplification"
-    ]
+    }
   },
   "external_gate_trackers": {
     "physical_android_termux": 208,
@@ -132,17 +148,29 @@
   },
   "physical_gate": {
     "status": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
-    "qualified_source_commit": "32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16",
+    "qualified_source_commit": "9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483",
+    "qualification_pull_request": 225,
     "commissioning_mode": "ONE_ANDROID_RUN_PLUS_CONTROLLER_VERIFICATION",
     "source_provenance_gate": "VERIFIED_SOFTWARE",
     "enrollment_digest_definition": "sha256(MANIFEST.sha256.json) after successful controller verification",
     "tracker_issue": 208,
+    "user_supplied_device_context": {
+      "status": "USER_SUPPLIED_UNVERIFIED_UNTIL_DEVICE_BUNDLE",
+      "manufacturer": "samsung",
+      "model": "SM-A155M",
+      "android_version": "16",
+      "architecture": "aarch64",
+      "termux_version": "googleplay.2026.06.21",
+      "termux_tools_version": "3.0.9",
+      "kernel": "Linux localhost 6.12.38-android16-5-abA155MUBSBEZG1-4k #1 SMP PREEMPT Tue Jul 14 20:48:13 UTC 2026 aarch64 Android",
+      "use": "comparison/provenance context only; controller-verified device bundle remains required"
+    },
     "phase_a_device_validated": {
       "status": "PENDING_EXTERNAL",
       "sequence": [
         "run_pinned_termux_commissioning_on_real_authorized_device",
         "preserve_combined_zip_before_interpretation",
-        "controller_verify_combined_package_and_expected_source_commit",
+        "controller_verify_combined_package_expected_source_and_normalized_device_profile",
         "observe_registered_android_worker",
         "execute_one_harmless_bounded_android_worker_task",
         "preserve_event_lease_and_independent_judge_evidence"
@@ -162,12 +190,10 @@
       ],
       "promotion": "PERSISTENT_VALIDATED_ELIGIBLE"
     },
-    "base44_observation": {
-      "observed_on": "2026-08-21",
-      "registered_workers": 3,
-      "registered_android_termux_workers": 0,
-      "queued_unclaimed_physical_jobs": 8,
-      "physical_gate_policy": "P1-P5_PENDING"
+    "legacy_paths": {
+      "issue_64": "SUPERSEDED_FOR_CURRENT_PHYSICAL_ACCEPTANCE",
+      "rc9_manual_request": "RETIRED_FROM_NORMAL_TRIGGER_PATH",
+      "historical_scripts": "PRESERVED_AS_PROVENANCE_COMPATIBILITY"
     }
   },
   "connector_qualification": {
@@ -176,9 +202,13 @@
       "status": "VERIFIED_LIVE_READ_WRITE",
       "scope": "currently authorized 12ephods-source/centinal26 repository scope"
     },
+    "base44": {
+      "status": "VERIFIED_LIVE_READ_WRITE",
+      "scope": "authorized Superagent Automation entity scope"
+    },
     "gmail": {
       "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
-      "evidence": "isolated self-send, exact-subject readback, then Trash cleanup"
+      "evidence": "isolated qualification write/readback/cleanup; tested scope only"
     },
     "google_calendar": {
       "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
@@ -186,15 +216,30 @@
     },
     "google_drive": {
       "status": "VERIFIED_REVERSIBLE_LIVE_WRITE",
-      "evidence": "isolated folder create, exact fetch/readback, then permanent delete; rejected first delete URL shape caused no unrelated mutation"
+      "evidence": "isolated create, exact fetch/readback, then delete; tested scope only"
     },
     "google_contacts": {
       "status": "AUTHENTICATED_READ_VERIFIED_WRITE_SURFACE_UNAVAILABLE"
+    },
+    "notion": {
+      "status": "AUTHENTICATED_READ_VERIFIED"
+    },
+    "linear": {
+      "status": "AUTHENTICATED_READ_VERIFIED"
     },
     "repository_api_connector_executor": {
       "status": "VERIFIED_SOFTWARE",
       "live_target_authorization": "TARGET_SPECIFIC"
     }
+  },
+  "automation_topology": {
+    "master_controller": "6a800818333c8191b84c8f41068b7b44",
+    "canonical_physical_gate_watch": "6a88614d12e8819183a02d32288b5f10",
+    "duplicate_physical_watch": {
+      "id": "6a886b66af108191ab79637891732a39",
+      "status": "PAUSED_SUPERSEDED"
+    },
+    "policy": "one canonical physical watcher; resolve physical source dynamically from canonical machine state"
   },
   "validation_boundaries": [
     "queued != executed != verified",
@@ -208,6 +253,7 @@
     "captured_device_evidence != controller_verified_enrollment != active_worker",
     "verified_enrollment_digest != verified_heartbeat != successful_worker_task",
     "exact_source_provenance != device_origin_verification",
+    "descriptive_device_profile != authorization_or_physical_pass",
     "reversible_write_verification != unrestricted_connector_authority",
     "one_connector_verified != all_connectors_verified",
     "absence_of_observed_evidence != evidence_of_absence"
@@ -234,7 +280,11 @@
     "214": "Verified enrollment digest heartbeat handoff",
     "216": "Canonical state v2.4 synchronization",
     "217": "One-run Android physical commissioning package",
-    "220": "Runtime objective and capability enforcement"
+    "220": "Runtime objective and capability enforcement",
+    "222": "Protocol v3 canonical status and response envelope repair",
+    "225": "Canonical Android physical commissioning hardening and normalized device profile",
+    "226": "Executor registry truth-state reconciliation",
+    "227": "Vercel controller durable-state bootstrap"
   },
   "active_workstreams": [
     {
@@ -256,11 +306,15 @@
       "id": "production_connector_authorization",
       "status": "PARTIAL_WITH_MULTIPLE_VERIFIED_SCOPES",
       "tracker_issue": 209
+    },
+    {
+      "id": "vercel_controller_live_deployment",
+      "status": "AUTHORIZATION_OR_TOKEN_DEPENDENT"
     }
   ],
   "critical_path": [
-    "complete_one_run_android_physical_commissioning",
-    "controller_verify_combined_commissioning_package",
+    "complete_one_run_android_physical_commissioning_at_9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483",
+    "controller_verify_combined_commissioning_package_and_normalized_device_profile",
     "execute_one_bounded_android_worker_task",
     "physically_reboot_and_verify_worker_return",
     "execute_one_post_reboot_bounded_worker_task",
