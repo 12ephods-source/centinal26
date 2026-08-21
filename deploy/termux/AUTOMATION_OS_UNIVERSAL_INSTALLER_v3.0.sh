@@ -5,7 +5,7 @@ umask 077
 ROOT="${AUTOMATION_OS_ROOT:-$HOME/AutomationOS}"
 REF="${FROST_AUTOMATION_REF:-main}"
 RAW="https://raw.githubusercontent.com/12ephods-source/centinal26/$REF"
-MGR_SHA256="08d956dd5fa1ddeef11109ae122506dbee44ac77de75d11cdfd6fc70d58d9b5b"
+MGR_SHA256="b94aa37821d326c167b8f1b27f9f1a3a53732e1d189f73e0ebb32fdd5f2216ac"
 REG_SHA256="4dc840d8215e5d52a385f1d4d7f0ffeaa478df65a411f8f91762e4885893ffc3"
 
 say(){ printf '[automation-os-v3] %s\n' "$*"; }
