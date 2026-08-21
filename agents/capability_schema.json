@@ -1,0 +1,8 @@
+{
+  "agent_id": "string",
+  "device_id": "string",
+  "capabilities": [],
+  "permissions": [],
+  "verification_status": "UNKNOWN",
+  "provenance": []
+}
