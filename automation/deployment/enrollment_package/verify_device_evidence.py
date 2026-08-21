@@ -41,7 +41,9 @@ def verify_bundle(root: Path, expected_source_commit: str | None = None) -> dict
         result["errors"].append({"missing_files": missing})
         return result
 
-    manifest = json.loads((root / "MANIFEST.sha256.json").read_text(encoding="utf-8"))
+    manifest_path = root / "MANIFEST.sha256.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_digest = sha256_file(manifest_path)
     for name in ("device_evidence.json", "validation_report.json"):
         expected = manifest.get("files", {}).get(name)
         actual = sha256_file(root / name)
@@ -118,6 +120,7 @@ def verify_bundle(root: Path, expected_source_commit: str | None = None) -> dict
     result["device_id"] = evidence.get("device_id")
     result["boot_id"] = evidence.get("platform", {}).get("boot_id")
     result["captured_at_utc"] = evidence.get("captured_at_utc")
+    result["enrollment_digest"] = manifest_digest
     result["enrollment"] = "VERIFIED_ELIGIBLE"
     result["worker_activation"] = "ELIGIBLE_PENDING_HEARTBEAT"
     return result
