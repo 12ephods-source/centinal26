@@ -4,7 +4,7 @@ Creates bounded task scheduling primitives.
 No task is executed without verification and authorization.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def create_task(goal, priority="normal"):
@@ -12,7 +12,7 @@ def create_task(goal, priority="normal"):
         "goal": goal,
         "priority": priority,
         "status": "queued",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(UTC).isoformat(),
     }
 
 
