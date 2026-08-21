@@ -5,9 +5,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
+
+from frost_core.object_store import CanonicalObjectStore
+from frost_core.runtime_governance import verify_runtime_objective_context
 
 ROLES = ("planner", "builder", "judge", "sre", "sentinel", "release")
 MAX_TIMEOUT_SECONDS = 900
@@ -22,7 +26,13 @@ def load_authority_policy() -> dict:
     return json.loads(POLICY_PATH.read_text(encoding="utf-8"))
 
 
-def authorize_task(task: dict) -> dict:
+def _runtime_object_store(root: Path) -> CanonicalObjectStore:
+    configured = os.environ.get("CENTINAL26_OBJECT_STORE", "").strip()
+    path = Path(configured).expanduser() if configured else root / ".centinal26" / "objects.sqlite3"
+    return CanonicalObjectStore(path)
+
+
+def authorize_task(task: dict, *, root: Path | None = None) -> dict:
     """Return a bounded authority decision without executing the task."""
     try:
         policy = load_authority_policy()
@@ -109,12 +119,48 @@ def authorize_task(task: dict) -> dict:
             "reason": "consequential_mutation_not_independently_verified",
         }
 
+    requires_objective = is_mutation or consequential
+    if requires_objective:
+        if not isinstance(task.get("objective_context"), dict):
+            return {
+                "status": "OBJECTIVE_CONTEXT_REQUIRED",
+                "role": role,
+                "action": action,
+                "requires_judge": requires_judge,
+                "reason": "consequential_or_mutating_task_missing_objective_context",
+            }
+        if root is None:
+            return {
+                "status": "OBJECTIVE_STORE_REQUIRED",
+                "role": role,
+                "action": action,
+                "requires_judge": requires_judge,
+                "reason": "runtime_object_store_not_available",
+            }
+        governance = verify_runtime_objective_context(
+            _runtime_object_store(root),
+            task,
+            action_name=action,
+        )
+        if not governance.allowed:
+            return {
+                "status": governance.status,
+                "role": role,
+                "action": action,
+                "requires_judge": requires_judge,
+                "reason": governance.reason,
+                "objective_id": governance.objective_id,
+            }
+    else:
+        governance = None
+
     return {
         "status": "AUTHORIZED_BOUNDED",
         "role": role,
         "action": action,
         "requires_judge": requires_judge,
-        "reason": "policy_authorized_subject_to_external_adapter_permissions",
+        "objective_id": None if governance is None else governance.objective_id,
+        "reason": "policy_and_objective_authorized_subject_to_external_adapter_permissions",
     }
 
 
@@ -137,7 +183,7 @@ def _result(status, task, **fields):
 
 
 def run_task(task, root: Path):
-    authorization = authorize_task(task)
+    authorization = authorize_task(task, root=root)
     if authorization["status"] != "AUTHORIZED_BOUNDED":
         return _result(
             authorization["status"],
@@ -147,6 +193,7 @@ def run_task(task, root: Path):
             requires_judge=authorization.get("requires_judge", False),
             reason=authorization.get("reason"),
             denied=authorization.get("denied", []),
+            objective_id=authorization.get("objective_id"),
         )
 
     role = authorization["role"]
@@ -205,6 +252,7 @@ def run_task(task, root: Path):
         role=role,
         action=action,
         requires_judge=authorization["requires_judge"],
+        objective_id=authorization.get("objective_id"),
         returncode=proc.returncode,
         stdout=_tail(proc.stdout),
         stderr=_tail(proc.stderr),
