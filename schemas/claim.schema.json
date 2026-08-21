@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/claim.schema.json",
+  "title": "Centinal26 Claim",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "claim_id", "status", "proposition", "evidence_refs", "uncertainty"],
+  "properties": {
+    "schema": {"const": "centinal26-claim-v1"},
+    "claim_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["VERIFIED", "REPORTED", "DERIVED", "PROPOSED", "FAILED", "SUPERSEDED", "UNKNOWN"]},
+    "proposition": {"type": "string", "minLength": 1},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "uncertainty": {"type": ["string", "number", "null"]}
+  }
+}
