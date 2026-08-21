@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0",
+  "devices": [],
+  "status": "initialized",
+  "notes": "Device records require explicit enrollment and verification."
+}
