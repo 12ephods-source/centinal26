@@ -29,7 +29,7 @@ def load_module(name: str, path: Path):
 def make_bundle(tmp_path: Path, source_commit: str) -> None:
     capture = load_module("capture_device_evidence_provenance", CAPTURE_PATH)
     evidence = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "device_id": "phone-1",
         "captured_at_utc": "2026-08-21T00:00:00+00:00",
         "status": "DEVICE_EVIDENCE_CAPTURED",
@@ -51,6 +51,12 @@ def make_bundle(tmp_path: Path, source_commit: str) -> None:
             },
             "boot_id": "boot-123",
         },
+        "device_profile": {
+            "manufacturer": "samsung",
+            "model": "SM-A155M",
+            "android_version": "16",
+            "cpu_architecture": "aarch64",
+        },
         "package_inventory_sources": ["android_packages_pm"],
     }
     capture.write_bundle(tmp_path, evidence)
@@ -69,6 +75,7 @@ def test_expected_source_commit_is_verified(tmp_path):
     expected_digest = verifier.sha256_file(tmp_path / "MANIFEST.sha256.json")
     assert result["software_provenance"] == "VERIFIED_EXPECTED_COMMIT"
     assert result["source_commit"] == source_commit
+    assert result["device_profile"]["model"] == "SM-A155M"
     assert result["enrollment_digest"] == expected_digest
     assert result["enrollment"] == "VERIFIED_ELIGIBLE"
 
