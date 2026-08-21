@@ -1,0 +1,64 @@
+name: geometric-symbolic-v18
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/geometric_symbolic_v18/**'
+      - '.github/workflows/geometric-symbolic-v18.yml'
+      - 'experiments/geometric_symbolic_v11/geometric_symbolic_v11.py'
+  workflow_dispatch:
+
+jobs:
+  confirmatory-replication-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact PR head checkout
+        if: github.event_name == 'pull_request'
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy torch
+      - name: Run frozen v18 experiment
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v18/geometric_symbolic_v18.py --steps 700 --out experiments/geometric_symbolic_v18/ci_results.json | tee experiments/geometric_symbolic_v18/ci_stdout.log
+      - name: Apply frozen v18 checker
+        continue-on-error: true
+        id: scientific_gate
+        run: |
+          set -o pipefail
+          python experiments/geometric_symbolic_v18/check_results.py experiments/geometric_symbolic_v18/ci_results.json | tee experiments/geometric_symbolic_v18/ci_verdict.json
+      - name: Record environment
+        if: always()
+        run: |
+          git rev-parse HEAD > experiments/geometric_symbolic_v18/ci_environment.txt 2>&1
+          python --version >> experiments/geometric_symbolic_v18/ci_environment.txt 2>&1
+          python - <<'PY' >> experiments/geometric_symbolic_v18/ci_environment.txt 2>&1
+          import numpy, torch
+          print('numpy', numpy.__version__)
+          print('torch', torch.__version__)
+          PY
+          git --version >> experiments/geometric_symbolic_v18/ci_environment.txt 2>&1
+      - name: Hash evidence
+        if: always()
+        run: sha256sum experiments/geometric_symbolic_v18/geometric_symbolic_v18.py experiments/geometric_symbolic_v18/check_results.py experiments/geometric_symbolic_v18/ci_results.json experiments/geometric_symbolic_v18/ci_verdict.json experiments/geometric_symbolic_v18/ci_environment.txt > experiments/geometric_symbolic_v18/ci_sha256.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometric-symbolic-v18-evidence
+          path: |
+            experiments/geometric_symbolic_v18/ci_results.json
+            experiments/geometric_symbolic_v18/ci_stdout.log
+            experiments/geometric_symbolic_v18/ci_verdict.json
+            experiments/geometric_symbolic_v18/ci_environment.txt
+            experiments/geometric_symbolic_v18/ci_sha256.txt
+      - name: Enforce scientific gate result
+        if: always()
+        run: test "${{ steps.scientific_gate.outcome }}" = "success"
