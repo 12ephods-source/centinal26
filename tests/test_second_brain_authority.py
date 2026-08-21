@@ -1,10 +1,8 @@
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 AUTHORITY_PATH = ROOT / "automation" / "SECOND_BRAIN_AUTHORITY.json"
-
 
 ALLOWED_CLASSIFICATIONS = {"CANONICAL_ALREADY", "PARTIAL", "NEW_REQUIRED"}
 ALLOWED_ACTIONS = {"REUSE", "BUILD_AFTER_INTEGRATION", "EXTEND_EXISTING_EXPORTS", "HARDEN", "EXTEND"}
