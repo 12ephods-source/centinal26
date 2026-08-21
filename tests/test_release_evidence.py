@@ -19,6 +19,19 @@ def run_builder(output: Path) -> dict:
     return json.loads(output.read_text(encoding="utf-8"))
 
 
+def run_chaos(output: Path) -> dict:
+    completed = subprocess.run(
+        [sys.executable, "scripts/run_host_chaos_qualification.py", "--output", str(output)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert completed.stdout.strip() == "PASS"
+    return json.loads(output.read_text(encoding="utf-8"))
+
+
 def test_release_evidence_is_deterministic_for_same_commit(tmp_path) -> None:
     first = tmp_path / "first.json"
     second = tmp_path / "second.json"
@@ -40,6 +53,7 @@ def test_release_evidence_contains_canonical_ledgers_and_no_physical_inference(t
         "releases/RELEASE_ENGINEERING_CONTRACT.json",
         "releases/COMPATIBILITY_MATRIX.json",
         "releases/DEPRECATION_REGISTRY.json",
+        "releases/RELEASE_RINGS.json",
     ):
         assert path in tracked
     assert manifest["evidence_boundaries"]["host_manifest_generated"] is True
@@ -48,15 +62,19 @@ def test_release_evidence_contains_canonical_ledgers_and_no_physical_inference(t
     assert manifest["evidence_boundaries"]["recovery_validation_inferred"] is False
 
 
-def test_release_engineering_validator_accepts_generated_manifest(tmp_path) -> None:
-    output = tmp_path / "release.json"
-    run_builder(output)
+def test_release_engineering_validator_accepts_generated_evidence(tmp_path) -> None:
+    release_output = tmp_path / "release.json"
+    chaos_output = tmp_path / "chaos.json"
+    run_builder(release_output)
+    run_chaos(chaos_output)
     completed = subprocess.run(
         [
             sys.executable,
             "scripts/validate_release_engineering.py",
             "--evidence",
-            str(output),
+            str(release_output),
+            "--chaos",
+            str(chaos_output),
         ],
         cwd=ROOT,
         check=True,

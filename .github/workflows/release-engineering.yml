@@ -5,10 +5,12 @@ on:
     paths:
       - "releases/**"
       - "scripts/build_release_evidence.py"
+      - "scripts/run_host_chaos_qualification.py"
       - "scripts/validate_release_engineering.py"
       - "src/frost_core/continuity_bundle.py"
       - "src/frost_core/sqlite_recovery.py"
       - "tests/test_continuity_bundle.py"
+      - "tests/test_host_chaos_qualification.py"
       - "tests/test_sqlite_recovery.py"
       - "tests/test_release_evidence.py"
       - ".github/workflows/release-engineering.yml"
@@ -17,10 +19,12 @@ on:
     paths:
       - "releases/**"
       - "scripts/build_release_evidence.py"
+      - "scripts/run_host_chaos_qualification.py"
       - "scripts/validate_release_engineering.py"
       - "src/frost_core/continuity_bundle.py"
       - "src/frost_core/sqlite_recovery.py"
       - "tests/test_continuity_bundle.py"
+      - "tests/test_host_chaos_qualification.py"
       - "tests/test_sqlite_recovery.py"
       - "tests/test_release_evidence.py"
       - ".github/workflows/release-engineering.yml"
@@ -42,16 +46,19 @@ jobs:
         run: >-
           ruff check
           scripts/build_release_evidence.py
+          scripts/run_host_chaos_qualification.py
           scripts/validate_release_engineering.py
           src/frost_core/continuity_bundle.py
           src/frost_core/sqlite_recovery.py
           tests/test_continuity_bundle.py
+          tests/test_host_chaos_qualification.py
           tests/test_sqlite_recovery.py
           tests/test_release_evidence.py
       - name: Focused release/recovery tests
         run: >-
           pytest -q
           tests/test_continuity_bundle.py
+          tests/test_host_chaos_qualification.py
           tests/test_sqlite_recovery.py
           tests/test_release_evidence.py
       - name: Build deterministic release evidence twice
@@ -59,7 +66,13 @@ jobs:
           python scripts/build_release_evidence.py --output /tmp/release-evidence-a.json
           python scripts/build_release_evidence.py --output /tmp/release-evidence-b.json
           cmp /tmp/release-evidence-a.json /tmp/release-evidence-b.json
+      - name: Run deterministic host chaos twice
+        run: |
+          python scripts/run_host_chaos_qualification.py --output /tmp/host-chaos-a.json
+          python scripts/run_host_chaos_qualification.py --output /tmp/host-chaos-b.json
+          cmp /tmp/host-chaos-a.json /tmp/host-chaos-b.json
       - name: Validate release engineering contracts
         run: >-
           python scripts/validate_release_engineering.py
           --evidence /tmp/release-evidence-a.json
+          --chaos /tmp/host-chaos-a.json

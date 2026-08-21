@@ -84,6 +84,7 @@ def build_manifest() -> dict[str, Any]:
         "releases/RELEASE_ENGINEERING_CONTRACT.json",
         "releases/COMPATIBILITY_MATRIX.json",
         "releases/DEPRECATION_REGISTRY.json",
+        "releases/RELEASE_RINGS.json",
     ]
     known_paths = {item["path"] for item in source_files}
     missing = [path for path in required_ledgers if path not in known_paths]
