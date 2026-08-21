@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   bootstrap:
@@ -39,14 +40,17 @@ jobs:
           fi
 
       - name: Install Vercel CLI
+        id: cli
         if: steps.preflight.outputs.available == 'true'
         run: npm install --global vercel@latest
 
       - name: Verify Vercel authentication
+        id: auth
         if: steps.preflight.outputs.available == 'true'
         run: vercel whoami --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color
 
       - name: Ensure controller project exists
+        id: project
         if: steps.preflight.outputs.available == 'true'
         shell: bash
         run: |
@@ -59,11 +63,13 @@ jobs:
           fi
 
       - name: Link deployment artifact
+        id: link
         if: steps.preflight.outputs.available == 'true'
         working-directory: ${{ env.CONTROLLER_ROOT }}
         run: vercel link --yes --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --no-color
 
       - name: Ensure controller secrets
+        id: secrets
         if: steps.preflight.outputs.available == 'true'
         working-directory: ${{ env.CONTROLLER_ROOT }}
         shell: bash
@@ -89,6 +95,7 @@ jobs:
           echo "Controller secrets are present; values were never printed." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Ensure first-party private Blob state store
+        id: blob
         if: steps.preflight.outputs.available == 'true'
         working-directory: ${{ env.CONTROLLER_ROOT }}
         shell: bash
@@ -109,8 +116,8 @@ jobs:
           fi
 
       - name: Deploy controller to production
-        if: steps.preflight.outputs.available == 'true'
         id: deploy
+        if: steps.preflight.outputs.available == 'true'
         working-directory: ${{ env.CONTROLLER_ROOT }}
         shell: bash
         run: |
@@ -125,6 +132,7 @@ jobs:
           echo "Production deployment: $deployment" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify deployed controller health
+        id: health
         if: steps.preflight.outputs.available == 'true'
         working-directory: ${{ env.CONTROLLER_ROOT }}
         shell: bash
@@ -138,3 +146,39 @@ jobs:
             exit 1
           fi
           echo "Controller /api/health independently returned READY." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish sanitized Vercel bootstrap status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOKEN_PRESENT: ${{ steps.preflight.outputs.available }}
+          CLI_OUTCOME: ${{ steps.cli.outcome }}
+          AUTH_OUTCOME: ${{ steps.auth.outcome }}
+          PROJECT_OUTCOME: ${{ steps.project.outcome }}
+          LINK_OUTCOME: ${{ steps.link.outcome }}
+          SECRETS_OUTCOME: ${{ steps.secrets.outcome }}
+          BLOB_OUTCOME: ${{ steps.blob.outcome }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          HEALTH_OUTCOME: ${{ steps.health.outcome }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          token_present="${TOKEN_PRESENT:-unknown}"
+          deployment_url="${DEPLOYMENT_URL:-none}"
+          cat > /tmp/vercel-bootstrap-status.md <<EOF
+          ### Vercel controller bootstrap
+          - commit: \`${GITHUB_SHA}\`
+          - workflow run: \`${GITHUB_RUN_ID}\`
+          - VERCEL_TOKEN present: \`${token_present}\`
+          - CLI install: \`${CLI_OUTCOME:-skipped}\`
+          - Vercel authentication: \`${AUTH_OUTCOME:-skipped}\`
+          - project ensure: \`${PROJECT_OUTCOME:-skipped}\`
+          - project link: \`${LINK_OUTCOME:-skipped}\`
+          - controller secrets: \`${SECRETS_OUTCOME:-skipped}\`
+          - private Blob store: \`${BLOB_OUTCOME:-skipped}\`
+          - production deploy: \`${DEPLOY_OUTCOME:-skipped}\`
+          - health verification: \`${HEALTH_OUTCOME:-skipped}\`
+          - deployment URL: \`${deployment_url}\`
+          EOF
+          gh issue comment 228 --repo "$GITHUB_REPOSITORY" --body-file /tmp/vercel-bootstrap-status.md
