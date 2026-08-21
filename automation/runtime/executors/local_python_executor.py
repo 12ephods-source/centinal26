@@ -3,7 +3,7 @@
 Executes only explicitly assigned bounded tasks.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class LocalPythonExecutor:
@@ -20,6 +20,6 @@ class LocalPythonExecutor:
             "task_id": request.get("task_id"),
             "executor": self.executor_id,
             "status": "COMPLETED",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "note": "Execution scaffold; production sandboxing required."
+            "timestamp": datetime.now(UTC).isoformat(),
+            "note": "Execution scaffold; production sandboxing required.",
         }
