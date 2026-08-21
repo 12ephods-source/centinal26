@@ -138,7 +138,7 @@ def test_v02_identical_reexport_is_idempotent_even_if_generated_time_changes(tmp
     receipt_b = adapter.ingest(second, source_ref="second-brain:context")
     assert receipt_a.proposal_object_id == receipt_b.proposal_object_id
     assert receipt_a.source_digest == receipt_b.source_digest
-    with sqlite3.connect(store.db_path) as conn:
+    with sqlite3.connect(store.path) as conn:
         assert conn.execute("SELECT COUNT(*) FROM objects").fetchone()[0] == 1
 
 
@@ -169,7 +169,7 @@ def test_v02_artifact_mismatch_fails_before_store_write(tmp_path) -> None:
             source_ref="second-brain:context",
             artifact_payloads={"lib-001": b"wrong"},
         )
-    with sqlite3.connect(store.db_path) as conn:
+    with sqlite3.connect(store.path) as conn:
         assert conn.execute("SELECT COUNT(*) FROM objects").fetchone()[0] == 0
 
 
