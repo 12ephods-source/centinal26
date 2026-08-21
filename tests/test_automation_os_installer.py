@@ -22,7 +22,12 @@ def test_registry_is_fail_closed_and_pinned():
 
 def test_core_profiles_are_registered():
     value = registry()
-    for profile in ("centinal26-core", "android-fleet", "hermes-c05"):
+    for profile in (
+        "centinal26-core",
+        "android-fleet",
+        "hermes-c05",
+        "device-validation",
+    ):
         assert profile in value["profiles"]
         assert value["profiles"][profile]
 
@@ -31,6 +36,23 @@ def test_dependency_is_explicit():
     value = registry()
     assert value["modules"]["capability-provider-v1.0"]["depends_on"] == [
         "base44-worker-v1.0"
+    ]
+    assert value["modules"]["device-validation-adapter-v1.0"]["depends_on"] == [
+        "capability-provider-v1.0"
+    ]
+
+
+def test_device_validation_profile_is_bounded():
+    value = registry()
+    spec = value["modules"]["device-validation-adapter-v1.0"]
+    assert spec["source"]["path"] == (
+        "deploy/termux/FROST_DEVICE_VALIDATION_ADAPTER_v1.0.sh"
+    )
+    assert spec["source"]["git_blob_sha1"] == (
+        "0b5d7b00ce4d8dd0af0ca7a73dcc40124c1dc647"
+    )
+    assert value["profiles"]["device-validation"] == [
+        "device-validation-adapter-v1.0"
     ]
 
 
