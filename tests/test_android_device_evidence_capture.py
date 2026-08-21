@@ -32,26 +32,33 @@ def test_host_execution_cannot_claim_physical_device(monkeypatch):
 
 def test_android_signal_records_unverified_device_evidence(monkeypatch):
     module = load_module()
+    source_commit = "a" * 40
     monkeypatch.setenv("ANDROID_ROOT", "/system")
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
-    evidence = module.collect("android-test")
+    evidence = module.collect("android-test", source_commit=source_commit)
     assert evidence["status"] == "DEVICE_EVIDENCE_CAPTURED"
     assert evidence["physical_device_gate"] == "EVIDENCE_CAPTURED_UNVERIFIED"
+    assert evidence["software_provenance"]["source_commit"] == source_commit
     assert evidence["claims"]["device_origin"] == "OBSERVED"
+    assert evidence["claims"]["software_provenance"] == "OBSERVED"
     assert evidence["claims"]["enrollment"] == "PENDING_CONTROLLER_VERIFICATION"
 
 
 def test_bundle_manifest_hashes_are_self_consistent(tmp_path):
     module = load_module()
+    source_commit = "b" * 40
     evidence = {
         "device_id": "test-device",
         "captured_at_utc": "2026-08-21T00:00:00+00:00",
         "status": "DEVICE_EVIDENCE_CAPTURED",
         "physical_device_gate": "EVIDENCE_CAPTURED_UNVERIFIED",
+        "software_provenance": {"source_commit": source_commit},
         "package_inventory_sources": ["android_packages_pm"],
     }
     module.write_bundle(tmp_path, evidence)
     manifest = module.json.loads((tmp_path / "MANIFEST.sha256.json").read_text())
+    report = module.json.loads((tmp_path / "validation_report.json").read_text())
+    assert report["source_commit"] == source_commit
     assert set(manifest["files"]) == {"device_evidence.json", "validation_report.json"}
     for name, expected in manifest["files"].items():
         assert module.sha256_file(tmp_path / name) == expected
