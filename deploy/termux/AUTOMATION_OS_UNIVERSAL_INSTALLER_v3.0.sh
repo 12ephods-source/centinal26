@@ -3,7 +3,7 @@ set -Eeuo pipefail
 umask 077
 
 ROOT="${AUTOMATION_OS_ROOT:-$HOME/AutomationOS}"
-REF="${FROST_AUTOMATION_REF:-main}"
+REF="${FROST_AUTOMATION_REF:-2bbd048f57b7b4edb3b3b2935248316dd086c649}"
 RAW="https://raw.githubusercontent.com/12ephods-source/centinal26/$REF"
 MGR_SHA256="b94aa37821d326c167b8f1b27f9f1a3a53732e1d189f73e0ebb32fdd5f2216ac"
 REG_SHA256="4dc840d8215e5d52a385f1d4d7f0ffeaa478df65a411f8f91762e4885893ffc3"
