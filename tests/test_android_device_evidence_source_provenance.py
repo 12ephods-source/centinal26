@@ -66,8 +66,10 @@ def test_expected_source_commit_is_verified(tmp_path):
         expected_source_commit=source_commit,
     )
 
+    expected_digest = verifier.sha256_file(tmp_path / "MANIFEST.sha256.json")
     assert result["software_provenance"] == "VERIFIED_EXPECTED_COMMIT"
     assert result["source_commit"] == source_commit
+    assert result["enrollment_digest"] == expected_digest
     assert result["enrollment"] == "VERIFIED_ELIGIBLE"
 
 
@@ -83,6 +85,7 @@ def test_wrong_source_commit_is_rejected_even_with_valid_manifest(tmp_path):
     assert result["integrity"] == "VERIFIED"
     assert result["enrollment"] == "REJECTED"
     assert result["software_provenance"] == "UNVERIFIED"
+    assert "enrollment_digest" not in result
     assert result["errors"] == [
         {
             "source_commit_mismatch": {
