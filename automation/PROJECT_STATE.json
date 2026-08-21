@@ -4,11 +4,11 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "2.1",
-    "observed_production_head": "9c5e89b17eeb95b0e456f3f3428df80e7b4a9283"
+    "consolidation_version": "2.2",
+    "observed_production_head": "832dce90e3ceabc03faaf743ede6f043ce0b1352"
   },
   "source_of_truth": {
-    "primary_evidence": ["git_history", "exact_head_ci", "immutable_artifacts"],
+    "primary_evidence": ["git_history", "exact_head_ci", "durable_workflow_ledgers", "immutable_artifacts"],
     "human_continuation": "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md",
     "machine_continuation": "automation/PROJECT_STATE.json",
     "concise_summary": "PROJECT_STATE_AUTOMATION_OS.md"
@@ -32,7 +32,7 @@
   },
   "release_state": {
     "AUTOMATION_PLATFORM_V1_HOST": "VERIFIED_COMPLETE",
-    "AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE": "PENDING_PHYSICAL_EVIDENCE",
+    "AUTOMATION_PLATFORM_V1_PHYSICAL_DEVICE": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
     "AUTOMATION_PLATFORM_V1_EXTERNAL_CONNECTORS": "PARTIAL"
   },
   "verified_production_capabilities": [
@@ -60,6 +60,9 @@
     "executor_integration_ci",
     "productizer_protocol_v3_provenance_binding",
     "productizer_to_judge_e2e_host_validation",
+    "manifest_driven_universal_termux_installer",
+    "immutable_module_registry",
+    "fail_closed_module_manager",
     "android_termux_device_evidence_capture_software",
     "controller_side_device_evidence_verifier",
     "ci_validate_automation_federation_mature_product_gates"
@@ -110,9 +113,10 @@
     "194": "Productizer-to-Judge end-to-end closure",
     "196": "Canonical project continuation consolidation",
     "197": "Durable bounded agent execution ledger",
-    "200": "Bounded agent authority policy reconciliation"
+    "200": "Bounded agent authority policy reconciliation",
+    "204": "Qualified universal Termux installer host software"
   },
-  "superseded_prs": [176, 179, 180, 182, 183, 184, 185, 186, 188, 189, 191],
+  "superseded_prs": [175, 176, 179, 180, 182, 183, 184, 185, 186, 188, 189, 191],
   "completed_workstreams": [
     {
       "id": "durable_agent_execution_ledger",
@@ -125,17 +129,24 @@
       "status": "VERIFIED_COMPLETE",
       "pull_request": 200,
       "production_commit": "883673d8ae03be09d0db0cc646e9a0c7b4ab692a"
+    },
+    {
+      "id": "universal_android_termux_installer_software",
+      "status": "VERIFIED_COMPLETE_HOST",
+      "pull_request": 204,
+      "production_commit": "832dce90e3ceabc03faaf743ede6f043ce0b1352",
+      "physical_validation": "SEPARATE_EXTERNAL_GATE"
     }
   ],
   "active_workstreams": [
     {
       "id": "android_termux_physical_validation",
-      "status": "PENDING_PHYSICAL_EVIDENCE",
-      "pull_request": 175,
+      "status": "BLOCKED_EXTERNAL_PHYSICAL_EVIDENCE",
       "implemented_software": [
-        "termux_enroll_onepaste.sh",
-        "capture_device_evidence.py",
-        "verify_device_evidence.py"
+        "deploy/termux/AUTOMATION_OS_UNIVERSAL_INSTALLER_v3.1.sh",
+        "automation/deployment/enrollment_package/termux_enroll_onepaste.sh",
+        "automation/deployment/enrollment_package/capture_device_evidence.py",
+        "automation/deployment/enrollment_package/verify_device_evidence.py"
       ],
       "next_gate": "run_on_real_authorized_android_device_then_controller_verify_bundle_and_observe_worker_heartbeat"
     },
@@ -146,7 +157,7 @@
     },
     {
       "id": "real_android_worker_execution",
-      "status": "PENDING_PHYSICAL",
+      "status": "BLOCKED_ON_VERIFIED_PHYSICAL_ENROLLMENT",
       "next_gate": "verified_enrollment_plus_heartbeat_then_bounded_executor_task_and_preserved_evidence"
     }
   ],
@@ -157,12 +168,16 @@
     "src/centinal26/agent_execution_plane.py": "CANONICAL",
     "config/agent_authority.json": "CANONICAL",
     ".github/workflows/agent-execution.yml": "CANONICAL",
+    "deploy/automation_os/module_manager.py": "CANONICAL",
+    "deploy/automation_os/registry.json": "CANONICAL",
+    "deploy/termux/AUTOMATION_OS_UNIVERSAL_INSTALLER_v3.1.sh": "CANONICAL",
+    "automation/deployment/enrollment_package/termux_enroll_onepaste.sh": "CANONICAL",
+    "automation/deployment/enrollment_package/capture_device_evidence.py": "CANONICAL",
+    "automation/deployment/enrollment_package/verify_device_evidence.py": "CANONICAL",
     "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md": "CANONICAL",
-    "automation/PROJECT_STATE.json": "CANONICAL_AFTER_MERGE",
-    "PR_175": "EXPERIMENTAL_PENDING_PHYSICAL"
+    "automation/PROJECT_STATE.json": "CANONICAL_AFTER_MERGE"
   },
   "critical_path": [
-    "merge_state_refresh",
     "complete_android_termux_physical_evidence_capture",
     "controller_verify_physical_bundle",
     "observe_worker_heartbeat",
