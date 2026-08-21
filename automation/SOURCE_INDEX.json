@@ -8,7 +8,7 @@
     "production_rule": "Only content merged to canonical main is production source unless an immutable source commit is explicitly pinned for a physical or compatibility gate.",
     "open_pr_rule": "Open pull requests and their branches are candidates, not production source.",
     "closed_unmerged_rule": "Closed unmerged pull requests are provenance/superseded records unless explicitly named otherwise.",
-    "history_rule": "Historical branches and superseded scripts remain available through Git history; source cleanup must not erase evidence or failed states.",
+    "history_rule": "Historical branches and superseded scripts remain available through Git history; source cleanup must preserve provenance and must not erase evidence, failed states, or superseded states.",
     "external_project_rule": "Physics and external product work in this repository is not Automation runtime source unless separately promoted through an Automation integration decision.",
     "file_library_rule": "A File Library artifact is not a fresh-phone canonical module until exact complete bytes are published to an immutable source and registered with validation metadata.",
     "control_plane_rule": "Base44 and other connected services may hold coordination/evidence state but do not replace Git main as canonical software source."
