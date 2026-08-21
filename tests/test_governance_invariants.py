@@ -208,7 +208,7 @@ def test_replay_time_controls_expiry_deterministically() -> None:
 
 
 def test_naive_replay_time_fails_closed() -> None:
-    naive = datetime(2026, 8, 21, 12, 0)
+    naive = datetime(2026, 8, 21, 12, 0, tzinfo=None)
     assert "REPLAY_TIME_INVALID" in codes(valid_bundle(), now=naive)
 
 
