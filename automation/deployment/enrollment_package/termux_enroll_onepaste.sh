@@ -65,25 +65,35 @@ printf '\nEvidence bundle: %s\n' "${OUT}"
 python - <<'PY' "${OUT}"
 import hashlib, json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
-manifest = json.loads((root / "MANIFEST.sha256.json").read_text())
+manifest_path = root / "MANIFEST.sha256.json"
+manifest = json.loads(manifest_path.read_text())
 errors = []
 for name, expected in manifest["files"].items():
     actual = hashlib.sha256((root / name).read_bytes()).hexdigest()
     if actual != expected:
         errors.append({"file": name, "expected": expected, "actual": actual})
 report = json.loads((root / "validation_report.json").read_text())
+enrollment_digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
 print(json.dumps({
     "manifest_verified": not errors,
     "errors": errors,
     "device_status": report["status"],
     "physical_device_gate": report["physical_device_gate"],
     "source_commit": report.get("source_commit"),
+    "enrollment_digest": enrollment_digest,
     "bundle": str(root),
 }, indent=2))
 raise SystemExit(1 if errors else 0)
 PY
 
-printf '\nTo return the evidence to ChatGPT, attach the entire directory as a zip:\n'
+ENROLLMENT_DIGEST="$(sha256sum "${OUT}/MANIFEST.sha256.json" | awk '{print $1}')"
+python automation/device/heartbeat.py \
+  --device-id "${DEVICE_ID}" \
+  --enrollment-digest "${ENROLLMENT_DIGEST}" \
+  --sequence 1 \
+  --output "${OUT}/worker_heartbeat.json"
+
+printf '\nPhysical commissioning package includes enrollment evidence + bound heartbeat.\n'
 ZIP="${OUT}.zip"
 python - <<'PY' "${OUT}" "${ZIP}"
 import pathlib, shutil, sys
