@@ -1,9 +1,9 @@
 {
   "schema": "frost.automation.source_index.v1",
-  "version": "3.0",
+  "version": "3.1",
   "repository": "12ephods-source/centinal26",
   "canonical_branch": "main",
-  "snapshot_head": "e07c8b4118da2f38e19db6ac74ba25c35db82983",
+  "snapshot_head": "1496ae879231ef59c8fd9e774eabbf2ffb83836f",
   "policy": {
     "production_rule": "Only content merged to canonical main is production source unless an immutable source commit is explicitly pinned for a physical or compatibility gate.",
     "open_pr_rule": "Open pull requests and their branches are candidates, not production source.",
@@ -45,6 +45,35 @@
         "promotion_pr": 238,
         "production_commit": "e07c8b4118da2f38e19db6ac74ba25c35db82983",
         "authority_boundary": "classification and evidence only; no source mutation or arbitrary command execution"
+      },
+      "termux/repository-recovery/v1": {
+        "source": "deploy/termux/FROST_TERMUX_REPOSITORY_RECOVERY_v1.0.sh",
+        "tests": "tests/test_termux_repository_recovery_ability.py",
+        "promotion_pr": 247,
+        "production_commit": "8ef7c158a2e9dff56838e41c8a2a9471a1489bea",
+        "authority_boundary": "explicit local package-repair authority; source rollback; no signature bypass or trust-root import",
+        "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
+      },
+      "termux/trust-bootstrap/v1": {
+        "source": "deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh",
+        "tests": "tests/test_termux_trust_bootstrap_ability.py",
+        "promotion_pr": 249,
+        "production_commit": "1496ae879231ef59c8fd9e774eabbf2ffb83836f",
+        "upstream_commit": "da8b07830fd2049bc4df6119befceb565732e36b",
+        "upstream_git_blob": "c5ed76a1b9a1f2bc2e296bdd5ca50cf1f1f12706",
+        "upstream_full_fingerprint": "CC72CF8BA7DBFA0182877D045A897D96E57CF20C",
+        "authority_boundary": "separate explicit local trust-root authority; immutable blob plus full fingerprint verification before write; no keyserver or APT signature bypass",
+        "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
+      }
+    },
+    "experimental_or_physical_pending": {
+      "frost-forge/termux-library-cleaner/v1": {
+        "source": "deploy/termux/library_cleaner/frost_library_cleanerd.py",
+        "promotion_pr": 244,
+        "evidence_packager_pr": 246,
+        "host_validation": "PASS",
+        "physical_device_execution": "PENDING_PHYSICAL",
+        "provider_ui_end_to_end": "NOT_YET_OBSERVED"
       }
     }
   },
@@ -83,21 +112,26 @@
   "recent_production_promotions": {
     "235": "Reusable ability registry and build-test-register-reuse policy.",
     "236": "Verified self-registration of the reusable ability registry.",
-    "238": "Current-main bounded CI failure reconciler and verified reusable ability registration."
+    "238": "Current-main bounded CI failure reconciler and verified reusable ability registration.",
+    "244": "Termux Library Cleaner host-qualified experimental ability registration; physical/provider-UI execution remains unobserved.",
+    "246": "Deterministic Library Cleaner evidence packager.",
+    "247": "Bounded Termux repository recovery and verified reusable ability registration.",
+    "249": "Pinned Termux autobuild trust bootstrap with full upstream identity verification and verified reusable ability registration."
   },
   "superseded_or_redundant_prs": {
+    "86": "Historical Android/Termux forensic campaign superseded after package-source recovery was extracted through PR #247, trust-anchor recovery through PR #249, and physical acceptance remained on canonical issue #208.",
     "101": "Historical bounded CI failure reconciler superseded by current-main reconstruction and merge PR #238.",
     "175": "Universal installer draft superseded by reconstructed and merged PR #204.",
     "207": "Accidental redundant physical tracker; tracking belongs in issue #208.",
     "211": "Stale state refresh superseded by later canonical state merges.",
     "215": "Physical commissioning v1 superseded by current-main reconstruction PR #217 and later hardening PR #225.",
     "231": "Concurrent v2.7 state branch closed because merged PR #230 already synchronized newer canonical state.",
-    "237": "First current-main CI reconciler reconstruction superseded before qualification when PR #236 advanced the registry baseline; clean successor PR #238 merged."
+    "237": "First current-main CI reconciler reconstruction superseded before qualification when PR #236 advanced the registry baseline; clean successor PR #238 merged.",
+    "243": "First current-main Termux repository-recovery extraction superseded when concurrent registry work advanced main; clean successor PR #247 merged."
   },
   "open_automation_candidates": {
     "82": "Agent Fleet live-PR identity routing; candidate/unmerged.",
     "85": "Deterministic control-plane invariant/provider-bridge candidate; unmerged.",
-    "86": "Android plus Frost Sentinel campaign; supporting candidate, not the current issue-#208 acceptance path.",
     "89": "Conversation/responder/Termux feedback loop; candidate/unmerged.",
     "92": "Bounded physical intent capability candidate; unmerged and not the current physical acceptance authority.",
     "97": "Neutral provider-export evidence store candidate; unmerged.",
@@ -114,7 +148,7 @@
   },
   "scientific_work_exclusion": {
     "rule": "Physics/FToE and geometric-symbolic scientific PRs are research branches, not Automation runtime source unless explicitly integrated through a separate bounded integration PR.",
-    "examples": [87, 99, 102, 104, 105, 109, 146, 156, 157, 158, 161, 165, 166, 167, 168, 169, 170]
+    "examples": [87, 99, 102, 104, 105, 109, 146, 156, 157, 158, 161, 165, 166, 167, 168, 169, 170, 240]
   },
   "legacy_source_policy": {
     "termux_versioned_scripts": "Retain versioned scripts that are referenced by immutable registries, compatibility paths, tests, or provenance. Do not delete merely because a newer filename exists.",
