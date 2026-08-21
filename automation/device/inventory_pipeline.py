@@ -3,14 +3,14 @@
 Transforms device inventory records into capability-ready records.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def normalize_inventory(record):
     return {
         "device_id": record.get("device_id", "UNKNOWN"),
         "applications": record.get("applications", []),
-        "normalized_at": datetime.now(timezone.utc).isoformat(),
+        "normalized_at": datetime.now(UTC).isoformat(),
         "status": "PENDING_CLASSIFICATION",
     }
 
