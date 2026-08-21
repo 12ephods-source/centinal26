@@ -62,7 +62,13 @@
         "outputs": ["source_id", "transcript_id", "acquisition_status", "completeness", "analysis_ready"]
       },
       "verification": {
-        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "exact_head": "d545ec8f222f0e6e7ecefb24f21a108c00fe67d5",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
         "tests": "tests/test_external_ai_evidence.py"
       },
       "provenance": {
@@ -72,7 +78,7 @@
       "lifecycle": {
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references; content-addressed evidence already stored remains immutable provenance"
       },
-      "status": "EXPERIMENTAL"
+      "status": "VERIFIED"
     },
     {
       "id": "frost-forge/ability-registry/v1",
