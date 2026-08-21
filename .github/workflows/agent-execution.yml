@@ -15,7 +15,7 @@ on:
       role:
         required: true
         type: choice
-        options: [planner, builder, judge, sre, sentinel]
+        options: [planner, builder, judge, sre, sentinel, release]
       profile:
         required: true
         type: choice
@@ -23,6 +23,7 @@ on:
   push:
     branches: [main]
     paths:
+      - config/agent_authority.json
       - src/centinal26/agent_execution_plane.py
       - tests/test_agent_execution_plane.py
       - tests/test_agent_execution_workflow_policy.py

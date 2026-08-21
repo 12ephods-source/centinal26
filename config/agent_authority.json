@@ -1,0 +1,62 @@
+{
+  "version": "2.0",
+  "policy": "maximum-useful-authority-protected-recovery-root",
+  "default_agent_mode": "REPOSITORY_ADMIN_CAPABLE",
+  "roles": {
+    "planner": {
+      "mutating": true,
+      "purpose": "plan and dispatch bounded work"
+    },
+    "builder": {
+      "mutating": true,
+      "purpose": "implement authorized repository work"
+    },
+    "judge": {
+      "mutating": false,
+      "capable_of_mutation": true,
+      "purpose": "independent verification; mutation disabled by default"
+    },
+    "sre": {
+      "mutating": true,
+      "purpose": "repair attributable operational failures"
+    },
+    "sentinel": {
+      "mutating": false,
+      "capable_of_mutation": true,
+      "purpose": "independent evidence and audit"
+    },
+    "release": {
+      "mutating": true,
+      "purpose": "promote only independently verified artifacts"
+    }
+  },
+  "root_deny": [
+    "account_owner",
+    "credential_root",
+    "audit_destroy",
+    "backup_destroy",
+    "account_or_org_ownership_transfer",
+    "authentication_or_recovery_factor_change",
+    "independent_audit_destruction_or_disablement",
+    "independent_backup_destruction",
+    "unrestricted_credential_issuance",
+    "billing_or_payment_authority",
+    "self_modification_of_root_authority_policy"
+  ],
+  "required_controls": [
+    "bounded_execution",
+    "queue_lease_when_queue_backed",
+    "postcondition_verification",
+    "independent_judge_for_consequential_mutations",
+    "sentinel_evidence_for_release",
+    "rollback_or_prior_good_reference_for_mutation",
+    "circuit_breaker",
+    "quarantine_on_repeated_failure"
+  ],
+  "action_rules": {
+    "write_prefix": "write:",
+    "default_action": "execute:bounded_task",
+    "consequential_requires_judge": true
+  },
+  "external_boundary": "Provider authentication, platform permissions, account ownership, credential recovery, and third-party authorization remain external mandatory controls."
+}
