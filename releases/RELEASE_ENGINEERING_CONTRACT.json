@@ -1,0 +1,66 @@
+{
+  "schema": "automation.release_engineering_contract/v1",
+  "release_target": "1.0.0",
+  "canonical_release_contract": "releases/RELEASE_CONTRACT.json",
+  "canonical_project_state": "automation/PROJECT_STATE.json",
+  "authority_matrix": "releases/AUTHORITY_MATRIX.json",
+  "principle": "Release promotion is evidence-gated; host completion cannot substitute for device, persistence, recovery, or authorization evidence.",
+  "host_closeout_controls": [
+    "exact_head_required_checks",
+    "deterministic_source_inventory",
+    "dependency_inventory",
+    "artifact_hash_inventory",
+    "compatibility_matrix",
+    "deprecation_registry",
+    "portable_bundle_resource_limits",
+    "sqlite_snapshot_restore_drill",
+    "rollback_preserves_prior_state",
+    "fail_closed_unknown_or_stale_state"
+  ],
+  "required_generated_evidence": {
+    "schema": "automation.release_evidence/v1",
+    "generator": "scripts/build_release_evidence.py",
+    "deterministic_for_same_commit": true,
+    "timestamp_in_identity": false,
+    "source_commit_required": true,
+    "tracked_file_hashes_required": true,
+    "python_dependency_inventory_required": true,
+    "entry_point_inventory_required": true
+  },
+  "required_static_ledgers": [
+    "releases/RELEASE_CONTRACT.json",
+    "releases/AUTHORITY_MATRIX.json",
+    "releases/CURRENT_RELEASE_STATE.json",
+    "releases/COMPATIBILITY_MATRIX.json",
+    "releases/DEPRECATION_REGISTRY.json"
+  ],
+  "recovery_semantics": {
+    "host_primitive": "frost_core.sqlite_recovery",
+    "snapshot_must_pass_integrity_check": true,
+    "restore_must_pass_integrity_check": true,
+    "existing_destination_requires_expected_hash": true,
+    "existing_destination_preserved_before_replace": true,
+    "live_wal_or_shm_sidecars_block_restore": true,
+    "host_recovery_test_does_not_promote_RECOVERY_VALIDATED": true
+  },
+  "external_gates": {
+    "physical_android_termux": {
+      "tracker_issue": 208,
+      "may_be_substituted_by_host": false
+    },
+    "deployment_authorization": {
+      "tracker_issue": 228,
+      "may_be_substituted_by_repository_ci": false
+    },
+    "library_cleaner_device_ui": {
+      "tracker_issue": 245,
+      "base_ga_blocking": false
+    },
+    "bluetooth_physical": {
+      "tracker_issue": 261,
+      "base_ga_blocking": false,
+      "identity_domain_independent": true
+    }
+  },
+  "promotion_rule": "A generated release evidence manifest plus green host checks proves host release-engineering closure only. GA still requires every mandatory evidence class in RELEASE_CONTRACT.json."
+}

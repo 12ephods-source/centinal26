@@ -1,0 +1,56 @@
+{
+  "schema": "automation.deprecation_registry/v1",
+  "allowed_states": [
+    "ACTIVE",
+    "COMPATIBILITY_ONLY",
+    "DEPRECATED",
+    "SUPERSEDED",
+    "ARCHIVED",
+    "REJECTED"
+  ],
+  "entries": [
+    {
+      "id": "physical-contract-issue-64",
+      "state": "SUPERSEDED",
+      "replacement": "physical-contract-issue-208",
+      "authority": "HISTORICAL_PROVENANCE_ONLY",
+      "removal_policy": "preserve historical evidence; never restore release authority implicitly"
+    },
+    {
+      "id": "rc9-normal-trigger-path",
+      "state": "DEPRECATED",
+      "replacement": "issue-208 pinned one-run commissioning",
+      "authority": "NO_CURRENT_PHYSICAL_PROMOTION_AUTHORITY",
+      "removal_policy": "retain compatibility/provenance material only where referenced"
+    },
+    {
+      "id": "pr-262-integration-vehicle",
+      "state": "SUPERSEDED",
+      "replacement": "pr-266 merged identity-boundary invariant",
+      "authority": "NONE",
+      "removal_policy": "preserve closed PR as provenance"
+    },
+    {
+      "id": "historical-second-brain-state-stores",
+      "state": "COMPATIBILITY_ONLY",
+      "replacement": "canonical Frost CORE object identity plus proposal-only continuity ingestion",
+      "authority": "MIGRATION_PROVENANCE_ONLY",
+      "removal_policy": "never promote imported historical state automatically"
+    },
+    {
+      "id": "parallel-live-project-state-authority",
+      "state": "REJECTED",
+      "replacement": "automation/PROJECT_STATE.json",
+      "authority": "FORBIDDEN",
+      "removal_policy": "do not introduce or reactivate competing canonical writers"
+    },
+    {
+      "id": "direct-ai-to-shell-execution",
+      "state": "REJECTED",
+      "replacement": "authorized durable queue plus registered bounded executor",
+      "authority": "FORBIDDEN",
+      "removal_policy": "unknown or unregistered execution requests fail closed"
+    }
+  ],
+  "subtraction_rule": "Before GA, any active component that can be removed without breaking a canonical contract must be retired from the active runtime and preserved only according to its provenance requirement."
+}

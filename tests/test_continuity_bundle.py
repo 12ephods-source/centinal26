@@ -4,6 +4,7 @@ import zipfile
 
 import pytest
 
+from frost_core import continuity_bundle
 from frost_core.continuity_bundle import (
     ContinuityBundleError,
     create_signed_bundle,
@@ -109,3 +110,42 @@ def test_extra_member_is_rejected(tmp_path) -> None:
         target.writestr("extra.txt", b"not allowed")
     with pytest.raises(ContinuityBundleError, match="member set"):
         verify_signed_bundle(modified, public_key=public)
+
+
+def test_configured_member_limit_rejects_before_verification(tmp_path, monkeypatch) -> None:
+    private, public = make_keys(tmp_path)
+    bundle = tmp_path / "continuity.zip"
+    create_signed_bundle(proposal(), bundle, private_key=private)
+    monkeypatch.setattr(continuity_bundle, "_MAX_PROPOSAL_BYTES", 1)
+    with pytest.raises(ContinuityBundleError, match="member exceeds size limit"):
+        verify_signed_bundle(bundle, public_key=public)
+
+
+def test_invalid_signature_length_is_rejected_before_provider_call(tmp_path) -> None:
+    private, public = make_keys(tmp_path)
+    original = tmp_path / "original.zip"
+    modified = tmp_path / "short-signature.zip"
+    create_signed_bundle(proposal(), original, private_key=private)
+    with zipfile.ZipFile(original, "r") as source, zipfile.ZipFile(modified, "w") as target:
+        for name in source.namelist():
+            data = b"short" if name == "manifest.sig" else source.read(name)
+            target.writestr(name, data)
+    with pytest.raises(ContinuityBundleError, match="signature length"):
+        verify_signed_bundle(modified, public_key=public)
+
+
+def test_key_and_bundle_symlinks_are_rejected(tmp_path) -> None:
+    private, public = make_keys(tmp_path)
+    bundle = tmp_path / "continuity.zip"
+    create_signed_bundle(proposal(), bundle, private_key=private)
+    public_link = tmp_path / "public-link.pem"
+    bundle_link = tmp_path / "bundle-link.zip"
+    try:
+        public_link.symlink_to(public)
+        bundle_link.symlink_to(bundle)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks unavailable")
+    with pytest.raises(ContinuityBundleError, match="regular non-symlink"):
+        verify_signed_bundle(bundle, public_key=public_link)
+    with pytest.raises(ContinuityBundleError, match="regular non-symlink"):
+        verify_signed_bundle(bundle_link, public_key=public)

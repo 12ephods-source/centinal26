@@ -1,0 +1,51 @@
+{
+  "schema": "automation.compatibility_matrix/v1",
+  "policy": "Compatibility claims are scoped to the evidence class that tested them; untested combinations remain UNQUALIFIED.",
+  "host_python": [
+    {
+      "version": "3.11",
+      "status": "HOST_CI_REQUIRED"
+    },
+    {
+      "version": "3.12",
+      "status": "HOST_CI_REQUIRED"
+    },
+    {
+      "version": "3.13",
+      "status": "HOST_CI_REQUIRED"
+    },
+    {
+      "version": ">=3.14",
+      "status": "UNQUALIFIED_UNTIL_CI_ADDED"
+    }
+  ],
+  "android_termux": {
+    "status": "PHYSICAL_EVIDENCE_REQUIRED",
+    "tracker_issue": 208,
+    "host_or_emulator_substitution_allowed": false
+  },
+  "external_providers": {
+    "openssl_ed25519": {
+      "role": "continuity_bundle_signature_provider",
+      "absence_behavior": "FAIL_CLOSED",
+      "embedded_trust_root": false
+    },
+    "age": {
+      "role": "encrypted_backup_provider",
+      "absence_behavior": "FAIL_CLOSED",
+      "plaintext_fallback_allowed": false
+    }
+  },
+  "deployment": {
+    "tracker_issue": 228,
+    "status": "AUTHORIZATION_OR_PLATFORM_BOUNDARY",
+    "repository_ci_substitution_allowed": false
+  },
+  "release_evidence": {
+    "host": "SEPARATE",
+    "device": "SEPARATE",
+    "persistence": "SEPARATE",
+    "recovery": "SEPARATE",
+    "deployment": "SEPARATE"
+  }
+}

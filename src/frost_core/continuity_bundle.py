@@ -13,6 +13,12 @@ class ContinuityBundleError(ValueError):
     """A portable continuity bundle failed structural or cryptographic verification."""
 
 
+_MAX_MANIFEST_BYTES = 64 * 1024
+_MAX_PROPOSAL_BYTES = 64 * 1024 * 1024
+_MAX_SIGNATURE_BYTES = 1024
+_ED25519_SIGNATURE_BYTES = 64
+
+
 def _canonical_json(value: Any) -> bytes:
     return json.dumps(
         value,
@@ -21,6 +27,20 @@ def _canonical_json(value: Any) -> bytes:
         ensure_ascii=False,
         allow_nan=False,
     ).encode("utf-8")
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _regular_file(path: Path, *, label: str) -> Path:
+    if path.is_symlink() or not path.is_file():
+        raise ContinuityBundleError(f"{label} must be a regular non-symlink file")
+    return path
 
 
 def _run_openssl(args: list[str]) -> None:
@@ -46,6 +66,21 @@ def _write_zip_member(archive: zipfile.ZipFile, name: str, payload: bytes) -> No
     archive.writestr(info, payload)
 
 
+def _read_bounded_member(archive: zipfile.ZipFile, name: str, *, limit: int) -> bytes:
+    try:
+        info = archive.getinfo(name)
+    except KeyError as exc:
+        raise ContinuityBundleError(f"missing bundle member: {name}") from exc
+    if info.is_dir() or info.flag_bits & 0x1:
+        raise ContinuityBundleError(f"unsupported ZIP member flags: {name}")
+    if info.file_size < 0 or info.file_size > limit:
+        raise ContinuityBundleError(f"bundle member exceeds size limit: {name}")
+    payload = archive.read(info)
+    if len(payload) != info.file_size:
+        raise ContinuityBundleError(f"bundle member size mismatch: {name}")
+    return payload
+
+
 def create_signed_bundle(
     proposal: dict[str, Any],
     output_path: str | Path,
@@ -59,6 +94,8 @@ def create_signed_bundle(
     """
 
     proposal_bytes = _canonical_json(proposal)
+    if len(proposal_bytes) > _MAX_PROPOSAL_BYTES:
+        raise ContinuityBundleError("proposal exceeds portable bundle size limit")
     manifest = {
         "schema": "frost.continuity.portable_bundle.v1",
         "signature_algorithm": "Ed25519",
@@ -67,9 +104,7 @@ def create_signed_bundle(
     }
     manifest_bytes = _canonical_json(manifest)
 
-    private = Path(private_key)
-    if not private.is_file():
-        raise ContinuityBundleError("private signing key does not exist")
+    private = _regular_file(Path(private_key), label="private signing key")
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -92,6 +127,8 @@ def create_signed_bundle(
             ]
         )
         signature = signature_file.read_bytes()
+    if len(signature) != _ED25519_SIGNATURE_BYTES:
+        raise ContinuityBundleError("OpenSSL returned an invalid Ed25519 signature length")
 
     temporary = output.with_name(f".{output.name}.tmp")
     try:
@@ -105,7 +142,7 @@ def create_signed_bundle(
 
     return {
         "bundle_path": str(output),
-        "bundle_sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+        "bundle_sha256": _sha256_file(output),
         "payload_sha256": manifest["payload_sha256"],
         "signature_algorithm": "Ed25519",
     }
@@ -116,12 +153,8 @@ def verify_signed_bundle(
     *,
     public_key: str | Path,
 ) -> dict[str, Any]:
-    public = Path(public_key)
-    if not public.is_file():
-        raise ContinuityBundleError("public verification key does not exist")
-    bundle = Path(bundle_path)
-    if not bundle.is_file():
-        raise ContinuityBundleError("bundle does not exist")
+    public = _regular_file(Path(public_key), label="public verification key")
+    bundle = _regular_file(Path(bundle_path), label="bundle")
 
     try:
         with zipfile.ZipFile(bundle, "r") as archive:
@@ -129,12 +162,20 @@ def verify_signed_bundle(
             required = ["manifest.json", "proposal.json", "manifest.sig"]
             if len(names) != len(set(names)) or sorted(names) != sorted(required):
                 raise ContinuityBundleError("bundle member set is not canonical")
-            manifest_bytes = archive.read("manifest.json")
-            proposal_bytes = archive.read("proposal.json")
-            signature = archive.read("manifest.sig")
-    except (zipfile.BadZipFile, KeyError) as exc:
+            manifest_bytes = _read_bounded_member(
+                archive, "manifest.json", limit=_MAX_MANIFEST_BYTES
+            )
+            proposal_bytes = _read_bounded_member(
+                archive, "proposal.json", limit=_MAX_PROPOSAL_BYTES
+            )
+            signature = _read_bounded_member(
+                archive, "manifest.sig", limit=_MAX_SIGNATURE_BYTES
+            )
+    except zipfile.BadZipFile as exc:
         raise ContinuityBundleError("invalid continuity ZIP") from exc
 
+    if len(signature) != _ED25519_SIGNATURE_BYTES:
+        raise ContinuityBundleError("invalid Ed25519 signature length")
     try:
         manifest = json.loads(manifest_bytes)
         proposal = json.loads(proposal_bytes)
@@ -146,6 +187,8 @@ def verify_signed_bundle(
         raise ContinuityBundleError("unsupported portable bundle schema")
     if manifest.get("signature_algorithm") != "Ed25519":
         raise ContinuityBundleError("unsupported signature algorithm")
+    if manifest.get("payload_member") != "proposal.json":
+        raise ContinuityBundleError("unsupported payload member")
     actual_payload = hashlib.sha256(proposal_bytes).hexdigest()
     if manifest.get("payload_sha256") != actual_payload:
         raise ContinuityBundleError("proposal SHA-256 mismatch")
@@ -173,7 +216,7 @@ def verify_signed_bundle(
 
     return {
         "status": "VERIFIED",
-        "bundle_sha256": hashlib.sha256(bundle.read_bytes()).hexdigest(),
+        "bundle_sha256": _sha256_file(bundle),
         "payload_sha256": actual_payload,
         "proposal": proposal,
     }
