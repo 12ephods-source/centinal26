@@ -4,18 +4,18 @@ Executors perform bounded work assigned by the runtime layer.
 Scheduling, authorization, and verification remain separate concerns.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class ExecutorTemplate:
     executor_id = "template_executor"
-    capabilities = []
+    capabilities = ()
 
     def health_check(self):
         return {
             "executor_id": self.executor_id,
             "status": "UNKNOWN",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def can_execute(self, request):

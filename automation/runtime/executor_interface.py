@@ -19,15 +19,15 @@ queued != executed != verified
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, Protocol
+from datetime import UTC, datetime
+from typing import Any, Protocol
 
 
 @dataclass
 class ExecutionRequest:
     task_id: str
     capability_id: str
-    payload: Dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
     authorization_status: str = "PENDING"
 
 
@@ -35,9 +35,9 @@ class ExecutionRequest:
 class ExecutionResult:
     task_id: str
     status: str
-    output: Dict[str, Any] = field(default_factory=dict)
+    output: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
 
 
@@ -55,7 +55,7 @@ class ExecutorRegistry:
     """Maps verified capabilities to execution backends."""
 
     def __init__(self):
-        self.executors: Dict[str, Executor] = {}
+        self.executors: dict[str, Executor] = {}
 
     def register(self, capability_id: str, executor: Executor) -> None:
         self.executors[capability_id] = executor

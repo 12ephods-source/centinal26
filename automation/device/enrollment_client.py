@@ -5,7 +5,7 @@ activate a worker without verification.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def create_enrollment(device_id, device_type, capabilities=None):
@@ -13,7 +13,7 @@ def create_enrollment(device_id, device_type, capabilities=None):
         "device_id": device_id,
         "device_type": device_type,
         "capabilities": capabilities or [],
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "status": "PENDING_VERIFICATION"
     }
 

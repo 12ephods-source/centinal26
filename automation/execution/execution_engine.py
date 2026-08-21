@@ -4,14 +4,14 @@ Executes only registered bounded tasks.
 Requires verification records before promotion.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def execute(task):
     return {
         "task_id": task.get("task_id"),
         "status": "EXECUTION_RECORDED",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "verification_required": True
     }
 
