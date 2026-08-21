@@ -62,20 +62,19 @@ def test_consequential_mutation_requires_independent_judge():
     assert decision["requires_judge"] is True
 
 
-def test_judge_verified_consequential_mutation_can_execute(tmp_path: Path):
+def test_judge_verified_consequential_mutation_still_requires_objective_authority(tmp_path: Path):
     result = run_task(
         {
             "role": "builder",
             "action": "write:repository_file",
             "consequential": True,
             "judge_verified": True,
-            "command": ["python", "-c", "print('verified')"],
+            "command": ["python", "-c", "print('must-not-run')"],
         },
         tmp_path,
     )
-    assert result["status"] == "PASS"
+    assert result["status"] == "OBJECTIVE_CONTEXT_REQUIRED"
     assert result["requires_judge"] is True
-    assert "verified" in result["stdout"]
 
 
 def test_release_role_is_recognized():
