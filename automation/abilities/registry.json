@@ -48,6 +48,39 @@
       "status": "VERIFIED"
     },
     {
+      "id": "evidence/external-ai-ingress/v1",
+      "name": "External AI evidence ingress",
+      "kind": "evidence-ingress",
+      "source": {
+        "path": "src/frost_core/external_ai_evidence.py",
+        "lineage_pr": 155,
+        "reconstruction_branch": "feature/external-ai-evidence-ingress-v2"
+      },
+      "interface": {
+        "python": "frost_core.external_ai_evidence.ExternalAIEvidenceIngestor.ingest",
+        "inputs": ["platform", "source_ref", "acquisition_status", "completeness", "conversation_id", "transcript_text", "transcript_sha256", "attachments", "metadata"],
+        "outputs": ["source_id", "transcript_id", "acquisition_status", "completeness", "analysis_ready"]
+      },
+      "verification": {
+        "exact_head": "d545ec8f222f0e6e7ecefb24f21a108c00fe67d5",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_external_ai_evidence.py"
+      },
+      "provenance": {
+        "origin": "current-main reconstruction of historical PR #155",
+        "authority_boundary": "records locator/source evidence only; no network fetch, claim promotion, canonical alias update, capability enablement, action execution, or evidence deletion"
+      },
+      "lifecycle": {
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references; content-addressed evidence already stored remains immutable provenance"
+      },
+      "status": "VERIFIED"
+    },
+    {
       "id": "frost-forge/ability-registry/v1",
       "name": "Reusable Ability Registry",
       "kind": "registry-tool",
