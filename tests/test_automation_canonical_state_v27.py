@@ -45,4 +45,5 @@ def test_device_profile_remains_evidence_context_not_authority():
     assert profile["android_version"] == "16"
     assert profile["architecture"] == "aarch64"
     assert profile["status"] == "USER_SUPPLIED_UNVERIFIED_UNTIL_DEVICE_BUNDLE"
-    assert "authorization" in profile["use"]
+    assert "comparison/provenance context only" in profile["use"]
+    assert "controller-verified device bundle remains required" in profile["use"]
