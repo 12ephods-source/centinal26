@@ -2,32 +2,8 @@ name: Release Engineering Gate
 
 on:
   pull_request:
-    paths:
-      - "releases/**"
-      - "scripts/build_release_evidence.py"
-      - "scripts/run_host_chaos_qualification.py"
-      - "scripts/validate_release_engineering.py"
-      - "src/frost_core/continuity_bundle.py"
-      - "src/frost_core/sqlite_recovery.py"
-      - "tests/test_continuity_bundle.py"
-      - "tests/test_host_chaos_qualification.py"
-      - "tests/test_sqlite_recovery.py"
-      - "tests/test_release_evidence.py"
-      - ".github/workflows/release-engineering.yml"
   push:
     branches: [main]
-    paths:
-      - "releases/**"
-      - "scripts/build_release_evidence.py"
-      - "scripts/run_host_chaos_qualification.py"
-      - "scripts/validate_release_engineering.py"
-      - "src/frost_core/continuity_bundle.py"
-      - "src/frost_core/sqlite_recovery.py"
-      - "tests/test_continuity_bundle.py"
-      - "tests/test_host_chaos_qualification.py"
-      - "tests/test_sqlite_recovery.py"
-      - "tests/test_release_evidence.py"
-      - ".github/workflows/release-engineering.yml"
 
 permissions:
   contents: read
