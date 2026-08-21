@@ -4,7 +4,7 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "3.0",
+    "consolidation_version": "2.7",
     "observed_production_head_before_refresh": "0b5f8e197a1942e78aae342b13bdda75cb0e2b4e",
     "runtime_governance_validation_head": "427f8e884352839e11fcd99cfcdd51643fb1f2ab",
     "physical_commissioning_source": "9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483"
