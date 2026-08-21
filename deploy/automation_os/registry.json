@@ -95,6 +95,25 @@
       "depends_on": [
         "base44-worker-v1.0"
       ]
+    },
+    "device-validation-adapter-v1.0": {
+      "status": "CANONICAL_REGISTERED_PHYSICAL_GATE",
+      "description": "Bounded Android device-validation adapter exposing status/ensure/verify; remote reboot remains disabled.",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/FROST_DEVICE_VALIDATION_ADAPTER_v1.0.sh",
+        "git_blob_sha1": "0b5d7b00ce4d8dd0af0ca7a73dcc40124c1dc647"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": true
+      },
+      "depends_on": [
+        "capability-provider-v1.0"
+      ]
     }
   },
   "known_artifacts_not_remotely_installable": {
@@ -148,10 +167,14 @@
     "automation-core-current": [
       "frost-fleet-v1.7",
       "hermes-c05-v1.0"
+    ],
+    "device-validation": [
+      "device-validation-adapter-v1.0"
     ]
   },
   "profile_notes": {
     "automation-core-current": "Current composite Automation profile. Host/CI qualification does not imply physical Android qualification.",
-    "base44-capabilities": "Automatically resolves base44-worker-v1.0 dependency and may require interactive credentials."
+    "base44-capabilities": "Automatically resolves base44-worker-v1.0 dependency and may require interactive credentials.",
+    "device-validation": "Installs the bounded physical-device validation adapter after Base44/capability prerequisites. Run the installed adapter with ensure, perform the physical reboot locally, then run verify."
   }
 }
