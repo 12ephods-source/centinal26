@@ -167,7 +167,13 @@
         "select_route": "centinal26.interop.select_route"
       },
       "verification": {
-        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "exact_head": "976ac5f1a45c74d7b7287005d83fc949fcf979ac",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
         "tests": "tests/test_interop.py",
         "a2a_spec_release": "1.0.0",
         "a2a_wire_protocol": "1.0",
@@ -181,7 +187,7 @@
       "lifecycle": {
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation or schema references"
       },
-      "status": "EXPERIMENTAL"
+      "status": "VERIFIED"
     },
     {
       "id": "termux/repository-recovery/v1",
