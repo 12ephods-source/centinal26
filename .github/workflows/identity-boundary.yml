@@ -1,0 +1,28 @@
+name: Identity Boundary Gate
+
+on:
+  pull_request:
+    paths:
+      - "governance/invariants/organizer_bluetooth_identity_boundary.json"
+      - "governance/invariants/validate_identity_boundaries.py"
+      - ".github/workflows/identity-boundary.yml"
+  push:
+    branches: [main]
+    paths:
+      - "governance/invariants/organizer_bluetooth_identity_boundary.json"
+      - "governance/invariants/validate_identity_boundaries.py"
+      - ".github/workflows/identity-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate Organizer/Bluetooth identity separation
+        run: python governance/invariants/validate_identity_boundaries.py
