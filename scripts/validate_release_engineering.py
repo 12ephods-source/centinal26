@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -13,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def _load(relative: str) -> dict[str, Any]:
     value = json.loads((ROOT / relative).read_text(encoding="utf-8"))
     if not isinstance(value, dict):
-        raise AssertionError(f"{relative} must contain a JSON object")
+        raise TypeError(f"{relative} must contain a JSON object")
     return value
 
 
