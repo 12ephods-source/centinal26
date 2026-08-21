@@ -1,0 +1,35 @@
+name: Finite Type-I cocycle lint diagnostic
+
+on:
+  pull_request:
+    paths:
+      - "candidates/finite-type-i-cocycle-harness/**"
+      - ".github/workflows/finite-type-i-cocycle-lint-diagnostic.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install ruff==0.16.3
+      - name: Capture Ruff diagnostics
+        run: |
+          ruff check candidates/finite-type-i-cocycle-harness \
+            --output-format=concise --exit-zero > ruff-diagnostic.txt
+          cat ruff-diagnostic.txt
+      - name: Comment diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          printf '## Ruff diagnostic\n\n```text\n' > comment.md
+          cat ruff-diagnostic.txt >> comment.md
+          printf '\n```\n' >> comment.md
+          gh pr comment "$PR_NUMBER" --body-file comment.md
