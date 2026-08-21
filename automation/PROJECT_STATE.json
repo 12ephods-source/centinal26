@@ -4,11 +4,17 @@
     "name": "Automation OS / Frost Forge",
     "repository": "12ephods-source/centinal26",
     "canonical_branch": "main",
-    "consolidation_version": "2.2",
-    "observed_production_head": "832dce90e3ceabc03faaf743ede6f043ce0b1352"
+    "consolidation_version": "2.3",
+    "observed_production_head": "8920d6a30f2566299230be70ba26df67400e64da"
   },
   "source_of_truth": {
-    "primary_evidence": ["git_history", "exact_head_ci", "durable_workflow_ledgers", "immutable_artifacts"],
+    "primary_evidence": [
+      "git_history",
+      "exact_head_ci",
+      "durable_workflow_ledgers",
+      "immutable_artifacts",
+      "live_connector_runtime_observations"
+    ],
     "human_continuation": "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md",
     "machine_continuation": "automation/PROJECT_STATE.json",
     "concise_summary": "PROJECT_STATE_AUTOMATION_OS.md"
@@ -25,10 +31,21 @@
     "STATE_UPDATE",
     "CONTROLLED_EVOLUTION"
   ],
+  "decision_pipeline": [
+    "QUESTION",
+    "CONTEXT_EVIDENCE_DEFAULTS_TOOLS",
+    "ACTION_VALUE_RANKING",
+    "AUTHORITY_CHECK",
+    "EXECUTE_IF_AUTHORIZED",
+    "VERIFY",
+    "APPEND_DECISION_PROVENANCE",
+    "CONTINUE"
+  ],
   "control_plane": {
     "active_protocol": "Frost Master Project Protocol v3",
     "status": "CANONICAL",
-    "historical_protocol": "Frost Master Project Protocol v2"
+    "historical_protocol": "Frost Master Project Protocol v2",
+    "autonomous_question_resolver": "CANONICAL"
   },
   "release_state": {
     "AUTOMATION_PLATFORM_V1_HOST": "VERIFIED_COMPLETE",
@@ -60,24 +77,38 @@
     "executor_integration_ci",
     "productizer_protocol_v3_provenance_binding",
     "productizer_to_judge_e2e_host_validation",
+    "autonomous_question_resolver",
+    "action_value_decision_policy",
+    "append_only_decision_provenance",
     "manifest_driven_universal_termux_installer",
     "immutable_module_registry",
     "fail_closed_module_manager",
     "android_termux_device_evidence_capture_software",
     "controller_side_device_evidence_verifier",
-    "ci_validate_automation_federation_mature_product_gates"
+    "device_boot_enrollment_bound_heartbeat_protocol",
+    "controller_side_heartbeat_verifier",
+    "fail_closed_termux_keyring_recovery",
+    "ci_validate_automation_federation_executor_mature_product_gates"
   ],
   "latest_host_e2e_qualification": {
-    "pull_request": 194,
-    "qualified_head": "6ec6ed59ba8c4f9187bc584ba9fe0bb267c03017",
+    "pull_request": 205,
+    "qualified_head": "4e603cc44ff559eda6e28cc287665fe3b6bb21ae",
+    "merge_commit": "8920d6a30f2566299230be70ba26df67400e64da",
     "gates": {
       "CI": "PASS",
+      "Python 3.11": "PASS",
+      "Python 3.12": "PASS",
+      "Python 3.13": "PASS",
+      "callable-adapter": "PASS",
+      "Automation Validation": "PASS",
+      "Executor Integration Validation": "PASS",
       "validate": "PASS",
       "federation-gates": "PASS",
       "automation-gates": "PASS",
       "Mature Product Qualification": "PASS"
     },
-    "scope": "HOST_CI"
+    "scope": "HOST_CI_EXACT_HEAD",
+    "post_merge_workflow_observation": "NO_ASSOCIATED_RUN_OBSERVED_THROUGH_AVAILABLE_CONNECTOR"
   },
   "latest_agent_runtime_verification": {
     "authority_merge_commit": "883673d8ae03be09d0db0cc646e9a0c7b4ab692a",
@@ -92,6 +123,13 @@
     "artifact_id": 9448948270,
     "artifact_digest": "sha256:7d2368ec67390701ca1ef589bfe559c5dc69d1a4025714e99c3aaf92a365c9d2"
   },
+  "connector_runtime_observation": {
+    "observed_at": "2026-08-21",
+    "global_full_access": "UNAVAILABLE",
+    "global_permission_mode": "review_important_actions",
+    "epistemic_status": "OBSERVED_PLATFORM_RUNTIME_STATE",
+    "qualification_effect": "DOES_NOT_ESTABLISH_CONNECTOR_AUTHENTICATION_OR_PRODUCTION_PASS"
+  },
   "validation_boundaries": [
     "queued != executed != verified",
     "installed != authorized",
@@ -99,6 +137,7 @@
     "host_ci_pass != physical_device_pass",
     "captured_device_evidence != controller_verified_enrollment != active_worker",
     "integration_pass != production_external_connector_pass",
+    "exact_head_ci_pass != unobserved_post_merge_ci_pass",
     "evidence_existence != accessibility != acquisition != integrity != verification != interpretation",
     "absence_of_observed_evidence != evidence_of_absence"
   ],
@@ -114,7 +153,10 @@
     "196": "Canonical project continuation consolidation",
     "197": "Durable bounded agent execution ledger",
     "200": "Bounded agent authority policy reconciliation",
-    "204": "Qualified universal Termux installer host software"
+    "203": "Physical worker heartbeat activation and Termux keyring recovery",
+    "204": "Qualified universal Termux installer host software",
+    "206": "Physical-gate continuation state finalization",
+    "205": "Autonomous question resolver and decision provenance"
   },
   "superseded_prs": [175, 176, 179, 180, 182, 183, 184, 185, 186, 188, 189, 191],
   "completed_workstreams": [
@@ -131,11 +173,25 @@
       "production_commit": "883673d8ae03be09d0db0cc646e9a0c7b4ab692a"
     },
     {
+      "id": "physical_worker_heartbeat_gate",
+      "status": "VERIFIED_COMPLETE_HOST",
+      "pull_request": 203,
+      "production_commit": "0841fc29ca808bcbed11c6bcc30fb3b97f74be98",
+      "physical_validation": "SEPARATE_EXTERNAL_GATE"
+    },
+    {
       "id": "universal_android_termux_installer_software",
       "status": "VERIFIED_COMPLETE_HOST",
       "pull_request": 204,
       "production_commit": "832dce90e3ceabc03faaf743ede6f043ce0b1352",
       "physical_validation": "SEPARATE_EXTERNAL_GATE"
+    },
+    {
+      "id": "autonomous_question_resolution",
+      "status": "VERIFIED_COMPLETE_HOST",
+      "pull_request": 205,
+      "qualified_head": "4e603cc44ff559eda6e28cc287665fe3b6bb21ae",
+      "production_commit": "8920d6a30f2566299230be70ba26df67400e64da"
     }
   ],
   "active_workstreams": [
@@ -148,17 +204,18 @@
         "automation/deployment/enrollment_package/capture_device_evidence.py",
         "automation/deployment/enrollment_package/verify_device_evidence.py"
       ],
-      "next_gate": "run_on_real_authorized_android_device_then_controller_verify_bundle_and_observe_worker_heartbeat"
-    },
-    {
-      "id": "production_connector_authorization",
-      "status": "PARTIAL",
-      "next_gate": "connector_specific_auth_live_execution_and_verification"
+      "next_gate": "run_on_real_authorized_android_device_then_controller_verify_bundle"
     },
     {
       "id": "real_android_worker_execution",
       "status": "BLOCKED_ON_VERIFIED_PHYSICAL_ENROLLMENT",
-      "next_gate": "verified_enrollment_plus_heartbeat_then_bounded_executor_task_and_preserved_evidence"
+      "next_gate": "verified_enrollment_plus_valid_device_bound_heartbeat_then_bounded_executor_task_and_preserved_evidence"
+    },
+    {
+      "id": "production_connector_authorization",
+      "status": "PARTIAL",
+      "next_gate": "connector_specific_auth_live_execution_and_verification",
+      "current_platform_permission_observation": "review_important_actions"
     }
   ],
   "artifact_states": {
@@ -168,19 +225,21 @@
     "src/centinal26/agent_execution_plane.py": "CANONICAL",
     "config/agent_authority.json": "CANONICAL",
     ".github/workflows/agent-execution.yml": "CANONICAL",
+    "automation/runtime/autonomous_question_resolver.py": "CANONICAL",
+    "automation/runtime/autonomous_question_policy.json": "CANONICAL",
     "deploy/automation_os/module_manager.py": "CANONICAL",
     "deploy/automation_os/registry.json": "CANONICAL",
     "deploy/termux/AUTOMATION_OS_UNIVERSAL_INSTALLER_v3.1.sh": "CANONICAL",
     "automation/deployment/enrollment_package/termux_enroll_onepaste.sh": "CANONICAL",
     "automation/deployment/enrollment_package/capture_device_evidence.py": "CANONICAL",
     "automation/deployment/enrollment_package/verify_device_evidence.py": "CANONICAL",
-    "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md": "CANONICAL",
+    "AUTOMATION_OS_RUNTIME_CONSOLIDATION.md": "CANONICAL_AFTER_MERGE",
     "automation/PROJECT_STATE.json": "CANONICAL_AFTER_MERGE"
   },
   "critical_path": [
     "complete_android_termux_physical_evidence_capture",
     "controller_verify_physical_bundle",
-    "observe_worker_heartbeat",
+    "observe_valid_device_bound_worker_heartbeat",
     "execute_one_bounded_android_worker_task",
     "qualify_production_connectors_individually"
   ],
