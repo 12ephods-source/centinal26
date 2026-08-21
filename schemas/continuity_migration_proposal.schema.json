@@ -1,0 +1,19 @@
+{
+  "$id": "https://centinal26.local/schemas/continuity_migration_proposal.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {"items": {"additionalProperties": false, "properties": {"artifact_id": {"minLength": 1, "type": "string"}, "logical_ref": {"type": ["string", "null"]}, "media_type": {"type": ["string", "null"]}, "sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"}, "verification": {"minLength": 1, "type": "string"}}, "required": ["artifact_id", "sha256", "verification"], "type": "object"}, "type": "array"},
+    "authority": {"additionalProperties": false, "properties": {"alias_or_current_pointer_update": {"const": false}, "automatic_contradiction_resolution": {"const": false}, "automatic_epistemic_promotion": {"const": false}, "canonical_target": {"minLength": 1, "type": "string"}, "execution_authority": {"const": false}, "machine_continuation": {"const": "automation/PROJECT_STATE.json"}}, "required": ["canonical_target", "machine_continuation", "execution_authority", "automatic_epistemic_promotion", "automatic_contradiction_resolution", "alias_or_current_pointer_update"], "type": "object"},
+    "entities": {"items": {"additionalProperties": false, "properties": {"entity_type": {"enum": ["ai_session", "artifact_metadata", "code_module", "decision", "environment", "evidence", "experiment", "finding", "knowledge_revision", "knowledge_task", "project", "run", "security_case", "test_plan", "theory_claim", "workbench_capture"]}, "epistemic_status": {"enum": ["Verified", "Reported", "Derived", "Proposed", "Speculative", "Rejected", "Superseded", "Partially implemented", "Reconstructed", "Unknown", null], "type": ["string", "null"]}, "payload": {"type": "object"}, "revision_parent": {"type": ["string", "null"]}, "source_id": {"minLength": 1, "type": "string"}, "stable_id": {"pattern": "^[0-9a-f]{64}$", "type": "string"}}, "required": ["stable_id", "source_id", "entity_type", "epistemic_status", "revision_parent", "payload"], "type": "object"}, "type": "array"},
+    "export_version": {"minLength": 1, "type": "string"},
+    "relationships": {"items": {"additionalProperties": false, "properties": {"relation": {"minLength": 1, "type": "string"}, "source_endpoint_type": {"minLength": 1, "type": "string"}, "source_id": {"minLength": 1, "type": "string"}, "target_endpoint_type": {"minLength": 1, "type": "string"}, "target_id": {"minLength": 1, "type": "string"}}, "required": ["source_id", "relation", "target_id"], "type": "object"}, "type": "array"},
+    "schema": {"const": "frost.automation.continuity_migration_proposal.v1"},
+    "source_digest": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "source_system": {"minLength": 1, "type": "string"},
+    "status": {"const": "PROPOSAL_ONLY"}
+  },
+  "required": ["schema", "status", "source_system", "export_version", "source_digest", "authority", "entities", "relationships", "artifacts"],
+  "title": "Centinal26 Continuity Migration Proposal",
+  "type": "object"
+}
