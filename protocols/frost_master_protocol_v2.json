@@ -1,0 +1,9 @@
+{
+  "protocol_id": "frost-master-project-protocol",
+  "version": "2.0",
+  "protocol_file": "protocols/FROST_MASTER_PROJECT_PROTOCOL_v2.md",
+  "class": "user-level-project-conversation-bootstrap",
+  "propagation_states": ["INSTALLED_VERIFIED", "OUTDATED", "CONFLICT", "PROPAGATION_BLOCKED_PLATFORM", "NOT_ATTEMPTED"],
+  "required_hash_algorithm": "sha256",
+  "timestamp_format": "YYYY-MM-DD HH:MM:SS UTC±HH:MM"
+}
