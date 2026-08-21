@@ -1,0 +1,25 @@
+name: Executor Integration Validation
+
+on:
+  push:
+    paths:
+      - 'automation/runtime/**'
+  pull_request:
+    paths:
+      - 'automation/runtime/**'
+
+jobs:
+  executor-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run executor integration harness
+        run: |
+          python automation/runtime/tests/executor_integration_test.py
