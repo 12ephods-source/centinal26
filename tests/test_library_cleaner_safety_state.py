@@ -31,4 +31,4 @@ def test_host_safety_gate_does_not_promote_physical_ui_state() -> None:
     state = load_state()
     assert state["status"] == "EXPERIMENTAL_HOST_VERIFIED_PHYSICAL_UI_PENDING"
     assert state["promotion_target"] == "VERIFIED"
-    assert "do not prove real Android UI execution" in state["boundary"]
+    assert "does not prove real Android UI execution" in state["boundary"]
