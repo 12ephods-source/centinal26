@@ -31,3 +31,5 @@ python -m centinal26.export_evidence verify RECEIPT_SHA256
 Successful preservation states are `PRESERVED`, `REUSED_OBJECT`, and `DUPLICATE_SOURCE`. Identity conflicts and object-integrity failures fail closed.
 
 Automation should retrieve an export only through an independently authorized connector or local process, preserve it once, retain the receipt identifier and SHA-256, and make downstream capabilities consume that verified receipt rather than retrieving duplicate copies.
+
+Promotion requires qualification against the current `main` merge baseline; a previously green historical branch is not sufficient evidence after production advances.
