@@ -1,5 +1,6 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
+  "canonical_registry": "automation/runtime/executor_registry.json",
   "executors": [],
   "binding_rules": {
     "require_capability_match": true,
@@ -7,5 +8,5 @@
     "require_health_check": true,
     "require_validation": true
   },
-  "status": "initialized"
+  "status": "COMPATIBILITY_DESCRIPTOR_USE_CANONICAL_REGISTRY"
 }
