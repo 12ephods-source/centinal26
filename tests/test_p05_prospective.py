@@ -3,6 +3,7 @@ import sqlite3
 
 from frost_core.p05_prospective import (
     candidate_probability,
+    completed_baseline_days,
     has_rain,
     issue,
     resolve_due,
@@ -32,7 +33,7 @@ def fixture(target):
             )
             rows.append({"rawOb": raw, "obsTime": observed.isoformat()})
 
-    for index in range(14, 0, -1):
+    for index in range(15, 1, -1):
         add_day(target - dt.timedelta(days=index), index % 3 == 0)
     return forecast, rows, add_day
 
@@ -41,6 +42,12 @@ def test_prospective_cycle(tmp_path):
     timezone = dt.timezone(dt.timedelta(hours=-6))
     target = dt.datetime.now(timezone).date() + dt.timedelta(days=1)
     forecast, rows, add_day = fixture(target)
+
+    baseline_days = completed_baseline_days(target)
+    assert len(baseline_days) == 14
+    assert baseline_days[0] == target - dt.timedelta(days=15)
+    assert baseline_days[-1] == target - dt.timedelta(days=2)
+    assert target - dt.timedelta(days=1) not in baseline_days
 
     assert candidate_probability(forecast, target) == 0.70
     assert has_rain({"rawOb": "MMMX 181800Z 5SM -RA BKN020"})
