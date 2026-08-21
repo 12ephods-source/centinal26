@@ -1,7 +1,6 @@
 import json
 import pathlib
 
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = ROOT / "automation" / "SOURCE_INDEX.json"
 PROJECT_STATE = ROOT / "automation" / "PROJECT_STATE.json"
