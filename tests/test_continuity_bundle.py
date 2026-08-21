@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-import frost_core.continuity_bundle as continuity_bundle
+from frost_core import continuity_bundle
 from frost_core.continuity_bundle import (
     ContinuityBundleError,
     create_signed_bundle,
