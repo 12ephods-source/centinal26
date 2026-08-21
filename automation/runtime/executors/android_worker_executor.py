@@ -3,7 +3,7 @@
 The worker must be enrolled, authorized, and verified before use.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class AndroidWorkerExecutor:
@@ -20,5 +20,5 @@ class AndroidWorkerExecutor:
             "task_id": request.get("task_id"),
             "executor": self.executor_id,
             "status": "PENDING_DEVICE_VERIFICATION",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
