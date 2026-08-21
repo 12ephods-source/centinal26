@@ -1,34 +1,48 @@
 # Automation Intelligence Controller — Physical Android Promotion
 
-This layer turns host-qualified controller code into a falsifiable Android/Termux promotion gate.
+This layer turns host-qualified Automation/Frost Forge code into falsifiable Android/Termux device and persistence gates.
 
-## Gate sequence
+## Canonical authority
 
-1. Confirm execution is actually inside Termux on Android.
-2. Install the current repository checkout into a local virtual environment.
-3. Start the persistent controller supervisor and prove the process remains alive.
-4. Record a physical state-change event, claim its exact work item, and complete it on the device.
-5. Prove expired-lease recovery by reclaiming a one-second lease after expiry.
-6. Prove heartbeat advancement and the controller event-chain invariant.
-7. Install a reversible Termux:Boot hook and stop at `AWAITING_REBOOT`.
-8. After a real device reboot, require a different boot identity and boot-generated controller evidence.
-9. Prove the controller returned, heartbeat freshness, event-chain validity, and a post-reboot work completion.
-10. Only then emit `PHYSICAL_VALIDATED`.
+GitHub issue #208 and `automation/PROJECT_STATE.json` define the current physical-validation lineage. Historical issue #64 workers/finalizers and RC-era commands remain provenance/compatibility material and are not the default current acceptance path.
 
-The scripts never initiate a reboot remotely. A real device reboot is deliberately an external physical gate.
+## Phase A — DEVICE_VALIDATED eligibility
 
-## GitHub coordination
+1. Resolve the immutable qualified commissioning source from canonical project state.
+2. Run the one-run commissioning entry point on a real authorized Android/Termux device.
+3. Preserve the returned ZIP before interpretation or remediation.
+4. On the controller, verify SHA-256 manifest integrity and exact source-commit provenance.
+5. Verify Android/Termux origin signals, boot identity, package inventory, and normalized device profile.
+6. Verify the canonical enrollment digest and heartbeat bound to the same device, enrollment, and boot session.
+7. Observe/register that same Android worker in the canonical control plane.
+8. Execute one harmless bounded Android-worker qualification task.
+9. Preserve task/result/evidence digests, lease/event continuity, and independent Judge evidence.
 
-`install_intelligence_github_control.sh` installs a dedicated allowlisted GitHub job worker. It only accepts issue bodies with:
+Commissioning eligibility alone is not a successful worker task and is not `DEVICE_VALIDATED` by itself.
 
-```json
-{"schema":"automation.github_job/v2","command":"intelligence_controller_physical_gate_v1","parameters":{}}
-```
+## Phase B — PERSISTENT_VALIDATED eligibility
 
-No arbitrary shell command is read from the issue. The worker publishes evidence hashes to the issue and closes it only after post-reboot validation passes.
+After Phase A passes:
+
+1. preserve the pre-reboot boot ID, worker identity, enrollment digest, heartbeat, task digest, and evidence digest;
+2. physically reboot the Android device locally;
+3. require a changed boot ID;
+4. require the Termux worker/controller to return;
+5. verify a fresh heartbeat bound to the same enrollment identity;
+6. verify lease, heartbeat, event-chain, and evidence continuity;
+7. execute one harmless bounded post-reboot work item;
+8. preserve independent Judge evidence.
+
+The scripts and controllers must never treat remote reboot, host execution, GitHub Actions, session workers, simulation, stale evidence, or evidence from a different phone as physical persistence proof.
+
+## Manual GitHub workflow
+
+`.github/workflows/request-physical-ga.yml` is guidance-only. It reads the current commissioning source and tracker from `automation/PROJECT_STATE.json` and publishes the exact phone-side command to the workflow summary. It does not enqueue, claim, or execute a physical device job.
+
+## Historical compatibility
+
+Earlier issue workers and finalization scripts may remain to preserve reproducibility and historical evidence. Their presence does not make them current. In particular, `automation_os_physical_ga_rc9_integrity`, `automation_project_finalize_v1`, and older issue-#64 paths must not be used to promote the current physical state unless an explicit versioned policy decision reactivates them.
 
 ## State and evidence
 
-Local evidence is stored under `~/.automation_intelligence_gate/` and controller state under `~/.local/state/centinal26/` by default. The pre- and post-reboot reports are JSON and may be independently hashed and archived.
-
-Host CI can validate syntax and static safety contracts, but it cannot satisfy the physical gate. Android/Termux promotion requires the evidence produced on the device.
+Host CI proves host/software qualification only. Device capture, controller-verified commissioning, bounded worker execution, reboot persistence, and release promotion are separate states. The controller should retain normalized device facts such as manufacturer, model, Android version, architecture, kernel, Termux version, and termux-tools version as provenance fields; those descriptive fields do not independently authorize or promote the device.
