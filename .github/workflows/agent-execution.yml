@@ -1,0 +1,59 @@
+name: Agent Execution Plane
+on:
+  workflow_dispatch:
+    inputs:
+      role:
+        required: true
+        type: choice
+        options: [planner, builder, judge, sre, sentinel]
+      command:
+        required: true
+        description: JSON array command, e.g. ["python","-m","pytest","-q"]
+        type: string
+  pull_request:
+    paths:
+      - automation/agent_execution_plane.py
+      - tests/test_agent_execution_plane.py
+      - .github/workflows/agent-execution.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install project dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Build bounded task
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ROLE: ${{ inputs.role }}
+          COMMAND: ${{ inputs.command }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          if os.environ['EVENT_NAME'] == 'workflow_dispatch':
+              role = os.environ['ROLE']
+              cmd = json.loads(os.environ['COMMAND'])
+          else:
+              role = 'judge'
+              cmd = ['python', '-m', 'pytest', '-q', 'tests/test_agent_execution_plane.py']
+          if not isinstance(cmd, list) or not all(isinstance(x, str) for x in cmd):
+              raise SystemExit('command must be JSON string array')
+          with open('agent_task.json', 'w', encoding='utf-8') as handle:
+              json.dump({'role': role, 'command': cmd, 'timeout': 600}, handle)
+          PY
+      - name: Execute
+        run: python automation/agent_execution_plane.py agent_task.json --evidence agent_evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-evidence-${{ github.run_id }}
+          path: agent_evidence.json
+          retention-days: 30
