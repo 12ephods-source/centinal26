@@ -15,6 +15,50 @@
   },
   "abilities": [
     {
+      "id": "ci/bounded-failure-reconciler/v1",
+      "name": "Bounded CI failure reconciler",
+      "kind": "verifier",
+      "source": {
+        "path": "src/centinal26/ci_repair.py",
+        "lineage_pr": 101,
+        "reconstruction_branch": "feature/ci-repair-ability-v2"
+      },
+      "interface": {
+        "python": "centinal26.ci_repair.classify_failure",
+        "inputs": [
+          "failing_sha",
+          "failing_log",
+          "latest_sha",
+          "latest_equivalent_passed"
+        ],
+        "outputs": [
+          "failure_state",
+          "repair_kind",
+          "diagnostics",
+          "bounded_validation_commands",
+          "reason"
+        ]
+      },
+      "verification": {
+        "exact_head": "aefd3bbeaa1b3c6c352b0f6b0e9de212c27cbce8",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_ci_repair.py"
+      },
+      "provenance": {
+        "origin": "clean reconstruction of historical PR #101 on current canonical main",
+        "authority_boundary": "classification and evidence only; no source mutation or arbitrary command execution"
+      },
+      "lifecycle": {
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
+      },
+      "status": "VERIFIED"
+    },
+    {
       "id": "frost-forge/ability-registry/v1",
       "name": "Reusable Ability Registry",
       "kind": "registry-tool",
