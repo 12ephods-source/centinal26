@@ -19,6 +19,9 @@ SUFFIX = (
     "without asking again for as long as possible?"
 )
 EXTS = {".md", ".txt", ".json"}
+PROTOCOL_PATH = (
+    Path(__file__).resolve().parents[1] / "protocols" / "FROST_MASTER_PROJECT_PROTOCOL_v3.md"
+)
 
 PROMPT = f"""# Frost Project Bootstrap Protocol
 
@@ -37,6 +40,12 @@ Never silently discard contradictory evidence or failed branches.
 End every response exactly with:
 {SUFFIX}
 """
+
+
+def canonical_prompt() -> str:
+    if PROTOCOL_PATH.is_file():
+        return PROTOCOL_PATH.read_text(encoding="utf-8")
+    return PROMPT
 
 
 def files(paths: list[str]) -> list[Path]:
@@ -78,9 +87,25 @@ def sentences(value: str) -> list[str]:
 
 def classify(line: str) -> str | None:
     lowered = line.lower()
-    if any(key in lowered for key in ("failed", "failure", "error", "blocked", "problem", "gap", "unresolved")):
+    if any(
+        key in lowered
+        for key in ("failed", "failure", "error", "blocked", "problem", "gap", "unresolved")
+    ):
         return "problem"
-    if any(key in lowered for key in ("script", "tool", "engine", "installer", "controller", "automation", "api", "workflow", "agent")):
+    if any(
+        key in lowered
+        for key in (
+            "script",
+            "tool",
+            "engine",
+            "installer",
+            "controller",
+            "automation",
+            "api",
+            "workflow",
+            "agent",
+        )
+    ):
         return "capability"
     if any(key in lowered for key in ("must", "should", "require", "need", "goal", "request")):
         return "requirement"
@@ -112,19 +137,17 @@ def main() -> None:
             key = re.sub(r"\W+", " ", sentence.lower()).strip()[:180]
             if category and key not in seen:
                 seen.add(key)
-                buckets[category].append(
-                    {"text": sentence[:1200], "source": doc["path"]}
-                )
+                buckets[category].append({"text": sentence[:1200], "source": doc["path"]})
 
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    (output / "PROMPT_BOOTSTRAP.md").write_text(PROMPT, encoding="utf-8")
+    prompt = canonical_prompt()
+    (output / "PROMPT_BOOTSTRAP.md").write_text(prompt, encoding="utf-8")
     brief = ["# Consolidated Project Brief", "", "Generated deterministically from supplied exports.", ""]
     for name in ("requirement", "problem", "evidence"):
         brief += [f"## {name.title()}s"]
         brief += [
-            f"- {item['text']}  _(source: {item['source']})_"
-            for item in buckets[name][:100]
+            f"- {item['text']}  _(source: {item['source']})_" for item in buckets[name][:100]
         ]
         brief += [""]
     (output / "PROJECT_BRIEF.md").write_text("\n".join(brief), encoding="utf-8")
@@ -174,17 +197,18 @@ def main() -> None:
     )
     manifest = {
         "generated_utc": datetime.now(UTC).isoformat(),
-        "inputs": [
-            {"path": doc["path"], "sha256": doc["sha256"]} for doc in docs
-        ],
+        "protocol": {
+            "path": str(PROTOCOL_PATH),
+            "sha256": sha(prompt),
+            "canonical_v3_loaded": PROTOCOL_PATH.is_file(),
+        },
+        "inputs": [{"path": doc["path"], "sha256": doc["sha256"]} for doc in docs],
         "outputs": {},
     }
     for path in sorted(output.iterdir()):
         if path.name != "MANIFEST.json":
             manifest["outputs"][path.name] = sha(path.read_text(encoding="utf-8"))
-    (output / "MANIFEST.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8"
-    )
+    (output / "MANIFEST.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(
         json.dumps(
             {
@@ -192,6 +216,7 @@ def main() -> None:
                 "inputs": len(source_files),
                 "features": len(features),
                 "output": str(output),
+                "protocol_sha256": sha(prompt),
             },
             indent=2,
         )
