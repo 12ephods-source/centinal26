@@ -14,6 +14,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from centinal26.agent_execution_plane import run_task
 
 from automation.execution.result_validator import validate
@@ -23,7 +27,6 @@ from automation.runtime.executors.api_connector_executor import APIConnectorExec
 from automation.runtime.executors.local_python_executor import LocalPythonExecutor
 from automation.runtime.executors.repository_executor import RepositoryExecutor
 
-ROOT = Path(__file__).resolve().parents[3]
 REGISTRY_PATH = ROOT / "automation" / "runtime" / "executor_registry.json"
 
 
