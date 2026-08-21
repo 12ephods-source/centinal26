@@ -1,6 +1,13 @@
-#!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, os, pathlib, shutil, subprocess, tempfile, urllib.request, time
+
+import argparse
+import hashlib
+import json
+import os
+import pathlib
+import subprocess
+import time
+import urllib.request
 
 ROOT = pathlib.Path(os.environ.get("AUTOMATION_OS_ROOT", pathlib.Path.home() / "AutomationOS")).expanduser()
 REGISTRY = ROOT / "registry" / "registry.json"
@@ -56,7 +63,7 @@ def download_module(name, spec, dry_run=False):
     raise ValueError(f"unsupported source kind {src['kind']}")
 
 def validate_shell(path):
-    proc = subprocess.run(["bash", "-n", str(path)], capture_output=True, text=True)
+    proc = subprocess.run(["bash", "-n", str(path)], capture_output=True, text=True, check=False)
     if proc.returncode:
         raise RuntimeError(proc.stderr.strip() or "bash -n failed")
     return True
@@ -79,7 +86,7 @@ def install_module(name, reg, execute=True, dry_run=False):
     if spec["install"]["type"] == "shell":
         validate_shell(path)
         if execute:
-            result = subprocess.run(["bash", str(path)])
+            result = subprocess.run(["bash", str(path)], check=False)
             if result.returncode:
                 raise RuntimeError(f"{name}: installer exited {result.returncode}")
     s = state()
