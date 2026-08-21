@@ -4,11 +4,7 @@ import os
 
 import pytest
 
-from frost_core.encrypted_backup import (
-    EncryptedBackupError,
-    encrypt_backup,
-    rotation_plan,
-)
+from frost_core import encrypted_backup
 
 
 RECIPIENT = "age1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
@@ -34,8 +30,8 @@ out.write_bytes(b'AGE-FAKE-CIPHERTEXT\\n' + source.read_bytes()[::-1])
 def test_backup_requires_real_provider_path_and_never_falls_back_to_plaintext(tmp_path) -> None:
     source = tmp_path / "backup.zip"
     source.write_bytes(b"canonical backup")
-    with pytest.raises(EncryptedBackupError, match="plaintext fallback is forbidden"):
-        encrypt_backup(
+    with pytest.raises(encrypted_backup.EncryptedBackupError, match="plaintext fallback is forbidden"):
+        encrypted_backup.encrypt_backup(
             source,
             tmp_path / "backup.age",
             recipient=RECIPIENT,
@@ -49,7 +45,7 @@ def test_backup_delegates_to_age_and_records_nonpromotion_of_off_device_state(tm
     source.write_bytes(b"canonical backup")
     provider = fake_age(tmp_path)
     output = tmp_path / "backup.age"
-    receipt = encrypt_backup(
+    receipt = encrypted_backup.encrypt_backup(
         source,
         output,
         recipient=RECIPIENT,
@@ -68,8 +64,8 @@ def test_recipient_input_cannot_be_used_as_shell_or_option_injection(tmp_path) -
     source = tmp_path / "backup.zip"
     source.write_bytes(b"canonical backup")
     provider = fake_age(tmp_path)
-    with pytest.raises(EncryptedBackupError, match="native age public recipient"):
-        encrypt_backup(
+    with pytest.raises(encrypted_backup.EncryptedBackupError, match="native age public recipient"):
+        encrypted_backup.encrypt_backup(
             source,
             tmp_path / "backup.age",
             recipient="$(touch /tmp/should-not-run)",
@@ -85,8 +81,8 @@ def test_symlink_source_is_rejected(tmp_path) -> None:
         link.symlink_to(source)
     except (OSError, NotImplementedError):
         pytest.skip("symlinks unavailable")
-    with pytest.raises(EncryptedBackupError, match="non-symlink"):
-        encrypt_backup(
+    with pytest.raises(encrypted_backup.EncryptedBackupError, match="non-symlink"):
+        encrypted_backup.encrypt_backup(
             link,
             tmp_path / "backup.age",
             recipient=RECIPIENT,
@@ -99,7 +95,7 @@ def test_rotation_is_plan_only_and_never_deletes_evidence(tmp_path) -> None:
         path = tmp_path / f"backup-{index}.age"
         path.write_bytes(str(index).encode())
         os.utime(path, ns=(index + 1, index + 1))
-    plan = rotation_plan(tmp_path, keep=2)
+    plan = encrypted_backup.rotation_plan(tmp_path, keep=2)
     assert len(plan["keep"]) == 2
     assert len(plan["deletion_candidates"]) == 2
     assert plan["deletion_authorized"] is False
