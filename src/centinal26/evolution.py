@@ -25,6 +25,7 @@ DEFAULT_PROTECTED_PREFIXES = (
     "pyproject.toml",
     "src/centinal26/core.py",
     "src/centinal26/control_plane.py",
+    "src/centinal26/event_state.py",
     "src/centinal26/provider_bridge.py",
     "src/centinal26/evolution.py",
     "scripts/audit_untrusted_candidate.py",
