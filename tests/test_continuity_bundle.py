@@ -86,7 +86,6 @@ def test_modified_payload_is_rejected_even_with_original_signature(tmp_path) -> 
 
 
 def test_wrong_public_key_is_rejected(tmp_path) -> None:
-    private, _ = make_keys(tmp_path / "keys1") if False else (None, None)
     first_dir = tmp_path / "first"
     second_dir = tmp_path / "second"
     first_dir.mkdir()
