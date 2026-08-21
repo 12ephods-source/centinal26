@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import stat
 from dataclasses import dataclass
@@ -67,10 +68,14 @@ def build_manifest(root: str | Path, *, policy: ManifestPolicy | None = None) ->
             mode = child.lstat().st_mode
             if stat.S_ISLNK(mode):
                 if policy.reject_symlinks:
-                    raise ManifestPolicyError(f"symlink directory rejected: {_safe_relative(child, root_path)}")
+                    raise ManifestPolicyError(
+                        f"symlink directory rejected: {_safe_relative(child, root_path)}"
+                    )
                 continue
             if not stat.S_ISDIR(mode):
-                raise ManifestPolicyError(f"non-directory traversal entry: {_safe_relative(child, root_path)}")
+                raise ManifestPolicyError(
+                    f"non-directory traversal entry: {_safe_relative(child, root_path)}"
+                )
             retained_dirs.append(dirname)
         dirnames[:] = retained_dirs
 
@@ -118,7 +123,7 @@ def build_manifest(root: str | Path, *, policy: ManifestPolicy | None = None) ->
         "total_bytes": total_bytes,
         "entries": entries,
     }
-    canonical = __import__("json").dumps(
+    canonical = json.dumps(
         manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
     manifest["manifest_sha256"] = hashlib.sha256(canonical).hexdigest()
