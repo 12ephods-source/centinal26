@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/governance_bundle.schema.json",
+  "title": "Centinal26 Governance Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authorizations", "evidence", "operations", "claims", "promotions", "terminal_events"],
+  "properties": {
+    "schema": {"const": "centinal26-governance-bundle-v1"},
+    "authorizations": {"type": "array", "items": {"$ref": "authorization.schema.json"}},
+    "evidence": {"type": "array", "items": {"$ref": "governance_evidence.schema.json"}},
+    "operations": {"type": "array", "items": {"$ref": "operation.schema.json"}},
+    "claims": {"type": "array", "items": {"$ref": "claim.schema.json"}},
+    "promotions": {"type": "array", "items": {"$ref": "promotion.schema.json"}},
+    "terminal_events": {"type": "array", "items": {"$ref": "terminal_event.schema.json"}}
+  }
+}

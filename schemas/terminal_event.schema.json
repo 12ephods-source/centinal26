@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/terminal_event.schema.json",
+  "title": "Centinal26 Terminal Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "terminal_event_id", "operation_id", "status", "evidence_refs"],
+  "properties": {
+    "schema": {"const": "centinal26-terminal-event-v1"},
+    "terminal_event_id": {"type": "string", "minLength": 1},
+    "operation_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["PASS", "REVIEW", "FAIL"]},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true}
+  }
+}

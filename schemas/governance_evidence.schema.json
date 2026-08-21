@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/governance_evidence.schema.json",
+  "title": "Centinal26 Governance Evidence Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evidence_id", "sha256", "source_type", "created_at", "immutable"],
+  "properties": {
+    "schema": {"const": "centinal26-governance-evidence-v1"},
+    "evidence_id": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_type": {"enum": ["SOURCE", "DERIVED", "SUMMARY"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "immutable": {"const": true}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/promotion.schema.json",
+  "title": "Centinal26 Promotion Attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "promotion_id", "operation_id", "executor", "verifier", "authorized", "safe", "traceable", "verified", "evidence_refs"],
+  "properties": {
+    "schema": {"const": "centinal26-promotion-v1"},
+    "promotion_id": {"type": "string", "minLength": 1},
+    "operation_id": {"type": "string", "minLength": 1},
+    "executor": {"type": "string", "minLength": 1},
+    "verifier": {"type": "string", "minLength": 1},
+    "authorized": {"const": true},
+    "safe": {"const": true},
+    "traceable": {"const": true},
+    "verified": {"const": true},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true}
+  }
+}
