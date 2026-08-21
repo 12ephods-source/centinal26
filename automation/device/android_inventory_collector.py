@@ -5,13 +5,13 @@ capability pipeline. It does not bypass permissions or access restricted data.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def collect_inventory(device_id, packages=None):
     return {
         "device_id": device_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "packages": packages or [],
         "status": "PENDING_VERIFICATION",
     }
