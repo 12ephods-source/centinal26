@@ -1,8 +1,8 @@
 {
   "schema": "frost.automation.second_brain_authority.v1",
-  "version": "1.1.0",
-  "status": "CANDIDATE",
-  "source_commit": "fcb51a1ad16789d32ac4e819c11890fde5761f53",
+  "version": "1.2.0",
+  "status": "HOST_VERIFIED_EXTERNAL_GATES_PENDING",
+  "source_commit": "8c07f2f89de638f5d2b4e464250b7cf838d5f070",
   "purpose": "Prevent duplicate sources of truth while integrating AI-First Second Brain v0.2.0 and historical AICCEP semantics into the canonical Automation OS architecture.",
   "invariants": [
     "one_canonical_owner_per_state_category",
@@ -32,91 +32,143 @@
       "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Frost CORE",
       "action": "REUSE",
-      "rationale": "Canonical Automation history already provides immutable content-addressed artifact staging and hashing."
+      "rationale": "Existing Frost CORE content-addressed storage remains canonical; no duplicate store was created."
     },
     {
       "rank": 11,
       "capability": "encrypted_off_device_backup_rotation",
-      "classification": "NEW_REQUIRED",
+      "classification": "PARTIAL",
       "canonical_owner": "Centinal26 canonical continuity layer",
-      "action": "BUILD_AFTER_INTEGRATION",
-      "rationale": "AICCEP and Second Brain provide historical backup semantics, but encrypted off-device disaster-recovery policy is not established in the canonical Centinal26 continuity path."
+      "action": "HARDEN",
+      "rationale": "Fail-closed age delegation and non-destructive rotation planning are host-qualified; real age encryption, off-device replication, retrieval, and recovery remain externally unobserved."
     },
     {
       "rank": 12,
       "capability": "signed_portable_export_import_bundle",
-      "classification": "PARTIAL",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Centinal26 canonical continuity layer",
-      "action": "EXTEND_EXISTING_EXPORTS",
-      "rationale": "Exports, manifests, checksums, and audit anchors exist in prior systems; a single signed portable interchange contract remains to be unified under canonical governance."
+      "action": "REUSE",
+      "rationale": "Deterministic portable continuity bundles with externally selected Ed25519 verification are host-qualified and canonical."
     },
     {
       "rank": 13,
       "capability": "optimistic_multiwriter_concurrency",
-      "classification": "NEW_REQUIRED",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Centinal26 canonical continuity layer",
-      "action": "BUILD_AFTER_INTEGRATION",
-      "rationale": "Execution leases exist elsewhere, but knowledge-record revision conflict handling is not established as a canonical multiwriter contract."
+      "action": "REUSE",
+      "rationale": "Atomic compare-and-swap canonical alias updates are host-qualified and prevent lost knowledge-head updates."
     },
     {
       "rank": 14,
       "capability": "polymorphic_relation_integrity",
-      "classification": "PARTIAL",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Centinal26 canonical continuity layer",
-      "action": "HARDEN",
-      "rationale": "AICCEP already supplies useful typed-relationship semantics; those constraints should be migrated into canonical state rather than maintained as a parallel authority."
+      "action": "REUSE",
+      "rationale": "Typed relationship verification is host-qualified in the canonical object store and proposal boundary."
     },
     {
       "rank": 15,
       "capability": "versioned_json_schema_governance",
-      "classification": "PARTIAL",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Centinal26 governance",
-      "action": "EXTEND",
-      "rationale": "Centinal26 already contains deterministic governance and schema contracts; knowledge-domain schemas should join that governance surface."
+      "action": "REUSE",
+      "rationale": "The versioned continuity proposal JSON contract is now part of canonical Centinal26 schema governance."
     },
     {
       "rank": 16,
       "capability": "hardened_manifest_semantics",
-      "classification": "PARTIAL",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Frost CORE",
-      "action": "HARDEN",
-      "rationale": "Hashing and immutable manifests exist, but a single explicit policy for symlinks, hardlinks, exclusions, permissions, sparse files, and recursion is still useful."
+      "action": "REUSE",
+      "rationale": "Deterministic fail-closed manifest semantics for filesystem indirections, permissions, sparse files, and resource limits are host-qualified."
     },
     {
       "rank": 17,
       "capability": "orphan_reconciliation_and_garbage_collection",
-      "classification": "NEW_REQUIRED",
+      "classification": "PARTIAL",
       "canonical_owner": "Centinal26 canonical continuity layer",
-      "action": "BUILD_AFTER_INTEGRATION",
-      "rationale": "Knowledge-state reconciliation needs a non-destructive orphan detector before any garbage collection can be authorized."
+      "action": "HARDEN",
+      "rationale": "Non-destructive integrity and orphan diagnostics are host-qualified; destructive garbage collection remains explicitly unauthorized."
     },
     {
       "rank": 18,
       "capability": "single_source_schema_generation",
-      "classification": "NEW_REQUIRED",
+      "classification": "CANONICAL_ALREADY",
       "canonical_owner": "Centinal26 governance",
-      "action": "BUILD_AFTER_INTEGRATION",
-      "rationale": "Schema SQL, migrations, JSON contracts, installer payloads, and documentation should derive from one governed source instead of drifting independently."
+      "action": "REUSE",
+      "rationale": "The continuity JSON contract and human reference are deterministically generated from one governed schema source."
     }
   ],
   "entity_authority": {
-    "project": {"metadata_owner": "Centinal26 canonical continuity layer", "legacy_semantics_source": "AICCEP-OS", "byte_owner": "Git or Frost CORE according to artifact type"},
-    "theory_claim": {"metadata_owner": "Centinal26 canonical continuity layer", "legacy_semantics_source": "AICCEP-OS", "byte_owner": "Frost CORE for attached artifacts"},
-    "experiment": {"metadata_owner": "Centinal26 canonical continuity layer", "legacy_semantics_source": "AICCEP-OS", "byte_owner": "Frost CORE for immutable artifacts"},
-    "run": {"metadata_owner": "Centinal26 canonical continuity layer", "execution_owner": "Centinal26/Frost CORE", "byte_owner": "Frost CORE"},
-    "finding": {"metadata_owner": "Centinal26 canonical continuity layer", "legacy_semantics_source": "AICCEP-OS", "byte_owner": "Frost CORE for evidence artifacts"},
-    "evidence": {"metadata_owner": "Centinal26 canonical continuity layer", "byte_owner": "Frost CORE"},
-    "decision": {"metadata_owner": "Centinal26 canonical continuity layer", "legacy_semantics_source": "AICCEP-OS"},
-    "environment": {"metadata_owner": "Centinal26 canonical continuity layer", "byte_owner": "Frost CORE for captured manifests"},
-    "artifact": {"metadata_owner": "Centinal26 canonical continuity layer", "identity_and_bytes_owner": "Frost CORE"},
-    "code_module": {"metadata_owner": "Centinal26 canonical continuity layer", "source_owner": "Git"},
-    "test_plan": {"metadata_owner": "Centinal26 canonical continuity layer", "execution_owner": "Centinal26/Frost CORE"},
-    "security_case": {"metadata_owner": "Centinal26 canonical continuity layer", "byte_owner": "Frost CORE for evidence"},
-    "knowledge_task": {"metadata_owner": "Centinal26 canonical continuity layer"},
-    "execution_task": {"metadata_owner": "Centinal26/Frost CORE"},
-    "ai_session": {"metadata_owner": "Centinal26 canonical continuity layer", "byte_owner": "Frost CORE for immutable transcript/tool artifacts"},
-    "knowledge_revision": {"metadata_owner": "Centinal26 canonical continuity layer"},
-    "source_revision": {"metadata_owner": "Git"}
+    "project": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "legacy_semantics_source": "AICCEP-OS",
+      "byte_owner": "Git or Frost CORE according to artifact type"
+    },
+    "theory_claim": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "legacy_semantics_source": "AICCEP-OS",
+      "byte_owner": "Frost CORE for attached artifacts"
+    },
+    "experiment": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "legacy_semantics_source": "AICCEP-OS",
+      "byte_owner": "Frost CORE for immutable artifacts"
+    },
+    "run": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "execution_owner": "Centinal26/Frost CORE",
+      "byte_owner": "Frost CORE"
+    },
+    "finding": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "legacy_semantics_source": "AICCEP-OS",
+      "byte_owner": "Frost CORE for evidence artifacts"
+    },
+    "evidence": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "byte_owner": "Frost CORE"
+    },
+    "decision": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "legacy_semantics_source": "AICCEP-OS"
+    },
+    "environment": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "byte_owner": "Frost CORE for captured manifests"
+    },
+    "artifact": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "identity_and_bytes_owner": "Frost CORE"
+    },
+    "code_module": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "source_owner": "Git"
+    },
+    "test_plan": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "execution_owner": "Centinal26/Frost CORE"
+    },
+    "security_case": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "byte_owner": "Frost CORE for evidence"
+    },
+    "knowledge_task": {
+      "metadata_owner": "Centinal26 canonical continuity layer"
+    },
+    "execution_task": {
+      "metadata_owner": "Centinal26/Frost CORE"
+    },
+    "ai_session": {
+      "metadata_owner": "Centinal26 canonical continuity layer",
+      "byte_owner": "Frost CORE for immutable transcript/tool artifacts"
+    },
+    "knowledge_revision": {
+      "metadata_owner": "Centinal26 canonical continuity layer"
+    },
+    "source_revision": {
+      "metadata_owner": "Git"
+    }
   },
   "adapter_contract": {
     "direction": "second_brain_and_aiccep_to_canonical_proposal",
@@ -145,6 +197,35 @@
       "arbitrary_shell_execution"
     ]
   },
+  "verification": {
+    "second_brain_v02_bridge_merge": "5a7118447b003c6e6a5547f4b659cc454f06ec8e",
+    "continuity_hardening_pr": 268,
+    "continuity_hardening_exact_head": "3838b20ce9cbddb9ee5d73432726248dd88398e5",
+    "continuity_hardening_production_merge": "8c07f2f89de638f5d2b4e464250b7cf838d5f070",
+    "ci": "PASS",
+    "automation_validation": "PASS",
+    "validate": "PASS",
+    "automation_gates": "PASS",
+    "federation_gates": "PASS",
+    "mature_product_qualification": "PASS",
+    "python_matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ]
+  },
+  "external_boundaries": {
+    "real_age_encryption": "NOT_OBSERVED",
+    "off_device_replication_and_restore": "NOT_OBSERVED",
+    "android_termux_device_validation": {
+      "status": "PENDING_PHYSICAL",
+      "tracker_issue": 208
+    },
+    "reboot_persistence": {
+      "status": "PENDING_PHYSICAL",
+      "tracker_issue": 208
+    }
+  },
   "promotion_gate": {
     "required": [
       "authority_map_tests_pass",
@@ -155,6 +236,6 @@
       "knowledge_semantics_preserved",
       "physical_device_validation_remains_separate"
     ],
-    "current_status": "AUTHORITY_MAP_DEFINED_ADAPTER_NOT_YET_IMPLEMENTED"
+    "current_status": "HOST_INTEGRATION_VERIFIED_EXTERNAL_AND_PHYSICAL_GATES_PENDING"
   }
 }
