@@ -1,14 +1,15 @@
 """Worker heartbeat reporter scaffold."""
+
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def create_heartbeat(device_id: str, status: str = "UNKNOWN"):
     return {
         "device_id": device_id,
         "status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "verification_status": "PENDING"
+        "timestamp": datetime.now(UTC).isoformat(),
+        "verification_status": "PENDING",
     }
 
 

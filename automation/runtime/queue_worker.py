@@ -4,7 +4,7 @@ This module defines the interface for processing verified tasks.
 It does not execute external actions without an authorized worker.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def create_task_record(task_id, payload):
@@ -12,14 +12,13 @@ def create_task_record(task_id, payload):
         "task_id": task_id,
         "payload": payload,
         "state": "QUEUED",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
 
 
 def process_task(task):
     if task.get("state") != "QUEUED":
         return {"status": "SKIPPED", "reason": "invalid_state"}
-
     return {
         "task_id": task.get("task_id"),
         "status": "PENDING_EXECUTOR",

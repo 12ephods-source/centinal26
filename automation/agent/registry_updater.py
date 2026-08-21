@@ -11,16 +11,14 @@ Rules:
 """
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 
 def update_registry(classified_file, registry_file):
     classified = json.loads(Path(classified_file).read_text())
     registry = json.loads(Path(registry_file).read_text())
-
     existing = {a.get("package"): a for a in registry.get("agents", [])}
-
     for app in classified.get("applications", []):
         package = app.get("package")
         if package and package not in existing:
@@ -30,10 +28,9 @@ def update_registry(classified_file, registry_file):
                 "verification_status": "pending",
                 "provenance": {
                     "source": classified_file,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-
     registry["agents"] = list(existing.values())
     Path(registry_file).write_text(json.dumps(registry, indent=2))
     return registry
