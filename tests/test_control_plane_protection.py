@@ -9,6 +9,7 @@ from centinal26.evolution import DEFAULT_PROTECTED_PREFIXES, GoalSpec
     "path",
     [
         "src/centinal26/control_plane.py",
+        "src/centinal26/event_state.py",
         "src/centinal26/provider_bridge.py",
     ],
 )
