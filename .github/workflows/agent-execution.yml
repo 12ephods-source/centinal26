@@ -21,19 +21,33 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
+      - name: Install Centinal26
+        run: python -m pip install -e .
       - name: Build bounded task
         env:
           ROLE: ${{ inputs.role }}
           COMMAND: ${{ inputs.command }}
         run: |
           python - <<'PY'
-          import json, os
-          cmd=json.loads(os.environ['COMMAND'])
-          if not isinstance(cmd,list) or not all(isinstance(x,str) for x in cmd): raise SystemExit('command must be JSON string array')
-          open('agent_task.json','w').write(json.dumps({'role':os.environ['ROLE'],'command':cmd,'timeout':600}))
+          import json
+          import os
+
+          cmd = json.loads(os.environ["COMMAND"])
+          if not isinstance(cmd, list) or not all(isinstance(item, str) for item in cmd):
+              raise SystemExit("command must be JSON string array")
+          with open("agent_task.json", "w", encoding="utf-8") as handle:
+              handle.write(
+                  json.dumps(
+                      {
+                          "role": os.environ["ROLE"],
+                          "command": cmd,
+                          "timeout": 600,
+                      }
+                  )
+              )
           PY
       - name: Execute
-        run: python automation/agent_execution_plane.py agent_task.json --evidence agent_evidence.json
+        run: python -m centinal26.agent_execution_plane agent_task.json --evidence agent_evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
