@@ -1,14 +1,34 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "name": "Automation OS module registry",
   "repository": "12ephods-source/centinal26",
   "integrity_policy": {
-    "production": "immutable commit + expected Git blob identity; future release signatures supported but no private signing key is embedded",
-    "fail_closed": true
+    "production": "immutable Git commit plus expected Git blob identity before execution",
+    "fail_closed": true,
+    "credentials_embedded": false,
+    "android_permission_bypass": false
   },
   "modules": {
+    "centinal26-core-v1.0": {
+      "status": "CANONICAL_REGISTERED",
+      "description": "Pinned Centinal26/Frost core Termux installer with built-in compile and execution-boundary smoke tests.",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/CENTINAL26_FROST_ONE_PASTE_v1.0.sh",
+        "git_blob_sha1": "d009a5946ef78c45636390cf95d6b0ac421b2b50"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": false
+      },
+      "depends_on": []
+    },
     "frost-fleet-v1.7": {
       "status": "CANONICAL_REGISTERED",
+      "description": "Capability-first Android fleet bootstrap with immutable nested source verification.",
       "source": {
         "kind": "github_raw_git_blob",
         "repository": "12ephods-source/centinal26",
@@ -20,21 +40,118 @@
         "type": "shell",
         "requires_termux": true,
         "interactive_auth_possible": true
-      }
+      },
+      "depends_on": []
+    },
+    "hermes-c05-v1.0": {
+      "status": "CANONICAL_REGISTERED",
+      "description": "Hermes reasoning/provider layer bridged to C05/Centinal26 bounded execution and independent verification.",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/HERMES_C05_FROST_FULL_ONE_PASTE_v1.0.sh",
+        "git_blob_sha1": "e5944cd577cb001957e6fbdf777f139b545285bb"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": true
+      },
+      "depends_on": []
+    },
+    "base44-worker-v1.0": {
+      "status": "CANONICAL_REGISTERED_CREDENTIAL_BOUNDARY",
+      "description": "Authenticated Base44 Android worker bootstrap; requires user-owned Base44 credentials or token.",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/FROST_BASE44_WORKER_BOOTSTRAP_v1.0.sh",
+        "git_blob_sha1": "6d061c4d704841972eaa1790888cea4f60816637"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": true
+      },
+      "depends_on": []
+    },
+    "capability-provider-v1.0": {
+      "status": "CANONICAL_REGISTERED",
+      "description": "Bounded package/capability provider; unknown capability names fail closed.",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/FROST_CAPABILITY_PROVIDER_v1.0.sh",
+        "git_blob_sha1": "0df8e008b85392a7c4768866d9b3987b9a909cfd"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": false
+      },
+      "depends_on": [
+        "base44-worker-v1.0"
+      ]
     }
   },
-  "unregistered_components": {
-    "Guardian": "No separate immutable install source registered in this release.",
-    "Sentinel": "No separate immutable install source registered in this release.",
-    "AICCEP": "No separate immutable install source registered in this release.",
-    "SDOS": "Workload source not registered in the Automation OS module registry.",
-    "Physics": "Profile/workload family; no single canonical install source registered.",
-    "Cybersecurity": "Profile/workload family; no single canonical install source registered."
+  "known_artifacts_not_remotely_installable": {
+    "AICCEP-OS": {
+      "status": "SOURCE_EXISTS_NOT_CANONICALIZED",
+      "artifact": "AICCEP_OS_INSTALL_v1.0.0.sh",
+      "validation": [
+        "aiccep doctor",
+        "aiccep self-test",
+        "python ~/aiccep-os/tests/test_all.py"
+      ],
+      "reason": "Verified File Library artifact exists, but exact bytes are not yet registered in an immutable fresh-phone source."
+    },
+    "GuardianLLM": {
+      "status": "SOURCE_EXISTS_NOT_CANONICALIZED",
+      "artifact": "GUARDIANLLM_ALL_IN_ONE_ONE_PASTE.sh",
+      "validation": [
+        "guardian-llm selftest",
+        "guardian-llm verify-chain"
+      ],
+      "reason": "Verified File Library artifact exists, but exact bytes are not yet registered in an immutable fresh-phone source."
+    },
+    "SDOS": {
+      "status": "SOURCE_EXISTS_REVIEW_REQUIRED",
+      "artifact": "SDOS_ALL_IN_ONE_TERMUX_v0.2.0-reconstructed.sh",
+      "reason": "A reconstructable installer exists, but SDOS application lineage includes security-review findings; promotion requires selecting and revalidating a hardened exact artifact."
+    },
+    "Hermes Sentinel": {
+      "status": "INSTALLER_INCOMPLETE_FOR_FRESH_PHONE",
+      "artifact": "install_hermes_sentinel_termux_v0_1_0_2026-07-30.sh",
+      "reason": "Installer requires a separate Python payload that is not yet registered alongside it."
+    }
   },
   "profiles": {
     "bootstrap": [],
+    "centinal26-core": [
+      "centinal26-core-v1.0"
+    ],
     "android-fleet": [
       "frost-fleet-v1.7"
+    ],
+    "hermes-c05": [
+      "hermes-c05-v1.0"
+    ],
+    "base44-worker": [
+      "base44-worker-v1.0"
+    ],
+    "base44-capabilities": [
+      "capability-provider-v1.0"
+    ],
+    "automation-core-current": [
+      "frost-fleet-v1.7",
+      "hermes-c05-v1.0"
     ]
+  },
+  "profile_notes": {
+    "automation-core-current": "Current composite Automation profile. Host/CI qualification does not imply physical Android qualification.",
+    "base44-capabilities": "Automatically resolves base44-worker-v1.0 dependency and may require interactive credentials."
   }
 }
