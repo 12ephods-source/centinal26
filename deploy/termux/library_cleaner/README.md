@@ -21,6 +21,26 @@ A Library item is deleted only after all of the following are true:
 
 No coordinate-only blind deletion is permitted.
 
+## Qualification-before-automation gate
+
+Installation is fail-closed. The runit service is kept down and `auto_delete` is forced to `false` before the first device/UI qualification.
+
+The installer then runs one non-destructive Library dry-run. Automatic deletion is armed only when that dry-run completes and reports zero errors. If ADB is not paired, the authenticated Library UI is unavailable, or the UI controls cannot be resolved safely, the cleaner remains installed but disarmed.
+
+To retry qualification later:
+
+```sh
+~/.local/share/frost-library-cleaner/qualify_and_arm.sh
+```
+
+To stop the service and clear automatic-delete authorization locally:
+
+```sh
+~/.local/share/frost-library-cleaner/disarm.sh
+```
+
+The Termux:Boot hook also checks `auto_delete`. A disarmed cleaner remains stopped after reboot.
+
 ## Default automatic classes
 
 The default configuration permits only:
@@ -50,7 +70,9 @@ cd deploy/termux/library_cleaner
 bash install.sh
 ```
 
-Then verify behavior before unattended operation:
+The installer attempts the non-destructive qualification automatically. If the device prerequisites are not yet available, it leaves the daemon disarmed rather than treating installation as qualification.
+
+Useful checks:
 
 ```sh
 python ~/.local/share/frost-library-cleaner/frost_library_cleanerd.py dry-run
@@ -63,6 +85,7 @@ The runit service is installed at `$PREFIX/var/service/frost-library-cleaner` an
 
 - configuration: `~/.local/share/frost-library-cleaner/config.json`
 - state: `~/.local/share/frost-library-cleaner/state.json`
+- initial qualification result: `~/.local/share/frost-library-cleaner/qualification-result.json`
 - append-only archive ledger: `~/.local/share/frost-library-cleaner/archive-ledger.jsonl`
 - UI snapshots: `~/.local/share/frost-library-cleaner/ui-snapshots/`
 - service logs: `~/.local/share/frost-library-cleaner/service-log/`
