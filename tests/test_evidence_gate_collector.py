@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import runpy
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from automation.device import evidence_gate_collector as gate
+ROOT = Path(__file__).resolve().parents[1]
+COLLECTOR = ROOT / "automation" / "device" / "evidence_gate_collector.py"
+gate = SimpleNamespace(**runpy.run_path(str(COLLECTOR)))
 
 
 def dump(path: Path, value: dict) -> None:
