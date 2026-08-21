@@ -1,0 +1,28 @@
+{
+  "schema": "FTOE-PROTECTED-I-ROLE-SEPARATED-CANDIDATE-v1.4",
+  "scientific_status": "REVIEW",
+  "candidate_status": "PROPOSED_REFERENCE_MECHANISM_NOT_ADMITTED",
+  "mechanism_class": "composite_two_pNGB_doublet",
+  "global_symmetry_breaking": "SO(6) -> SO(4) x SO(2)",
+  "primary_source": "arXiv:1105.5403",
+  "source_supported_structure": {
+    "two_light_pNGB_electroweak_doublets": true,
+    "discrete_symmetry_can_distinguish_doublets": true,
+    "inert_second_doublet_realization_discussed": true
+  },
+  "role_assignment_hypothesis": {
+    "doublet_1": "SM_HIGGS_REFERENCE_ROLE",
+    "doublet_2": "PROTECTED_I_CANDIDATE_ROLE"
+  },
+  "mandatory_gates": {
+    "higgs_role_separation": "STRUCTURALLY_AVAILABLE_REFERENCE_ONLY",
+    "identify_second_doublet_with_I_quantum_numbers": "NOT_DERIVED",
+    "mu_I_13p5_TeV_mass_matching": "NOT_DERIVED",
+    "SO10_embedding_or_sequestering": "NOT_DERIVED",
+    "portal_suppression": "NOT_DERIVED",
+    "representation_specific_radiative_mass": "NOT_DERIVED",
+    "precision_and_partner_constraints": "NOT_DERIVED"
+  },
+  "scope_limit": "This candidate only resolves the previous single-doublet role-conflict at the reference-mechanism level. It does not establish FToE compatibility, SO(10) embedding, the protected-I mass, radiative stability, portal suppression, or publication readiness.",
+  "no_retuning": true
+}
