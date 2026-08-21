@@ -1,0 +1,56 @@
+name: Agent Execution Plane
+on:
+  workflow_dispatch:
+    inputs:
+      role:
+        required: true
+        type: choice
+        options: [planner, builder, judge, sre, sentinel]
+      command:
+        required: true
+        description: JSON array command, e.g. ["python","-m","pytest","-q"]
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install Centinal26
+        run: python -m pip install -e .
+      - name: Build bounded task
+        env:
+          ROLE: ${{ inputs.role }}
+          COMMAND: ${{ inputs.command }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          cmd = json.loads(os.environ["COMMAND"])
+          if not isinstance(cmd, list) or not all(isinstance(item, str) for item in cmd):
+              raise SystemExit("command must be JSON string array")
+          with open("agent_task.json", "w", encoding="utf-8") as handle:
+              handle.write(
+                  json.dumps(
+                      {
+                          "role": os.environ["ROLE"],
+                          "command": cmd,
+                          "timeout": 600,
+                      }
+                  )
+              )
+          PY
+      - name: Execute
+        run: python -m centinal26.agent_execution_plane agent_task.json --evidence agent_evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-evidence-${{ github.run_id }}
+          path: agent_evidence.json
+          retention-days: 30
