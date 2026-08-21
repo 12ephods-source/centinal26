@@ -1,4 +1,4 @@
-import { ALLOWED_CAPABILITIES, getJson, randomHex, requireAdmin, setJson, signRecord } from '../../lib/core.js';
+import { ALLOWED_CAPABILITIES, decryptSecret, getJson, randomHex, requireAdmin, setJson, signRecord } from '../../lib/core.js';
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -13,10 +13,11 @@ export default async function handler(request, response) {
   if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0 || ttlSeconds > 3600) return response.status(400).json({ status: 'TTL_INVALID' });
 
   const registration = await getJson(`frost:device:${deviceId}`);
-  const secret = await getJson(`frost:secret:${deviceId}`);
-  if (!registration || !secret?.value || registration.status === 'REVOKED') {
+  const secretRecord = await getJson(`frost:secret:${deviceId}`);
+  if (!registration || !secretRecord || registration.status === 'REVOKED') {
     return response.status(404).json({ status: 'DEVICE_NOT_REGISTERED' });
   }
+  const secret = decryptSecret(secretRecord);
 
   const job = {
     task_id: randomHex(16),
@@ -28,7 +29,7 @@ export default async function handler(request, response) {
     nonce: randomHex(16),
     expected_source_commit: registration.source_commit,
   };
-  job.signature = signRecord(job, secret.value);
+  job.signature = signRecord(job, secret);
   await setJson(`frost:job:${deviceId}`, job, ttlSeconds);
   return response.status(201).json({ status: 'QUEUED', job });
 }
