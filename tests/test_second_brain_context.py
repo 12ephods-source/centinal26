@@ -122,6 +122,8 @@ def test_v02_context_compiles_into_proposal_only_canonical_object(tmp_path) -> N
             "source_id": "exp-001",
             "relation": "derived_run",
             "target_id": "run-001",
+            "source_endpoint_type": "experiments",
+            "target_endpoint_type": "runs",
         }
     ]
 
