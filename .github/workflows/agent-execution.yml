@@ -1,5 +1,14 @@
 name: Agent Execution Plane
+
 on:
+  workflow_call:
+    inputs:
+      role:
+        required: false
+        type: string
+      command:
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       role:
@@ -10,9 +19,17 @@ on:
         required: true
         description: JSON array command, e.g. ["python","-m","pytest","-q"]
         type: string
+  push:
+    branches: [main]
+    paths:
+      - src/centinal26/agent_execution_plane.py
+      - tests/test_agent_execution_plane.py
+      - .github/workflows/agent-execution.yml
+
 permissions:
   contents: read
   actions: read
+
 jobs:
   execute:
     runs-on: ubuntu-latest
@@ -20,34 +37,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.12'}
+        with:
+          python-version: '3.12'
       - name: Install Centinal26
-        run: python -m pip install -e .
+        run: python -m pip install -e ".[dev]"
       - name: Build bounded task
         env:
           ROLE: ${{ inputs.role }}
           COMMAND: ${{ inputs.command }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
           import json
           import os
 
-          cmd = json.loads(os.environ["COMMAND"])
-          if not isinstance(cmd, list) or not all(isinstance(item, str) for item in cmd):
-              raise SystemExit("command must be JSON string array")
+          role = os.environ.get("ROLE") or "judge"
+          raw_command = os.environ.get("COMMAND") or (
+              '["python","-m","pytest","-q","tests/test_agent_execution_plane.py"]'
+          )
+          command = json.loads(raw_command)
+          if not isinstance(command, list) or not all(
+              isinstance(item, str) and item for item in command
+          ):
+              raise SystemExit("command must be a JSON string array")
           with open("agent_task.json", "w", encoding="utf-8") as handle:
-              handle.write(
-                  json.dumps(
-                      {
-                          "role": os.environ["ROLE"],
-                          "command": cmd,
-                          "timeout": 600,
-                      }
-                  )
+              json.dump(
+                  {
+                      "role": role,
+                      "command": command,
+                      "timeout": 600,
+                      "source_event": os.environ["EVENT_NAME"],
+                  },
+                  handle,
               )
           PY
       - name: Execute
-        run: python -m centinal26.agent_execution_plane agent_task.json --evidence agent_evidence.json
+        run: >-
+          python -m centinal26.agent_execution_plane
+          agent_task.json --evidence agent_evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
