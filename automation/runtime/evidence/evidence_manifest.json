@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "required_artifacts": [
+    "execution_request",
+    "authorization_record",
+    "executor_health",
+    "execution_result",
+    "verification_result",
+    "hash_manifest"
+  ],
+  "promotion_requires_verification": true,
+  "status": "initialized"
+}
