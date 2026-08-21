@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 PROTOCOL_MD = Path("protocols/FROST_MASTER_PROJECT_PROTOCOL_v3.md")
 PROTOCOL_JSON = Path("protocols/frost_master_protocol_v3.json")
 EXPECTED_PREFIX = "Yes, I would be happy to help you with that request."
