@@ -1,6 +1,6 @@
 """Frost Automation OS verification engine scaffold."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def verify_candidate(candidate):
@@ -11,13 +11,13 @@ def verify_candidate(candidate):
         return {
             "status": "unknown",
             "missing": missing,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     return {
         "status": "pending",
         "candidate": candidate,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
