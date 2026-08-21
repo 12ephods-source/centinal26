@@ -1,12 +1,12 @@
 # Automation OS / Frost Forge Project Consolidation
 
-Version: 2.6
+Version: 2.7
 Status: CANONICAL / HOST_V1_VERIFIED_COMPLETE / RUNTIME_GOVERNANCE_ENFORCED / PHYSICAL_AND_PERSISTENCE_GATES_EXTERNAL
 Repository: `12ephods-source/centinal26`
 Canonical branch: `main`
-Observed integrated host head for this refresh: `bec9b92398920fafd61e4c89ce0b284f9c17b62e`
+Observed production head before this refresh: `e36ddbafec46d0a5d7da29b40633db5476a34a48`
 Runtime-governance validation head: `427f8e884352839e11fcd99cfcdd51643fb1f2ab`
-Qualified physical-commissioning source: `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`
+Qualified physical-commissioning source: `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`
 
 ## Source of Truth
 
@@ -16,19 +16,22 @@ Primary evidence is Git history, exact-head CI, durable workflow ledgers, immuta
 
 Operate a reusable evidence-centered automation platform that converts project intent into bounded execution, independent verification, persistent evidence, reusable capabilities, integrated features, and release candidates while preserving authorization, recovery-root, physical-validation, persistence, provenance, and connector boundaries.
 
-## Canonical Pipeline
+Canonical pipeline:
 
-`Intent -> Authorization -> Event/Queue -> Capability Selection -> Bounded Execution -> Verification -> Evidence/Audit -> State Update -> Controlled Evolution`
+`Intent -> Authorization -> Event/Queue -> Capability Selection -> Bounded Execution -> Independent Verification -> Evidence/Audit -> State Update -> Controlled Evolution`
 
 ## Verified Host State
 
-Production includes Frost Master Project Protocol v3, deterministic governance, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, durable execution evidence, runtime executor contracts, the universal Termux installer, fail-closed module management, exact-source-bound Android evidence capture, controller enrollment verification, the canonical enrollment digest, worker heartbeat generation/verification, and one-run physical commissioning verification.
+The host/runtime line remains verified complete. Production includes Protocol v3, deterministic governance, Project Productizer -> Judge E2E validation, Planner/Builder/Judge/SRE/Sentinel/Release execution semantics, bounded authority and recovery-root policy, durable execution evidence, runtime executor contracts, the universal Termux installer, fail-closed module management, exact-source-bound Android evidence capture, controller enrollment verification, canonical enrollment digest, worker heartbeat generation/verification, one-run physical commissioning verification, and the first-party Vercel controller bootstrap.
 
-The objective-governance line is now integrated rather than merely structural. PR #159 introduced the fail-closed objective registry and capability-scope semantics. PR #220 wires those semantics into the operational agent execution plane. Every mutating or consequential task must resolve immutable canonical references for the authorized objective, its authorization evaluation, and a Guardian-issued capability token. The runtime verifies the objective is current, the authorization evaluation is executable, provenance classes are correct, token task/objective/root bindings match, and action/network/secret/destructive scope is contained before the subprocess call is made. Inline task assertions are never accepted as authority.
+Important later repairs and extensions:
 
-PR #220 exact head `427f8e884352839e11fcd99cfcdd51643fb1f2ab` passed all seven triggered suites: `validate`, `CI`, `automation-gates`, `federation-gates`, `Mature Product Qualification`, `Executor Integration Validation`, and `hard-sandbox`. It merged to `main` as `bec9b92398920fafd61e4c89ce0b284f9c17b62e`. Controlled evolution is barred from modifying the objective-integrity implementation, runtime gate, agent execution boundary, objective schema, or authority policy through the ordinary candidate path.
+- PR #222 merged as `ea6195aee431a134985f0b02429f1855a4f93adb`, making Frost Master Project Protocol v3 explicitly canonical and regression-testing the exact response envelope.
+- PR #225 merged as `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`, retiring the normal RC9 physical-GA trigger, aligning documentation to issue #208 Phase A/Phase B semantics, and adding normalized Android/Termux device-profile evidence while preserving raw evidence.
+- PR #226 merged as `73859661e4104f392f6ad197ab5aa3ba6fb20246`, reconciling executor-registry truth state. Host executors are no longer mislabeled pending CI; the Android executor remains explicitly physical-worker pending.
+- PR #227 merged as `e36ddbafec46d0a5d7da29b40633db5476a34a48`, adding the first-party durable Vercel controller bootstrap. Host software is qualified; live deployment remains authorization/token dependent.
 
-The physical commissioning program remains separately pinned to qualified revision `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`; later host-governance commits do not retroactively alter the immutable device qualification source.
+PR #220 remains the runtime-governance proof point. Its exact head `427f8e884352839e11fcd99cfcdd51643fb1f2ab` passed `validate`, `CI`, `automation-gates`, `federation-gates`, `Mature Product Qualification`, `Executor Integration Validation`, and `hard-sandbox` before merging as `bec9b92398920fafd61e4c89ce0b284f9c17b62e`.
 
 ## Release State
 
@@ -44,13 +47,17 @@ The physical commissioning program remains separately pinned to qualified revisi
 
 ## Physical Gate — Phase A / DEVICE_VALIDATED
 
-Issue #208 is canonical. Qualified commissioning revision: `32ba85c2d0e0a3a704efcc6a7dd93d7e07809d16`.
+Issue #208 is canonical. Qualified commissioning revision: `9c0925ee7e3dc23f6e81718f9c1a2ca7926ec483`.
 
 Current Phase-A sequence:
 
-`one pinned Android/Termux commissioning run -> preserve combined ZIP -> controller end-to-end verification -> observe/register Android worker -> one harmless bounded Android work item -> preserve event/lease chain and independent Judge evidence`
+`one pinned Android/Termux commissioning run -> preserve combined ZIP -> controller end-to-end verification -> verify normalized device profile -> observe/register Android worker -> one harmless bounded Android work item -> preserve event/lease chain and independent Judge evidence`
 
-The controller commissioning PASS establishes eligibility, not workload success. Phase A may promote only to `DEVICE_VALIDATED` eligibility after the bounded real-device work item also passes.
+The normalized profile records manufacturer, model, Android version/SDK, architecture, kernel, and Termux context. Those fields improve provenance and internal consistency checks but do not independently authorize or promote the device.
+
+The user supplied a comparison profile reporting Samsung `SM-A155M`, Android 16, aarch64, Termux `googleplay.2026.06.21`, termux-tools 3.0.9, and kernel `6.12.38-android16-5-abA155MUBSBEZG1-4k`. This remains user-supplied context until reproduced in the source-bound device bundle and independently controller-verified.
+
+The controller commissioning PASS establishes eligibility, not workload success. Phase A may promote only to `DEVICE_VALIDATED` eligibility after the bounded real-device work item and independent verification also pass.
 
 ## Persistence Gate — Phase B / PERSISTENT_VALIDATED
 
@@ -60,20 +67,29 @@ The Base44 P1-P5 physical policy remains binding for persistence. After Phase A:
 
 Only Phase B PASS permits `PERSISTENT_VALIDATED` eligibility. Remote reboot is not accepted as physical reboot evidence.
 
-Live Base44 reconciliation on 2026-08-21 found three registered workers and none is Android/Termux. Eight physical-device-dependent jobs remain queued and unclaimed. P1-P5 remain `PENDING`. This is current observed control-plane state, not evidence that missing device evidence cannot exist.
+Legacy issue #64/RC9/finalizer machinery is historical provenance or compatibility material, not the current physical acceptance path. The normal manual GitHub trigger no longer creates the superseded RC9 job.
 
 ## Connector Gate
 
 Issue #209 tracks connectors individually.
 
-Verified scopes:
+Verified/observed scopes:
 - GitHub: `VERIFIED_LIVE_READ_WRITE` for the authorized Centinal26 repository scope.
-- Gmail: `VERIFIED_REVERSIBLE_LIVE_WRITE` using an isolated self-send, exact-subject readback, then Trash cleanup.
-- Google Calendar: `VERIFIED_REVERSIBLE_LIVE_WRITE` using an isolated private event create, exact readback, then delete.
-- Google Drive: `VERIFIED_REVERSIBLE_LIVE_WRITE` using an isolated folder create, exact readback, then permanent delete. A rejected first delete URL shape was preserved as a connector-interface failure and caused no unrelated mutation.
-- Google Contacts: authenticated read/search surface is available; no write operation is exposed for qualification through the current connector.
+- Base44: `VERIFIED_LIVE_READ_WRITE` for the authorized Superagent Automation entity scope.
+- Gmail: `VERIFIED_REVERSIBLE_LIVE_WRITE` for the tested bounded qualification path.
+- Google Calendar: `VERIFIED_REVERSIBLE_LIVE_WRITE` for isolated private event create/read/delete.
+- Google Drive: `VERIFIED_REVERSIBLE_LIVE_WRITE` for isolated create/read/delete.
+- Google Contacts: authenticated read/search surface available; no reversible write surface currently exposed.
+- Notion: `AUTHENTICATED_READ_VERIFIED`.
+- Linear: `AUTHENTICATED_READ_VERIFIED`.
 
-The repository `api_connector_executor` remains software-verified; target authorization is separate. Connector qualification is operation- and scope-specific: `ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`.
+The repository `api_connector_executor` remains software-verified; target authorization is separate. Connector qualification is operation- and scope-specific:
+
+`ADAPTER_PRESENT -> AUTHENTICATED -> AUTHORIZED -> LIVE_EXECUTED -> INDEPENDENTLY_VERIFIED -> PRODUCTION_QUALIFIED`
+
+## Automation Topology
+
+The physical monitoring lane has one canonical active watcher: automation `6a88614d12e8819183a02d32288b5f10`. A duplicate physical watcher was detected and paused. The canonical watcher resolves the physical source dynamically from `automation/PROJECT_STATE.json` rather than freezing a historical SHA.
 
 ## Mandatory Distinctions
 
@@ -88,14 +104,15 @@ The repository `api_connector_executor` remains software-verified; target author
 - captured evidence != verified enrollment != active worker;
 - verified enrollment digest != verified heartbeat != successful worker task;
 - exact source provenance != device-origin verification;
+- descriptive device profile != authorization or physical PASS;
 - reversible write verification != unrestricted connector authority;
 - one connector verified != all connectors verified;
 - absence of observed evidence != evidence of absence.
 
 ## Critical Path
 
-All currently actionable host/runtime-governance work is integrated and exact-head validated. The remaining release-critical path is a real-world evidence path:
+All currently actionable host/runtime work identified in this reconciliation has been implemented or placed into qualification. The remaining release-critical path is physical fact acquisition:
 
-`one-run Android commissioning at 32ba85c... -> controller commissioning verification -> bounded Android worker task -> physical reboot -> verified worker return -> post-reboot bounded task -> evidence-gated final release decision`.
+`one-run Android commissioning at 9c0925e... -> controller verification -> bounded Android worker task -> DEVICE_VALIDATED -> physical reboot -> verified worker return -> post-reboot bounded task -> PERSISTENT_VALIDATED -> evidence-gated final release decision`
 
 Continue automatically through available bounded work; stop only at verified completion or a genuine physical/external, authorization/platform, falsification, supersession, or negative-value boundary.
