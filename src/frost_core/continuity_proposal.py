@@ -208,6 +208,10 @@ class ContinuityProposalAdapter:
                     "source_id": source_id,
                     "relation": relation,
                     "target_id": target_id,
+                    "source_endpoint_type": str(raw.get("source_endpoint_type") or "").strip()
+                    or None,
+                    "target_endpoint_type": str(raw.get("target_endpoint_type") or "").strip()
+                    or None,
                 }
             )
         result.sort(key=lambda item: (item["source_id"], item["relation"], item["target_id"]))
