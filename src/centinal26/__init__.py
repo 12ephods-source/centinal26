@@ -1,4 +1,4 @@
-"""Wazoo26 Automation OS compatibility package."""
+"""Frost Forge Automation OS compatibility package."""
 
-__product_name__ = "Wazoo26"
+__product_name__ = "Frost Forge"
 __version__ = "0.1.0"
