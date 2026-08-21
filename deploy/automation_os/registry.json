@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "name": "Automation OS module registry",
+  "repository": "12ephods-source/centinal26",
+  "integrity_policy": {
+    "production": "immutable commit + expected Git blob identity; future release signatures supported but no private signing key is embedded",
+    "fail_closed": true
+  },
+  "modules": {
+    "frost-fleet-v1.7": {
+      "status": "CANONICAL_REGISTERED",
+      "source": {
+        "kind": "github_raw_git_blob",
+        "repository": "12ephods-source/centinal26",
+        "commit": "c573b4cc252d84721648c912f399320dd1200ad5",
+        "path": "deploy/termux/FROST_FLEET_BOOTSTRAP_v1.7.sh",
+        "git_blob_sha1": "9b8a3a99ca13b3b3769938ab5cfefdb302d931a5"
+      },
+      "install": {
+        "type": "shell",
+        "requires_termux": true,
+        "interactive_auth_possible": true
+      }
+    }
+  },
+  "unregistered_components": {
+    "Guardian": "No separate immutable install source registered in this release.",
+    "Sentinel": "No separate immutable install source registered in this release.",
+    "AICCEP": "No separate immutable install source registered in this release.",
+    "SDOS": "Workload source not registered in the Automation OS module registry.",
+    "Physics": "Profile/workload family; no single canonical install source registered.",
+    "Cybersecurity": "Profile/workload family; no single canonical install source registered."
+  },
+  "profiles": {
+    "bootstrap": [],
+    "android-fleet": [
+      "frost-fleet-v1.7"
+    ]
+  }
+}
