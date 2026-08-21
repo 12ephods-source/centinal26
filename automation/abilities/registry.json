@@ -155,6 +155,45 @@
         "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
       },
       "status": "VERIFIED"
+    },
+    {
+      "id": "termux/trust-bootstrap/v1",
+      "name": "Pinned Termux autobuild trust bootstrap",
+      "kind": "trust-recovery-tool",
+      "source": {
+        "path": "deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh",
+        "lineage_pr": 86,
+        "reconstruction_branch": "feature/termux-trust-bootstrap-v2"
+      },
+      "interface": {
+        "doctor": "bash deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh --doctor",
+        "bootstrap": "FROST_ALLOW_TRUST_BOOTSTRAP=1 bash deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh --bootstrap",
+        "rollback": "FROST_ALLOW_TRUST_BOOTSTRAP=1 bash deploy/termux/FROST_TERMUX_TRUST_BOOTSTRAP_v1.0.sh --rollback <bootstrap-dir>"
+      },
+      "verification": {
+        "exact_head": "167d7028d18361e3fb9e48b31bd0bf94fa06a5bd",
+        "ci": "PASS",
+        "automation_validation": "PASS",
+        "validate": "PASS",
+        "automation_gates": "PASS",
+        "federation_gates": "PASS",
+        "mature_product_qualification": "PASS",
+        "tests": "tests/test_termux_trust_bootstrap_ability.py",
+        "upstream_commit": "da8b07830fd2049bc4df6119befceb565732e36b",
+        "upstream_git_blob": "c5ed76a1b9a1f2bc2e296bdd5ca50cf1f1f12706",
+        "upstream_full_fingerprint": "CC72CF8BA7DBFA0182877D045A897D96E57CF20C",
+        "upstream_blob_still_current_on_2026_08_21": true,
+        "physical_execution": "PENDING_REAL_ANDROID_TERMUX"
+      },
+      "provenance": {
+        "origin": "hardened trust-anchor extraction from historical PR #86 after independent upstream identity verification",
+        "authority_boundary": "distinct explicit local trust-root authorization; pinned HTTPS bytes must match both immutable Git blob and full OpenPGP fingerprint before write; no keyserver and no signature bypass"
+      },
+      "lifecycle": {
+        "rollback": "every bootstrap preserves prior share-key and apt trust-path state; failed post-write identity checks restore the prior trust state; explicit --rollback restores a preserved bootstrap snapshot",
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references"
+      },
+      "status": "VERIFIED"
     }
   ]
 }
