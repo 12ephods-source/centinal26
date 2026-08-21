@@ -6,9 +6,11 @@ on:
       role:
         required: false
         type: string
-      command:
+        default: judge
+      profile:
         required: false
         type: string
+        default: agent-tests
   workflow_dispatch:
     inputs:
       role:
@@ -29,6 +31,11 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: write
+
+concurrency:
+  group: agent-execution-plane-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   execute:
@@ -44,6 +51,7 @@ jobs:
       - name: Build bounded task
         env:
           ROLE: ${{ inputs.role }}
+          PROFILE: ${{ inputs.profile }}
           COMMAND: ${{ inputs.command }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
@@ -51,22 +59,48 @@ jobs:
           import json
           import os
 
+          profiles = {
+              "agent-tests": [
+                  "python",
+                  "-m",
+                  "pytest",
+                  "-q",
+                  "tests/test_agent_execution_plane.py",
+              ],
+              "full-tests": ["python", "-m", "pytest", "-q"],
+              "lint": ["ruff", "check", "."],
+              "fleet-qualify": ["python", "scripts/agent_fleet_qualify.py"],
+          }
+
+          event = os.environ["EVENT_NAME"]
           role = os.environ.get("ROLE") or "judge"
-          raw_command = os.environ.get("COMMAND") or (
-              '["python","-m","pytest","-q","tests/test_agent_execution_plane.py"]'
-          )
-          command = json.loads(raw_command)
-          if not isinstance(command, list) or not all(
-              isinstance(item, str) and item for item in command
-          ):
-              raise SystemExit("command must be a JSON string array")
+
+          if event == "workflow_call":
+              profile = os.environ.get("PROFILE") or "agent-tests"
+              if profile not in profiles:
+                  raise SystemExit(f"unsupported callable profile: {profile}")
+              command = profiles[profile]
+          elif event == "push":
+              profile = "agent-tests"
+              command = profiles[profile]
+              role = "judge"
+          else:
+              profile = "manual-command"
+              raw_command = os.environ.get("COMMAND") or ""
+              command = json.loads(raw_command)
+              if not isinstance(command, list) or not all(
+                  isinstance(item, str) and item for item in command
+              ):
+                  raise SystemExit("command must be a JSON string array")
+
           with open("agent_task.json", "w", encoding="utf-8") as handle:
               json.dump(
                   {
                       "role": role,
                       "command": command,
                       "timeout": 600,
-                      "source_event": os.environ["EVENT_NAME"],
+                      "source_event": event,
+                      "profile": profile,
                   },
                   handle,
               )
@@ -75,9 +109,80 @@ jobs:
         run: >-
           python -m centinal26.agent_execution_plane
           agent_task.json --evidence agent_evidence.json
+      - name: Build durable execution status
+        if: always()
+        env:
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          evidence_path = Path("agent_evidence.json")
+          task_path = Path("agent_task.json")
+          evidence = (
+              json.loads(evidence_path.read_text())
+              if evidence_path.exists()
+              else {"status": "NO_EVIDENCE"}
+          )
+          task = json.loads(task_path.read_text()) if task_path.exists() else {}
+          run_url = (
+              f"https://github.com/{os.environ['REPOSITORY']}/actions/runs/"
+              f"{os.environ['RUN_ID']}"
+          )
+          lines = [
+              "# Agent Execution Plane Status",
+              "",
+              f"- Status: `{evidence.get('status', 'UNKNOWN')}`",
+              f"- Role: `{evidence.get('role', task.get('role', 'UNKNOWN'))}`",
+              f"- Profile: `{task.get('profile', 'UNKNOWN')}`",
+              f"- Event: `{os.environ['EVENT_NAME']}`",
+              f"- Commit: `{os.environ['SHA']}`",
+              f"- Actor: `{os.environ['ACTOR']}`",
+              f"- Run: {run_url}",
+              f"- Attempt: `{os.environ['RUN_ATTEMPT']}`",
+              f"- Evidence digest: `{evidence.get('evidence_digest', 'NONE')}`",
+              f"- Task digest: `{evidence.get('task_digest', 'NONE')}`",
+              f"- Return code: `{evidence.get('returncode', 'N/A')}`",
+              f"- Updated UTC: `{datetime.now(UTC).isoformat()}`",
+              "",
+              "The issue is a durable pointer to the latest execution evidence. ",
+              "The retained workflow artifact remains the machine-readable source.",
+          ]
+          Path("agent_execution_status.md").write_text("\n".join(lines) + "\n")
+          PY
+      - name: Update durable execution ledger
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Agent Execution Plane Status"
+          issue="$(gh issue list --repo "$REPOSITORY" --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)"
+          if [[ -z "$issue" ]]; then
+            gh issue create --repo "$REPOSITORY" --title "$title" \
+              --body-file agent_execution_status.md
+          else
+            gh issue edit "$issue" --repo "$REPOSITORY" \
+              --body-file agent_execution_status.md
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: agent-evidence-${{ github.run_id }}
-          path: agent_evidence.json
+          path: |
+            agent_task.json
+            agent_evidence.json
+            agent_execution_status.md
+          if-no-files-found: warn
           retention-days: 30
