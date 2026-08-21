@@ -4,11 +4,15 @@
   "implementation_merge": "6f8137b075fc7048be1f855b0951779f709b4662",
   "ability_registration_merge": "545c4b6b69ffbfdb56f7f5e242694a1352bdec28",
   "evidence_packager_merge": "c9f832ceadfcf00e8fd9e7a2cb8bea6b124dbc5e",
+  "qualification_gate_merge": "3da910b9c74b8ca650ee971485304a76679f507c",
+  "qualification_gate_exact_head": "e499ef8e9a1f7517e6ffc0ccf1f997b64a0fd901",
+  "qualification_gate_base": "310ec3835c86457cffc74fa1a4c72a0791acef78",
   "qualification_issue": 245,
   "implementation": "deploy/termux/library_cleaner/frost_library_cleanerd.py",
   "installer": "deploy/termux/library_cleaner/install.sh",
   "evidence_packager": "deploy/termux/library_cleaner/package_evidence.py",
   "regression_tests": "tests/test_frost_library_cleaner.py",
+  "qualification_gate_tests": "tests/test_library_cleaner_install_qualification.py",
   "host_qualification": {
     "CI": "PASS",
     "Automation Validation": "PASS_ON_REGISTRATION",
@@ -16,6 +20,14 @@
     "automation-gates": "PASS",
     "federation-gates": "PASS",
     "Mature Product Qualification": "PASS"
+  },
+  "installation_safety": {
+    "initial_auto_delete": "FORCED_FALSE",
+    "service_before_qualification": "DOWN",
+    "qualification_mode": "NON_DESTRUCTIVE_DRY_RUN",
+    "arm_condition": "ZERO_REPORTED_ERRORS",
+    "boot_requires_armed_configuration": true,
+    "local_disarm_control": true
   },
   "device_ui_promotion_requirements": [
     "authorized_local_adb_pairing",
@@ -31,5 +43,5 @@
     "independent_review"
   ],
   "promotion_target": "VERIFIED",
-  "boundary": "host qualification does not prove real Android UI execution or successful Library deletion"
+  "boundary": "host qualification and installation gating do not prove real Android UI execution or successful Library deletion"
 }
