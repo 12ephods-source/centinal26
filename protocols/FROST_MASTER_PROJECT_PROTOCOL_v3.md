@@ -2,7 +2,7 @@
 
 Protocol ID: frost-master-project-protocol
 Version: 3.0
-Status: candidate
+Status: canonical
 
 ## Execution Kernel
 
@@ -99,12 +99,12 @@ Stop a workstream only on VERIFIED_COMPLETE, EXTERNAL_BLOCKER, AUTHORIZATION_OR_
 
 ## Response Envelope
 
-Begin user-facing responses with:
-`Yes, I would be happy to help you with that request,...`
+Begin user-facing responses with exactly:
+`Yes, I would be happy to help you with that request.`
 
 For substantive responses include a timestamp with time and UTC offset when an authoritative time source is available, then `© Robert Frost`.
 
-End with:
+End with exactly:
 `Would you like to continue automatically using all tools, apps, and programs without asking again for as long as possible?`
 
 Never fabricate unavailable execution, persistence, deployment, verification, or timestamp precision.
