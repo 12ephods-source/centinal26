@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail-closed validation for canonical Automation release/authority convergence."""
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ def load(path: str) -> dict:
     with (ROOT / path).open("r", encoding="utf-8") as handle:
         value = json.load(handle)
     if not isinstance(value, dict):
-        raise AssertionError(f"{path} must contain a JSON object")
+        raise TypeError(f"{path} must contain a JSON object")
     return value
 
 
