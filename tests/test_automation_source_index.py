@@ -1,14 +1,14 @@
 import json
-from pathlib import Path
+import pathlib
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = ROOT / "automation" / "SOURCE_INDEX.json"
 PROJECT_STATE = ROOT / "automation" / "PROJECT_STATE.json"
 REGISTRY = ROOT / "deploy" / "automation_os" / "registry.json"
 
 
-def load(path: Path) -> dict:
+def load(path: pathlib.Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
