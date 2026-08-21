@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 
 class ExecutorTemplate:
     executor_id = "template_executor"
-    capabilities = []
+    capabilities = ()
 
     def health_check(self):
         return {
