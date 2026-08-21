@@ -1,0 +1,35 @@
+{
+  "schema": "frost.library_cleaner.state.v1",
+  "status": "EXPERIMENTAL_HOST_VERIFIED_PHYSICAL_UI_PENDING",
+  "implementation_merge": "6f8137b075fc7048be1f855b0951779f709b4662",
+  "ability_registration_merge": "545c4b6b69ffbfdb56f7f5e242694a1352bdec28",
+  "evidence_packager_merge": "c9f832ceadfcf00e8fd9e7a2cb8bea6b124dbc5e",
+  "qualification_issue": 245,
+  "implementation": "deploy/termux/library_cleaner/frost_library_cleanerd.py",
+  "installer": "deploy/termux/library_cleaner/install.sh",
+  "evidence_packager": "deploy/termux/library_cleaner/package_evidence.py",
+  "regression_tests": "tests/test_frost_library_cleaner.py",
+  "host_qualification": {
+    "CI": "PASS",
+    "Automation Validation": "PASS_ON_REGISTRATION",
+    "validate": "PASS",
+    "automation-gates": "PASS",
+    "federation-gates": "PASS",
+    "Mature Product Qualification": "PASS"
+  },
+  "device_ui_promotion_requirements": [
+    "authorized_local_adb_pairing",
+    "safe_dry_run_candidate_selection",
+    "protected_name_rejection",
+    "exact_library_item_selection",
+    "download_before_delete",
+    "archive_copy_and_sha256_ledger",
+    "exact_reidentification_before_delete",
+    "authenticated_ui_delete",
+    "post_delete_absence_verification",
+    "preserved_device_ui_evidence",
+    "independent_review"
+  ],
+  "promotion_target": "VERIFIED",
+  "boundary": "host qualification does not prove real Android UI execution or successful Library deletion"
+}
