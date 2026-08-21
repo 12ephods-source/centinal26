@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/authorization.schema.json",
+  "title": "Centinal26 Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authorization_id", "issuer", "subject", "capability", "scope", "risk_class", "issued_at", "expires_at", "signature"],
+  "properties": {
+    "schema": {"const": "centinal26-authorization-v1"},
+    "authorization_id": {"type": "string", "minLength": 1},
+    "issuer": {"type": "string", "minLength": 1},
+    "subject": {"type": "string", "minLength": 1},
+    "capability": {"type": "string", "minLength": 1},
+    "scope": {"type": "object"},
+    "risk_class": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "signature": {"type": "string", "minLength": 1}
+  }
+}
