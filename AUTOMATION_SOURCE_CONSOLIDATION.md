@@ -1,16 +1,16 @@
 # Automation / Frost Forge Source Consolidation
 
-Version: 2.9
+Version: 3.0
 Date: 2026-08-21
 Canonical repository: `12ephods-source/centinal26`
 Canonical production branch: `main`
-Source-index snapshot head: `e69a88ebbe15237d96b665bc86951c009d80caf5`
+Source-index snapshot head: `e07c8b4118da2f38e19db6ac74ba25c35db82983`
 
 ## Purpose
 
 This document removes source-of-truth ambiguity without deleting historical evidence. It classifies repository material into production source, bounded candidates, superseded provenance, external projects, and scientific research branches.
 
-The machine-readable authority for this classification is `automation/SOURCE_INDEX.json`. Deferred work is separately recorded in `automation/DEFERRED_BLOCKERS.json`.
+The machine-readable authority for this classification is `automation/SOURCE_INDEX.json`. Deferred work is separately recorded in `automation/DEFERRED_BLOCKERS.json`; reusable bounded capabilities are recorded in `automation/abilities/registry.json`.
 
 ## Production source
 
@@ -23,6 +23,7 @@ Canonical continuation records:
 - `PROJECT_STATE_AUTOMATION_OS.md` — concise continuation record.
 - `automation/SOURCE_INDEX.json` — source classification and cleanup authority.
 - `automation/DEFERRED_BLOCKERS.json` — blocked-work registry and resume conditions.
+- `automation/abilities/registry.json` — reusable bounded ability catalog and verification metadata.
 
 Canonical software roots:
 
@@ -40,6 +41,19 @@ Automation uses `DEFER_AND_CONTINUE` for genuine blockers. A blocked item is rec
 This policy does not weaken gates. Deferred work cannot be promoted by substitution or inference. In particular, merged host software is not a live external deployment, queued work is not executed work, host/CI evidence is not physical-device evidence, and device validation is not persistence validation.
 
 Current machine-readable deferred state is `automation/DEFERRED_BLOCKERS.json`.
+
+## Reusable abilities
+
+The current ability registry was introduced through PR #235 and registered as a verified reusable capability through PR #236. The rule is:
+
+`discover existing capability -> build smallest bounded capability only if missing -> test -> register -> reuse`
+
+Registration never grants authority and every ability retains its ordinary authorization, evidence, and host/physical boundaries.
+
+Verified abilities at this snapshot:
+
+- `frost-forge/ability-registry/v1` — validates, lists, and append-registers versioned reusable abilities with explicit provenance and lifecycle metadata.
+- `ci/bounded-failure-reconciler/v1` — merged through PR #238; classifies stale/current CI failures, allowlists deterministic low-risk Ruff candidates, emits bounded validation plans and hashed receipts, and fails closed for unknown or behavioral failures. It does not mutate source or execute arbitrary commands.
 
 ## Installer source
 
@@ -67,13 +81,13 @@ Current acceptance implementation:
 - `automation/deployment/enrollment_package/verify_physical_commissioning.py`
 - `automation/device/heartbeat.py`
 
-Legacy issue #64, RC9, and older finalizer flows are preserved as provenance/compatibility. They are not valid substitutes for issue #208 Phase A/Phase B acceptance.
+Legacy issue #64 and older finalizer flows are preserved as provenance/compatibility. They are not valid substitutes for issue #208 Phase A/Phase B acceptance.
 
 ## Open Automation candidates
 
-The following open PRs are intentionally classified as candidates rather than production: #82, #85, #86, #89, #92, #97, #98, #100, #101, #155, #160, #162, and #164.
+The following open PRs remain candidates rather than production: #82, #85, #86, #89, #92, #97, #98, #100, #155, #160, #162, and #164.
 
-This classification does not reject their code. It prevents unmerged branches from being mixed into canonical state. Each candidate must be rebased/reconstructed on current `main`, independently requalified, and merged before it becomes production source.
+This classification does not reject their code. It prevents unmerged branches from being mixed into canonical state. Each candidate must be reconstructed or reconciled on current `main`, independently requalified, and merged before it becomes production source.
 
 In particular:
 
@@ -85,11 +99,13 @@ In particular:
 
 Explicit superseded/redundant PRs include:
 
+- #101 — historical bounded CI failure reconciler, superseded by the current-main implementation merged through #238.
 - #175 — stale installer draft, reconstructed through merged #204.
 - #207 — accidental redundant physical-gate tracker.
 - #211 — stale state refresh.
 - #215 — superseded physical commissioning branch.
-- #231 — concurrent state branch that would overwrite newer v2.7 state.
+- #231 — concurrent state branch that would overwrite newer state.
+- #237 — first current-main CI reconciler reconstruction, superseded before qualification when #236 advanced the registry baseline; clean successor #238 merged.
 
 Their history remains useful evidence. They are not current source.
 
@@ -115,7 +131,8 @@ Scientific/research examples include FToE, KMS/modular, de Sitter, and geometric
 8. File Library artifacts are evidence/source candidates until exact bytes are canonicalized into immutable source.
 9. When a work item is genuinely blocked, record it in `automation/DEFERRED_BLOCKERS.json`, preserve its resume condition, skip it, and continue independent work.
 10. Never promote a deferred item until the recorded resume condition is independently satisfied.
+11. Reuse a `VERIFIED` registered ability before rebuilding equivalent machinery; registration never expands authority.
 
 ## Result
 
-After this consolidation, future Automation work should begin from current `main`, read `automation/PROJECT_STATE.json`, `automation/SOURCE_INDEX.json`, and `automation/DEFERRED_BLOCKERS.json`, and treat every other branch as candidate/provenance unless explicitly promoted.
+Future Automation work should begin from current `main`, read `automation/PROJECT_STATE.json`, `automation/SOURCE_INDEX.json`, `automation/DEFERRED_BLOCKERS.json`, and `automation/abilities/registry.json`, and treat every other branch as candidate/provenance unless explicitly promoted.
