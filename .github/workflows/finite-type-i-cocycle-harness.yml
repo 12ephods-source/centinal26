@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   validate:
@@ -32,24 +33,98 @@ jobs:
           python -m pip install
           -r candidates/finite-type-i-cocycle-harness/requirements.txt
           ruff==0.16.3
+
       - name: Lint cocycle candidate
+        id: lint
+        continue-on-error: true
         run: >-
           ruff check
           candidates/finite-type-i-cocycle-harness/cocycle_scan.py
           candidates/finite-type-i-cocycle-harness/test_cocycle_scan.py
-      - name: Run strict cocycle gate
+
+      - name: Generate cocycle evidence
+        id: scan
+        continue-on-error: true
         run: >-
           python candidates/finite-type-i-cocycle-harness/cocycle_scan.py
-          --strict
           --output finite-type-i-cocycle-python-${{ matrix.python-version }}.json
+
+      - name: Evaluate strict cocycle gate
+        id: strict
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("finite-type-i-cocycle-python-${{ matrix.python-version }}.json")
+          payload = json.loads(path.read_text())
+          status = payload["validation_summary"]["overall_status"]
+          print(json.dumps(payload["validation_summary"], indent=2, sort_keys=True))
+          raise SystemExit(0 if status == "PASS_FINITE_TYPE_I_COCYCLE_CONSISTENCY" else 1)
+          PY
+
       - name: Run regression tests
+        id: tests
+        continue-on-error: true
         run: >-
           python -m unittest discover
           -s candidates/finite-type-i-cocycle-harness
           -p 'test_*.py'
           -v
+
+      - name: Publish diagnostic summary to PR
+        if: always() && github.event_name == 'pull_request' && matrix.python-version == '3.12'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+          STRICT_OUTCOME: ${{ steps.strict.outcome }}
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = Path("finite-type-i-cocycle-python-3.12.json")
+          lines = [
+              "## Finite Type-I cocycle CI diagnostic",
+              "",
+              f"- lint: `{os.environ['LINT_OUTCOME']}`",
+              f"- evidence generation: `{os.environ['SCAN_OUTCOME']}`",
+              f"- strict gate: `{os.environ['STRICT_OUTCOME']}`",
+              f"- regression tests: `{os.environ['TEST_OUTCOME']}`",
+          ]
+          if report.exists():
+              payload = json.loads(report.read_text())
+              summary = payload.get("validation_summary", {})
+              lines.extend([
+                  "",
+                  f"Overall: `{summary.get('overall_status')}`",
+                  "",
+                  "```json",
+                  json.dumps(summary, indent=2, sort_keys=True),
+                  "```",
+              ])
+          else:
+              lines.extend(["", "No JSON evidence file was produced."])
+          Path("cocycle-ci-comment.md").write_text("\n".join(lines) + "\n")
+          PY
+          gh pr comment "$PR_NUMBER" --body-file cocycle-ci-comment.md
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: finite-type-i-cocycle-python-${{ matrix.python-version }}
           path: finite-type-i-cocycle-python-${{ matrix.python-version }}.json
-          if-no-files-found: error
+          if-no-files-found: warn
+
+      - name: Enforce fail-closed outcome
+        if: always()
+        run: |
+          test "${{ steps.lint.outcome }}" = "success"
+          test "${{ steps.scan.outcome }}" = "success"
+          test "${{ steps.strict.outcome }}" = "success"
+          test "${{ steps.tests.outcome }}" = "success"
