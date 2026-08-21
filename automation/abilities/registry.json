@@ -190,6 +190,34 @@
       "status": "VERIFIED"
     },
     {
+      "id": "interop/hsi-proposal-ingress/v1",
+      "name": "HSI typed proposal-only ingress",
+      "kind": "proposal-ingress",
+      "source": {
+        "path": "src/centinal26/hsi_adapter.py",
+        "lineage_pr": 162,
+        "reconstruction_branch": "feature/hsi-proposal-ingress-v2"
+      },
+      "interface": {
+        "normalize": "centinal26.hsi_adapter.normalize_hsi_request",
+        "translate": "centinal26.hsi_adapter.to_frost_call_envelope",
+        "ingest": "centinal26.hsi_adapter.ingest_hsi_request"
+      },
+      "verification": {
+        "status": "PENDING_CURRENT_EXACT_HEAD_CI",
+        "tests": "tests/test_hsi_adapter.py",
+        "downstream_hsi_capabilities": "NOT_REGISTERED_BY_THIS_ABILITY"
+      },
+      "provenance": {
+        "origin": "current-main reconstruction of historical PR #162",
+        "authority_boundary": "typed proposal normalization only; no executor, capability registration, authorization source, arbitrary shell surface, or promotion authority"
+      },
+      "lifecycle": {
+        "removal": "mark SUPERSEDED in a versioned successor registry entry before removing adapter references"
+      },
+      "status": "EXPERIMENTAL"
+    },
+    {
       "id": "termux/repository-recovery/v1",
       "name": "Bounded Termux repository recovery",
       "kind": "remediation-tool",
