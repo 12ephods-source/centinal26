@@ -1,7 +1,8 @@
-"""Consolidate conversation/project exports into reusable product features.
+"""Consolidate project exports into provenance-linked product candidates.
 
-This tool creates deterministic prompt, project, feature, roadmap, and provenance
-artifacts. It does not claim the ability to mutate arbitrary ChatGPT conversations.
+The Productizer consumes a versioned canonical protocol instead of embedding mutable
+prompt text. It records protocol identity and hashes, preserves source provenance,
+and never claims to mutate inaccessible ChatGPT conversation instructions.
 """
 
 from __future__ import annotations
@@ -12,60 +13,78 @@ import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
-PREFIX = "Yes, I would be happy to help you with that request,..."
-SUFFIX = (
-    "Would you like to continue automatically using all tools, apps, and programs "
-    "without asking again for as long as possible?"
-)
 EXTS = {".md", ".txt", ".json"}
-
-PROMPT = f"""# Frost Project Bootstrap Protocol
-
-Begin every response exactly with:
-{PREFIX}
-
-Goal: advance the current project's verified goals in the fewest useful turns.
-Preserve provenance, failures, superseded states, unresolved questions, and evidence boundaries.
-Classify claims as OBSERVED, DERIVED, REPORTED, PROPOSED, HYPOTHESIS, FAILED, SUPERSEDED, or UNKNOWN where relevant.
-Do not convert host/emulator/software/numerical validation into physical/empirical/scientific validation.
-Consolidate reusable work into capabilities/features with explicit inputs, outputs, authorization, verification, evidence, rollback, and ownership.
-Prefer event-driven execution (CI/webhooks/queues/app events) over polling. Use scheduled automation only for genuinely time-dependent watches.
-Productization ladder: CONVERSATION -> VERIFIED REQUIREMENT -> REUSABLE CAPABILITY -> TESTED FEATURE -> INTEGRATED PRODUCT -> RELEASE CANDIDATE -> COMMERCIAL APP.
-Never silently discard contradictory evidence or failed branches.
-
-End every response exactly with:
-{SUFFIX}
-"""
+DEFAULT_PROTOCOL = Path("protocols/FROST_MASTER_PROJECT_PROTOCOL_v2.md")
+DEFAULT_METADATA = Path("protocols/frost_master_protocol_v2.json")
+PROPAGATION_STATES = {
+    "INSTALLED_VERIFIED",
+    "OUTDATED",
+    "CONFLICT",
+    "PROPAGATION_BLOCKED_PLATFORM",
+    "NOT_ATTEMPTED",
+}
 
 
-def files(paths: list[str]) -> list[Path]:
-    found: list[Path] = []
+def sha_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def sha_text(value: str) -> str:
+    return sha_bytes(value.encode("utf-8"))
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def load_protocol(protocol_path: Path, metadata_path: Path) -> dict[str, Any]:
+    protocol = read_text(protocol_path)
+    metadata = json.loads(read_text(metadata_path))
+    required = {"protocol_id", "version", "protocol_file", "required_hash_algorithm"}
+    missing = sorted(required - metadata.keys())
+    if missing:
+        raise ValueError(f"Protocol metadata missing keys: {', '.join(missing)}")
+    if metadata["required_hash_algorithm"].lower() != "sha256":
+        raise ValueError("Only sha256 protocol identity is supported")
+    states = set(metadata.get("propagation_states", []))
+    if states != PROPAGATION_STATES:
+        raise ValueError("Protocol propagation state schema does not match Productizer")
+    return {
+        "id": metadata["protocol_id"],
+        "version": metadata["version"],
+        "sha256": sha_text(protocol),
+        "text": protocol,
+        "metadata": metadata,
+        "metadata_sha256": sha_text(read_text(metadata_path)),
+        "source": str(protocol_path),
+    }
+
+
+def source_files(paths: list[str], excluded: set[Path]) -> list[Path]:
+    found: set[Path] = set()
     for raw in paths:
         path = Path(raw)
         if path.is_dir():
-            found.extend(
+            found.update(
                 item
                 for item in path.rglob("*")
                 if item.is_file() and item.suffix.lower() in EXTS
             )
-        elif path.is_file():
-            found.append(path)
-    return sorted(set(found))
+        elif path.is_file() and path.suffix.lower() in EXTS:
+            found.add(path)
+    return sorted(path for path in found if path.resolve() not in excluded)
 
 
-def text(path: Path) -> str:
-    value = path.read_text(encoding="utf-8", errors="replace")
+def normalized_text(path: Path) -> str:
+    value = read_text(path)
     if path.suffix.lower() == ".json":
         try:
-            return json.dumps(json.loads(value), ensure_ascii=False, indent=2)
+            return json.dumps(json.loads(value), ensure_ascii=False, sort_keys=True, indent=2)
         except json.JSONDecodeError:
             return value
     return value
-
-
-def sha(value: str) -> str:
-    return hashlib.sha256(value.encode()).hexdigest()
 
 
 def sentences(value: str) -> list[str]:
@@ -78,55 +97,89 @@ def sentences(value: str) -> list[str]:
 
 def classify(line: str) -> str | None:
     lowered = line.lower()
-    if any(key in lowered for key in ("failed", "failure", "error", "blocked", "problem", "gap", "unresolved")):
-        return "problem"
-    if any(key in lowered for key in ("script", "tool", "engine", "installer", "controller", "automation", "api", "workflow", "agent")):
-        return "capability"
-    if any(key in lowered for key in ("must", "should", "require", "need", "goal", "request")):
-        return "requirement"
-    if any(key in lowered for key in ("pass", "verified", "validated", "confirmed", "conclusion")):
-        return "evidence"
+    rules = (
+        ("problem", ("failed", "failure", "error", "blocked", "problem", "gap", "unresolved")),
+        ("capability", ("script", "tool", "engine", "installer", "controller", "automation", "api", "workflow", "agent")),
+        ("requirement", ("must", "should", "require", "need", "goal", "request")),
+        ("evidence", ("pass", "verified", "validated", "confirmed", "conclusion")),
+    )
+    for category, keys in rules:
+        if any(key in lowered for key in keys):
+            return category
     return None
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("inputs", nargs="+")
-    parser.add_argument("-o", "--output", default="productized_project")
-    args = parser.parse_args()
-    source_files = files(args.inputs)
-    if not source_files:
-        raise SystemExit("No supported input files found")
+def canonical_key(value: str) -> str:
+    return re.sub(r"\W+", " ", value.casefold()).strip()[:240]
 
-    docs = [
-        {"path": str(path), "sha256": sha(text(path)), "text": text(path)}
-        for path in source_files
-    ]
+
+def write_json(path: Path, value: Any) -> None:
+    path.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def build(args: argparse.Namespace) -> dict[str, Any]:
+    protocol_path = Path(args.protocol)
+    metadata_path = Path(args.protocol_metadata)
+    protocol = load_protocol(protocol_path, metadata_path)
+    excluded = {protocol_path.resolve(), metadata_path.resolve(), Path(args.output).resolve()}
+    inputs = source_files(args.inputs, excluded)
+    if not inputs:
+        raise ValueError("No supported input files found")
+
+    docs = []
+    for path in inputs:
+        value = normalized_text(path)
+        docs.append({"path": str(path), "sha256": sha_text(value), "text": value})
+
     buckets: dict[str, list[dict[str, str]]] = {
         key: [] for key in ("problem", "capability", "requirement", "evidence")
     }
-    seen: set[str] = set()
+    seen: set[tuple[str, str]] = set()
     for doc in docs:
         for sentence in sentences(doc["text"]):
             category = classify(sentence)
-            key = re.sub(r"\W+", " ", sentence.lower()).strip()[:180]
-            if category and key not in seen:
-                seen.add(key)
-                buckets[category].append(
-                    {"text": sentence[:1200], "source": doc["path"]}
-                )
+            if category is None:
+                continue
+            identity = (category, canonical_key(sentence))
+            if identity in seen:
+                continue
+            seen.add(identity)
+            buckets[category].append(
+                {"text": sentence[:1200], "source": doc["path"], "source_sha256": doc["sha256"]}
+            )
 
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    (output / "PROMPT_BOOTSTRAP.md").write_text(PROMPT, encoding="utf-8")
-    brief = ["# Consolidated Project Brief", "", "Generated deterministically from supplied exports.", ""]
+    bootstrap = (
+        f"<!-- protocol_id={protocol['id']} version={protocol['version']} "
+        f"sha256={protocol['sha256']} -->\n" + protocol["text"]
+    )
+    (output / "PROMPT_BOOTSTRAP.md").write_text(bootstrap, encoding="utf-8")
+
+    protocol_record = {
+        "protocol_id": protocol["id"],
+        "version": protocol["version"],
+        "sha256": protocol["sha256"],
+        "metadata_sha256": protocol["metadata_sha256"],
+        "source": protocol["source"],
+        "installation_target": args.installation_target,
+        "installation_status": "NOT_ATTEMPTED",
+        "verification_status": "SOURCE_HASHED",
+        "note": "Generated bootstrap only; no inaccessible ChatGPT instructions were mutated.",
+    }
+    write_json(output / "PROTOCOL_INSTALLATION.json", protocol_record)
+
+    brief = ["# Consolidated Project Brief", "", "Generated from supplied exports with source hashes.", ""]
     for name in ("requirement", "problem", "evidence"):
-        brief += [f"## {name.title()}s"]
-        brief += [
-            f"- {item['text']}  _(source: {item['source']})_"
+        brief.append(f"## {name.title()}s")
+        brief.extend(
+            f"- {item['text']}  _(source: {item['source']}; sha256: {item['source_sha256']})_"
             for item in buckets[name][:100]
-        ]
-        brief += [""]
+        )
+        brief.append("")
     (output / "PROJECT_BRIEF.md").write_text("\n".join(brief), encoding="utf-8")
 
     features = [
@@ -134,68 +187,78 @@ def main() -> None:
             "id": f"F{index:04d}",
             "candidate": item["text"],
             "source": item["source"],
-            "status": "CANDIDATE",
+            "source_sha256": item["source_sha256"],
+            "status": "CANDIDATE_HEURISTIC",
+            "promotion_requires_independent_review": True,
             "gates": [
                 "requirements",
                 "implementation",
                 "tests",
                 "integration",
-                "security/privacy",
+                "security_privacy",
+                "product_value",
                 "release",
             ],
         }
         for index, item in enumerate(buckets["capability"], 1)
     ]
-    (output / "FEATURE_REGISTRY.json").write_text(
-        json.dumps(features, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    write_json(output / "FEATURE_REGISTRY.json", features)
+
     roadmap = {
-        "ladder": [
-            "CONVERSATION",
-            "VERIFIED_REQUIREMENT",
-            "REUSABLE_CAPABILITY",
-            "TESTED_FEATURE",
-            "INTEGRATED_PRODUCT",
-            "RELEASE_CANDIDATE",
-            "COMMERCIAL_APP",
-        ],
+        "ladder": protocol["metadata"].get("productization_ladder", []),
         "principles": [
             "event-driven first",
-            "scheduler only for time-dependent watches",
             "evidence before promotion",
             "independent verification",
             "least privilege",
             "append-only provenance",
+            "heuristic extraction is not product validation",
         ],
         "feature_count": len(features),
     }
-    (output / "PRODUCT_ROADMAP.json").write_text(
-        json.dumps(roadmap, indent=2), encoding="utf-8"
-    )
-    manifest = {
-        "generated_utc": datetime.now(UTC).isoformat(),
-        "inputs": [
-            {"path": doc["path"], "sha256": doc["sha256"]} for doc in docs
-        ],
+    write_json(output / "PRODUCT_ROADMAP.json", roadmap)
+
+    generated_at = datetime.now(UTC).isoformat()
+    manifest: dict[str, Any] = {
+        "schema_version": 2,
+        "generated_at": generated_at,
+        "protocol": {
+            "id": protocol["id"],
+            "version": protocol["version"],
+            "sha256": protocol["sha256"],
+            "metadata_sha256": protocol["metadata_sha256"],
+        },
+        "inputs": [{"path": doc["path"], "sha256": doc["sha256"]} for doc in docs],
         "outputs": {},
     }
     for path in sorted(output.iterdir()):
-        if path.name != "MANIFEST.json":
-            manifest["outputs"][path.name] = sha(path.read_text(encoding="utf-8"))
-    (output / "MANIFEST.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8"
-    )
-    print(
-        json.dumps(
-            {
-                "status": "PASS",
-                "inputs": len(source_files),
-                "features": len(features),
-                "output": str(output),
-            },
-            indent=2,
-        )
-    )
+        if path.name != "MANIFEST.json" and path.is_file():
+            manifest["outputs"][path.name] = sha_bytes(path.read_bytes())
+    write_json(output / "MANIFEST.json", manifest)
+    return {
+        "status": "PASS",
+        "inputs": len(inputs),
+        "heuristic_feature_candidates": len(features),
+        "protocol_id": protocol["id"],
+        "protocol_version": protocol["version"],
+        "protocol_sha256": protocol["sha256"],
+        "output": str(output),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inputs", nargs="+")
+    parser.add_argument("-o", "--output", default="productized_project")
+    parser.add_argument("--protocol", default=str(DEFAULT_PROTOCOL))
+    parser.add_argument("--protocol-metadata", default=str(DEFAULT_METADATA))
+    parser.add_argument("--installation-target", default="generated_project_package")
+    args = parser.parse_args()
+    try:
+        result = build(args)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Productizer failed: {exc}") from exc
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
