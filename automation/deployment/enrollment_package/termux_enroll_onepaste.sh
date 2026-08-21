@@ -3,13 +3,30 @@ set -euo pipefail
 
 REPO_URL="https://github.com/12ephods-source/centinal26.git"
 WORKDIR="${HOME}/centinal26"
+TERMUX_KEY_COMMIT="625e1c90f5110842ec5d2e1fda677abdb5edfbed"
+TERMUX_KEY_SHA256="21c385d5a30107453bd60582d64e2f6e5f5ce11e340ac05e57f943f9c0235420"
+TERMUX_KEY_URL="https://raw.githubusercontent.com/termux/termux-packages/${TERMUX_KEY_COMMIT}/packages/termux-keyring/termux-autobuilds.gpg"
 DEVICE_ID="${1:-$(getprop ro.serialno 2>/dev/null || true)}"
 if [ -z "${DEVICE_ID}" ] || [ "${DEVICE_ID}" = "unknown" ]; then
   DEVICE_ID="$(getprop ro.product.manufacturer 2>/dev/null || echo android)-$(getprop ro.product.model 2>/dev/null || echo device)-$(date -u +%Y%m%dT%H%M%SZ)"
 fi
 
-pkg update -y
-pkg install -y git python coreutils
+repair_termux_keyring() {
+  command -v curl >/dev/null 2>&1 || return 1
+  local keydir="${PREFIX}/etc/apt/trusted.gpg.d"
+  local tmp="${TMPDIR:-${PREFIX}/tmp}/termux-autobuilds.gpg"
+  mkdir -p "${keydir}" "$(dirname "${tmp}")"
+  curl -fsSL "${TERMUX_KEY_URL}" -o "${tmp}"
+  printf '%s  %s\n' "${TERMUX_KEY_SHA256}" "${tmp}" | sha256sum -c -
+  install -m 600 "${tmp}" "${keydir}/termux-autobuilds.gpg"
+}
+
+if ! pkg update -y; then
+  printf '\nInitial Termux package update failed; attempting pinned keyring recovery.\n' >&2
+  repair_termux_keyring
+  pkg update -y
+fi
+pkg install -y git python coreutils curl
 
 if [ -d "${WORKDIR}/.git" ]; then
   git -C "${WORKDIR}" fetch --all --prune
