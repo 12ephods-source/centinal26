@@ -1,0 +1,49 @@
+name: FToE Protected-I SO6 Role-Separation Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_so6_role_separated_candidate_v14.json'
+      - 'scripts/ftoe_so10_protected_i_so6_role_separation_gate.py'
+      - 'tests/test_ftoe_so10_protected_i_so6_role_separation_gate.py'
+      - '.github/workflows/ftoe-protected-i-so6-role-separation.yml'
+
+jobs:
+  role-separation-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify exact PR head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install focused test dependency
+        run: python -m pip install pytest
+      - name: Derive structural reference verdict
+        run: |
+          mkdir -p artifacts/ftoe-protected-i-so6-role-separation
+          python scripts/ftoe_so10_protected_i_so6_role_separation_gate.py \
+            --candidate physics/ftoe/protected_I_so6_role_separated_candidate_v14.json \
+            --json artifacts/ftoe-protected-i-so6-role-separation/verdict.json \
+            | tee artifacts/ftoe-protected-i-so6-role-separation/stdout.log
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_ftoe_so10_protected_i_so6_role_separation_gate.py
+      - name: Record environment and hashes
+        run: |
+          python --version > artifacts/ftoe-protected-i-so6-role-separation/environment.txt
+          git rev-parse HEAD >> artifacts/ftoe-protected-i-so6-role-separation/environment.txt
+          sha256sum \
+            physics/ftoe/protected_I_so6_role_separated_candidate_v14.json \
+            scripts/ftoe_so10_protected_i_so6_role_separation_gate.py \
+            tests/test_ftoe_so10_protected_i_so6_role_separation_gate.py \
+            artifacts/ftoe-protected-i-so6-role-separation/verdict.json \
+            artifacts/ftoe-protected-i-so6-role-separation/stdout.log \
+            artifacts/ftoe-protected-i-so6-role-separation/environment.txt \
+            > artifacts/ftoe-protected-i-so6-role-separation/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-so6-role-separation-evidence
+          path: artifacts/ftoe-protected-i-so6-role-separation/
