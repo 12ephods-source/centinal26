@@ -24,7 +24,8 @@ centinal26-fleet = "frost_core.fleet_cli:main"
 frost-export-recovery = "frost_core.export_recovery:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["centinal26*", "frost_core*", "automation*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
