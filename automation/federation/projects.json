@@ -1,42 +1,204 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "portfolio_id": "frost_unified_portfolio",
+  "portfolio_name": "Frost Unified Project Portfolio",
   "canonical_control_plane": "12ephods-source/centinal26",
+  "canonical_goal_ledger": "automation/account_goals/GOALS.json",
+  "combination_model": "federated_modules_with_single_goal_ownership",
+  "shared_components": [
+    {
+      "id": "C01",
+      "name": "Frost Core",
+      "owner_project_id": "automation",
+      "purpose": "canonical intent, state, orchestration, lifecycle and project graph"
+    },
+    {
+      "id": "C02",
+      "name": "Guardian",
+      "owner_project_id": "cybersecurity",
+      "purpose": "defensive observation, security evidence and bounded recovery"
+    },
+    {
+      "id": "C03",
+      "name": "Provenance & Recovery Engine",
+      "owner_project_id": "provenance_recovery",
+      "purpose": "immutable provenance, reconstruction, canonical storage and recovery evidence"
+    },
+    {
+      "id": "C04",
+      "name": "Epistemic Guard",
+      "owner_project_id": "epistemic_guard",
+      "purpose": "verification, contradiction handling, completion semantics and adversarial criticism"
+    },
+    {
+      "id": "C05",
+      "name": "Frost Agent Fabric",
+      "owner_project_id": "agent_fabric",
+      "purpose": "typed capability gateway, bounded execution and device/provider adapters"
+    }
+  ],
   "projects": [
     {
       "id": "automation",
-      "role": "control_plane",
+      "name": "Automation OS / Centinal26",
+      "role": "portfolio_control_plane",
       "trust_domain": "mutation_and_orchestration",
       "state_authority": "github:12ephods-source/centinal26",
-      "depends_on": []
+      "depends_on": [],
+      "component_ids": ["C01"],
+      "goal_ids": ["G01", "G02", "G20", "G21", "G23", "G27", "G29", "G30"],
+      "aliases": ["Centinal26", "Frost Automation OS Ω", "Frost Master Autopilot", "Automation Platform", "SKY NET"],
+      "related_legacy_names": ["Frost Forge", "AICCEP", "AICCEP-OS", "ATIGP"]
+    },
+    {
+      "id": "agent_fabric",
+      "name": "Frost Agent Fabric",
+      "role": "shared_execution_fabric",
+      "trust_domain": "bounded_capability_execution",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation"],
+      "component_ids": ["C05"],
+      "goal_ids": ["G03", "G25", "G26"],
+      "aliases": ["Frost Agent Bridge", "Frost Callable Fabric", "frost-call/1.x"],
+      "related_legacy_names": ["frost_exec", "frost-mobile", "MacroDroid→Termux", "FAIR/Hermes", "Discord/Hermes", "Hermes runtime"]
     },
     {
       "id": "cybersecurity",
+      "name": "Frost Sentinel / Guardian",
       "role": "evidence_and_defense",
       "trust_domain": "observe_verify_evidence",
       "state_authority": "federated",
-      "depends_on": ["automation"]
+      "depends_on": ["automation", "agent_fabric"],
+      "component_ids": ["C02", "C03", "C04"],
+      "goal_ids": ["G05", "G06"],
+      "aliases": ["Frost Sentinel", "Guardian", "GuardianLLM", "Sentinel Security Control Center"],
+      "related_legacy_names": ["RealitySentinel", "RealityAudit", "S.A.B.E."]
     },
     {
-      "id": "physics",
-      "role": "research_and_validation",
-      "trust_domain": "analysis_and_empirical_validation",
-      "state_authority": "federated",
-      "depends_on": ["automation"]
-    },
-    {
-      "id": "openquestrpg",
-      "role": "application_project",
-      "trust_domain": "bounded_product_execution",
-      "state_authority": "federated",
-      "depends_on": ["automation"]
+      "id": "provenance_recovery",
+      "name": "Provenance & Recovery Engine",
+      "role": "shared_evidence_and_recovery",
+      "trust_domain": "immutable_evidence_and_reconstruction",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation"],
+      "component_ids": ["C03"],
+      "goal_ids": ["G07", "G17", "G19"],
+      "aliases": ["Recovery/export reconstruction system", "Cross-Device Project Recovery Scanner"],
+      "related_legacy_names": []
     },
     {
       "id": "dedupe_organizer",
-      "role": "shared_capability",
+      "name": "Dedupe/Organizer",
+      "role": "shared_canonicalization_capability",
       "trust_domain": "canonicalization_and_provenance",
       "state_authority": "github:12ephods-source/centinal26",
-      "depends_on": ["automation"]
+      "depends_on": ["automation", "provenance_recovery"],
+      "component_ids": ["C03", "C04"],
+      "goal_ids": ["G08"],
+      "aliases": ["Dedupe Organizer", "Dedupe Organizer v2"],
+      "related_legacy_names": []
+    },
+    {
+      "id": "aaard",
+      "name": "AAARD / Second Brain",
+      "role": "research_and_development",
+      "trust_domain": "bounded_research_execution",
+      "state_authority": "federated",
+      "depends_on": ["automation", "provenance_recovery", "epistemic_guard"],
+      "component_ids": ["C01", "C03", "C04", "C05"],
+      "goal_ids": ["G04"],
+      "aliases": ["AAARD", "Autonomous AI Agent for Research and Development", "Second Brain"],
+      "related_legacy_names": ["Frost Learning OS"]
+    },
+    {
+      "id": "conversation_intelligence",
+      "name": "Conversation Compass / Account Intelligence",
+      "role": "conversation_reconciliation_and_routing",
+      "trust_domain": "read_extract_route",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation", "dedupe_organizer", "provenance_recovery"],
+      "component_ids": ["C01", "C03", "C04"],
+      "goal_ids": ["G09"],
+      "aliases": ["Conversation Compass", "Conversation and account intelligence", "ChatGPT Conversation Reconciliation and Intent Automation"],
+      "related_legacy_names": ["Automation OS — Project Reconstruction, Agent Federation, Learning OS, and Conversation Archival"]
+    },
+    {
+      "id": "epistemic_guard",
+      "name": "Epistemic Guard",
+      "role": "shared_verification_and_criticism",
+      "trust_domain": "verify_classify_criticize",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation", "provenance_recovery"],
+      "component_ids": ["C04"],
+      "goal_ids": ["G10", "G11", "G22", "G24"],
+      "aliases": ["Independent verification service", "Mistake-prevention registry"],
+      "related_legacy_names": []
+    },
+    {
+      "id": "physics",
+      "name": "Physics Research",
+      "role": "research_and_validation",
+      "trust_domain": "analysis_and_empirical_validation",
+      "state_authority": "federated",
+      "depends_on": ["automation", "aaard", "epistemic_guard", "provenance_recovery"],
+      "component_ids": ["C01", "C03", "C04", "C05"],
+      "goal_ids": ["G12", "G13", "G14"],
+      "aliases": ["FToE", "IRToE", "DRMonism", "Scientific Autocycle", "FToE Phase I"],
+      "related_legacy_names": ["Regulated KMS–Modular–Cocycle Falsification Harness"]
+    },
+    {
+      "id": "test_a_theory",
+      "name": "Test-a-Theory",
+      "role": "scientific_product",
+      "trust_domain": "bounded_model_falsification",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation", "physics", "epistemic_guard", "provenance_recovery"],
+      "component_ids": ["C01", "C03", "C04"],
+      "goal_ids": ["G15"],
+      "aliases": ["Test-a-Theory product"],
+      "related_legacy_names": []
+    },
+    {
+      "id": "openquestrpg",
+      "name": "OpenQuestRPG",
+      "role": "application_project",
+      "trust_domain": "bounded_product_execution",
+      "state_authority": "federated",
+      "depends_on": ["automation", "provenance_recovery", "dedupe_organizer"],
+      "component_ids": ["C01", "C03", "C04", "C05"],
+      "goal_ids": ["G16"],
+      "aliases": ["OpenQuest RPG", "Dragonia: Rift Over Kairn"],
+      "related_legacy_names": ["D&DRPG: Icewind Dale and the Kern Kraken"]
+    },
+    {
+      "id": "creative_canon",
+      "name": "Creative Canon Engine",
+      "role": "creative_state_engine",
+      "trust_domain": "branchable_canon_and_provenance",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation", "dedupe_organizer", "provenance_recovery"],
+      "component_ids": ["C01", "C03", "C04"],
+      "goal_ids": ["G18"],
+      "aliases": ["Creative Canon Engine v1"],
+      "related_legacy_names": []
+    },
+    {
+      "id": "productization",
+      "name": "Productizer / Economic Value Engine",
+      "role": "portfolio_productization",
+      "trust_domain": "evidence_gated_product_and_value",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation", "epistemic_guard", "provenance_recovery"],
+      "component_ids": ["C01", "C03", "C04", "C05"],
+      "goal_ids": ["G28"],
+      "aliases": ["Productizer", "Real economic-value and productization engine"],
+      "related_legacy_names": []
     }
+  ],
+  "external_surfaces": [
+    {"name": "GitHub", "role": "durable_source_of_truth", "authority": "canonical_engineering_state"},
+    {"name": "Android/Termux", "role": "physical_execution_plane", "authority": "device_origin_evidence_only"},
+    {"name": "Base44", "role": "coordination_or_mirror", "authority": "noncanonical"}
   ],
   "shared_invariants": [
     "no_information_bearing_transformation_without_provenance",
@@ -44,6 +206,8 @@
     "host_evidence_never_substitutes_for_physical_device_evidence",
     "signatures_and_hashes_attest_integrity_not_semantic_truth",
     "projections_are_rebuildable_not_authoritative",
-    "completion_claims_are_release_scoped_and_requalifiable"
+    "completion_claims_are_release_scoped_and_requalifiable",
+    "every_account_goal_has_exactly_one_canonical_project_owner",
+    "legacy_names_resolve_to_one_canonical_owner_without_recreating_duplicate_state"
   ]
 }

@@ -1,9 +1,48 @@
-# Cross-Project Federation
+# Frost Unified Cross-Project Federation
 
-This subsystem connects project state without merging trust domains.
+This subsystem is the canonical portfolio map for the user's projects.
 
-Automation/Centinal26 is the canonical orchestration control plane. Cybersecurity remains evidence/defense scoped, Physics remains research/validation scoped, OpenQuestRPG remains bounded product execution, and Dedupe/Organizer remains the shared canonicalization/provenance capability.
+The projects are **combined as a federation**, not flattened into one trust domain. `12ephods-source/centinal26` is the canonical orchestration and engineering state authority. Every account goal in `automation/account_goals/GOALS.json` has exactly one canonical owning project family, while projects may depend on shared components and exchange typed evidence/state edges.
 
-Projects exchange only typed state/evidence relationships through the shared registry and invariants. A connected project does not inherit mutation authority from another project merely because a dependency edge exists.
+## Canonical shared components
 
-The registry is validated fail-closed by `project_federation.py` and regression tests. Unknown dependencies, duplicate IDs, missing trust domains/state authorities, or loss of required evidence/provenance invariants invalidate federation.
+- **C01 Frost Core** — intent, canonical state, orchestration, lifecycle, project graph.
+- **C02 Guardian** — defensive observation, cybersecurity evidence, bounded recovery.
+- **C03 Provenance & Recovery Engine** — immutable provenance, reconstruction, canonical storage, recovery evidence.
+- **C04 Epistemic Guard** — verification, contradiction handling, completion semantics, adversarial criticism.
+- **C05 Frost Agent Fabric** — typed capability gateway, bounded execution, device/provider adapters.
+
+## Canonical project families
+
+The registry currently unifies these project families under the shared control plane:
+
+- Automation OS / Centinal26
+- Frost Agent Fabric
+- Frost Sentinel / Guardian
+- Provenance & Recovery Engine
+- Dedupe/Organizer
+- AAARD / Second Brain
+- Conversation Compass / Account Intelligence
+- Epistemic Guard
+- Physics Research
+- Test-a-Theory
+- OpenQuestRPG
+- Creative Canon Engine
+- Productizer / Economic Value Engine
+
+Historical names, predecessor programs, and compatibility surfaces are mapped to canonical owners in `projects.json`; they do not create parallel sources of truth.
+
+## Combination invariants
+
+Unification never implies authority inheritance. Physics retains scientific/empirical gates; Cybersecurity retains evidence/defense boundaries; Android/Termux remains the only source of authentic physical-device execution evidence; projections remain rebuildable and non-authoritative; signatures/hashes attest integrity rather than truth; and detection remains separate from mutation.
+
+The registry is fail-closed. `project_federation.py` rejects duplicate or unknown projects/components, dependency cycles, ambiguous aliases, missing trust/state authority, missing mandatory invariants, and any account goal that has zero or multiple canonical project owners.
+
+Run:
+
+```bash
+python automation/federation/project_federation.py
+python -m pytest -q tests/test_project_federation.py
+```
+
+A passing federation result establishes structural portfolio consistency only. It does not promote scientific truth, forensic attribution, physical-device validation, deployment, or production readiness.
