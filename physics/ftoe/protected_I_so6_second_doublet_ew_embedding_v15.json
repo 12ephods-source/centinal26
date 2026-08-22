@@ -1,0 +1,30 @@
+{
+  "schema": "FTOE-PROTECTED-I-SO6-SECOND-DOUBLET-EW-EMBEDDING-v1.5",
+  "scientific_status": "REVIEW",
+  "parent_head": "0dbefff119005505ed733190ed29a19a70079dd2",
+  "parent_result": "ROLE_SEPARATED_REFERENCE_MECHANISM_STRUCTURALLY_SPECIFIED",
+  "primary_source": "arXiv:1105.5403",
+  "repository_dependency": {
+    "pr_131_result": "I is the Y=+1/2 complex SU(2)_L doublet from a (2,2) of SO(4)",
+    "pr_281_result": "SO(6)/(SO(4)xSO(2)) supplies two light pNGB electroweak doublets with separable roles"
+  },
+  "derivation": {
+    "broken_representation": "(4,2) under SO(4)xSO(2)",
+    "each_SO4_4": "(2,2) under SU(2)_L x SU(2)_R",
+    "hypercharge_rule": "Y=T_R^3+X with X=0 for the scalar candidate",
+    "decomposition": "2_(+1/2) + 2_(-1/2)",
+    "second_doublet_positive_hypercharge_component": "SU(2)_L doublet, Y=+1/2",
+    "matches_frozen_low_energy_I_gauge_quantum_numbers": true
+  },
+  "scientific_transition": "identify_second_doublet_with_I_quantum_numbers: NOT_DERIVED -> LOW_ENERGY_EW_GAUGE_QUANTUM_NUMBERS_COMPATIBLE_REFERENCE_ONLY",
+  "mandatory_gates": {
+    "low_energy_EW_gauge_quantum_numbers": "DERIVED_COMPATIBLE_REFERENCE_ONLY",
+    "mu_I_13p5_TeV_mass_matching": "NOT_DERIVED",
+    "SO10_embedding_or_sequestering": "NOT_DERIVED",
+    "portal_suppression": "NOT_DERIVED",
+    "representation_specific_radiative_mass": "NOT_DERIVED",
+    "precision_and_partner_constraints": "NOT_DERIVED"
+  },
+  "scope_limit": "This gate establishes only low-energy SU(2)_L x U(1)_Y compatibility of the role-separated second pNGB doublet with the previously frozen protected-I electroweak quantum numbers. It does not establish SO(10) compatibility, the protected-I mass, radiative stability, portal suppression, precision viability, or publication readiness.",
+  "no_retuning": true
+}
