@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
+from collections import defaultdict, deque
 from pathlib import Path
 
 
 def b(v): return v is True
+
 
 def eval_guard(t,c):
     r=[]
@@ -34,10 +38,6 @@ def eval_guard(t,c):
 
 
 if __name__ == '__main__':
-    import argparse
-    import hashlib
-    from collections import defaultdict, deque
-
     def canon(o): return json.dumps(o,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()
     def verify_event(e):
         x=dict(e); got=x.pop('event_id',None); return got=='evt_sha256_'+hashlib.sha256(canon(x)).hexdigest()
