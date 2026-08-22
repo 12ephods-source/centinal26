@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "pair_id": "frost-cybersecurity-automation",
+  "project_owner": "Cybersecurity / Frost Sentinel",
+  "automation_layer": "Automation / Centinal26",
+  "principles": [
+    "Automation may orchestrate bounded Cybersecurity work but may not promote inference to primary evidence.",
+    "Cybersecurity primary evidence is never mirrored into Automation by the pair updater.",
+    "Git updates are clean-worktree and fast-forward-only.",
+    "Both projects are preflighted before either is promoted.",
+    "Partial paired Git promotion is rolled back when safe.",
+    "Every update emits a receipt and SHA-256 manifest.",
+    "Host validation is not physical Android validation."
+  ],
+  "protected_cybersecurity_paths": [
+    "evidence", "primary", "acquired", "vault", "cases", "originals", "forensic_images"
+  ],
+  "shared_export_names": ["shared", "exports/cybersecurity_shared", "exports/automation_shared"],
+  "default_update_interval_seconds": 3600
+}
