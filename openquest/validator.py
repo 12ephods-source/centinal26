@@ -6,11 +6,20 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
+from openquest.rules import get_profile, level_one_hit_points
+
 
 class GateStatus(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     UNRESOLVED = "UNRESOLVED"
+
+
+@dataclass(frozen=True)
+class GateResult:
+    gate: str
+    status: GateStatus
+    detail: str
 
 
 @dataclass(frozen=True)
@@ -51,13 +60,6 @@ SRD_51 = SourceRecord(
     attribution="Dungeons & Dragons System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC BY 4.0.",
     publication_status="PUBLISHABLE",
 )
-
-
-@dataclass(frozen=True)
-class GateResult:
-    gate: str
-    status: GateStatus
-    detail: str
 
 
 @dataclass
@@ -151,12 +153,60 @@ def validate_character(character: Character, campaign_override: str | None = Non
     if character.armor_class is not None and not 1 <= character.armor_class <= 40:
         results.append(GateResult("VALIDATION_GATE", GateStatus.FAIL, "Armor class outside supported range"))
 
+    _validate_rules_data(character, results)
+
     if not any(r.gate == "CHARACTER_GATE" and r.status == GateStatus.FAIL for r in results):
         results.append(GateResult("CHARACTER_GATE", GateStatus.PASS, "Required level-1 character fields are complete"))
     if not any(r.gate == "VALIDATION_GATE" and r.status == GateStatus.FAIL for r in results):
         results.append(GateResult("VALIDATION_GATE", GateStatus.PASS, "Deterministic structural validation passed"))
+    if not any(r.gate == "RULE_DATA_GATE" and r.status == GateStatus.FAIL for r in results):
+        results.append(GateResult("RULE_DATA_GATE", GateStatus.PASS, "Selections match the versioned SRD profile"))
 
     return results
+
+
+def _validate_rules_data(character: Character, results: list[GateResult]) -> None:
+    profile = get_profile(character.ruleset)
+
+    if character.class_name not in profile.classes:
+        results.append(GateResult("RULE_DATA_GATE", GateStatus.FAIL, f"Unsupported class for {profile.ruleset}: {character.class_name}"))
+        return
+    if character.species not in profile.species:
+        results.append(GateResult("RULE_DATA_GATE", GateStatus.FAIL, f"Unsupported species for {profile.ruleset}: {character.species}"))
+    if character.background not in profile.backgrounds:
+        results.append(GateResult("RULE_DATA_GATE", GateStatus.FAIL, f"Unsupported background for {profile.ruleset}: {character.background}"))
+
+    class_rule = profile.classes[character.class_name]
+    skills = set(character.skill_proficiencies)
+    if len(character.skill_proficiencies) != class_rule.skill_choices:
+        results.append(
+            GateResult(
+                "RULE_DATA_GATE",
+                GateStatus.FAIL,
+                f"{class_rule.name} requires {class_rule.skill_choices} class skill choices",
+            )
+        )
+    invalid_skills = skills - class_rule.allowed_skills
+    if invalid_skills:
+        results.append(
+            GateResult(
+                "RULE_DATA_GATE",
+                GateStatus.FAIL,
+                f"Invalid {class_rule.name} class skills: {', '.join(sorted(invalid_skills))}",
+            )
+        )
+
+    constitution = character.ability_scores.get("con")
+    if constitution is not None and character.hit_points is not None:
+        expected_hp = level_one_hit_points(class_rule, constitution)
+        if character.hit_points != expected_hp:
+            results.append(
+                GateResult(
+                    "RULE_DATA_GATE",
+                    GateStatus.FAIL,
+                    f"Level-1 {class_rule.name} hit points must be {expected_hp}",
+                )
+            )
 
 
 def _duplicates(values: Iterable[str]) -> set[str]:
@@ -170,10 +220,12 @@ def _duplicates(values: Iterable[str]) -> set[str]:
 
 
 def export_character(character: Character, results: list[GateResult]) -> str:
+    profile = get_profile(character.ruleset)
     payload = {
         "schema": "openquest.character.v1",
         "character": asdict(character),
         "ruleset": character.ruleset,
+        "rule_profile": {"ruleset": profile.ruleset, "source_id": profile.source_id},
         "source": asdict(SRD_521 if character.ruleset == "srd-5.2.1" else SRD_51),
         "gates": [
             {"gate": r.gate, "status": r.status.value, "detail": r.detail}
