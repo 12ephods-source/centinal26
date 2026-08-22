@@ -1,0 +1,24 @@
+{
+  "diagnostics": {
+    "max_fd_relative_error_vs_divided_difference": 8.287293573925111e-08,
+    "minimum_negative_control_relative_separation": 0.28608610152499364,
+    "n_cut_6_to_7_refinement_relative_change": 1.0670393852362665e-13,
+    "n_cut_7_relative_error_vs_infinite_analytic": 1.4132971989884323e-16,
+    "negative_control_relative_separations": {
+      "frequency_blind_stress_fixture": 0.28608610152499364,
+      "missing_factor_2": 0.49999999999999983,
+      "wrong_beta_half": 0.49999999999999983
+    },
+    "stress_fixture_correct_relative_error": 1.9077019046053734e-15,
+    "stress_fixture_frequency_blind_relative_separation": 0.28608610152499364
+  },
+  "environment": "assistant_execution_container",
+  "numpy": "2.3.5",
+  "python": "3.13.5",
+  "result_sha256": "8039e3a97a4b34ba85762e32aa9f16e1c9abfad228bd817dd0990c05d760313e",
+  "schema": "frost.phase1.bkm-independent-oracle.local-validation.v1",
+  "scope": "finite Type-I numerical oracle only; no continuum/type-factor/scientific promotion",
+  "source_sha256": "53c6de44867defc4085374bceaabd6a7f1a00ce2aeed6a88bbaad4be59234fb8",
+  "status": "PASS_INDEPENDENT_BKM_ORACLE",
+  "tests": "6/6 PASS"
+}
