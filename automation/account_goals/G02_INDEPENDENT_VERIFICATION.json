@@ -1,0 +1,61 @@
+{
+  "schema": "frost-account-goal-verification/v1",
+  "goal_id": "G02",
+  "goal_name": "Persistent Autopilot and self-recovery",
+  "prior_state": "CI_VERIFIED",
+  "verified_state": "INDEPENDENTLY_VERIFIED",
+  "verified_at": "2026-08-22T19:23:00Z",
+  "source": {
+    "repository": "12ephods-source/centinal26",
+    "verification_pr": 414,
+    "verification_head": "8f865ca37686ef7503e42275687e0e5b6f875d66",
+    "verification_merge_commit": "9590c24fe8e5ac8d521da4959731e0f78e592caa",
+    "verifier_path": "scripts/verify_g02_persistent_autopilot.py",
+    "workflow_path": ".github/workflows/persistent-autopilot-independent-verifier.yml",
+    "workflow_run_id": 32593518477,
+    "artifact_id": 9480946121,
+    "artifact_name": "g02-independent-verification",
+    "artifact_sha256": "99d1e1881dc64178449820ecef1f9f04850289d782b602829d890f73ef3f2154"
+  },
+  "verdict": "VERIFIED",
+  "criteria": {
+    "restart_safe_persistence": "PASS",
+    "self_refresh": "PASS",
+    "bounded_recovery": "PASS",
+    "deduplicated_controllers": "PASS",
+    "trusted_source_fail_closed": "PASS",
+    "non_termux_fail_closed": "PASS",
+    "shell_syntax": "PASS",
+    "trusted_source_binding": "PASS",
+    "controller_pid_dedup": "PASS",
+    "boot_watchdog_dedup": "PASS",
+    "source_refresh": "PASS",
+    "physical_gate_preserved": "PASS",
+    "unsafe_authority_scan": "PASS"
+  },
+  "repository_qualification": {
+    "validate": "PASS",
+    "CI": "PASS",
+    "automation-gates": "PASS",
+    "federation-gates": "PASS",
+    "Mature Product Qualification": "PASS",
+    "Governance Enforcement": "PASS",
+    "Release Engineering Gate": "PASS",
+    "Project Federation": "PASS",
+    "Project Goal Reconciler": "PASS",
+    "Persistent Autopilot Independent Verifier": "PASS"
+  },
+  "repaired_defect": {
+    "component": "deploy/termux/FROST_ANDROID_WORKER_SELF_RECOVERY_v1.0.sh",
+    "failure_class": "BASH_IF_STATUS_LOSS",
+    "before": "recover_once read $? after a failed if statement and could collapse an install_or_repair_worker failure to process success",
+    "after": "recover_once captures the failing condition status in the else branch and preserves AUTH_REQUIRED, SOURCE_UNTRUSTED, and RECOVERY_FAILED exit semantics",
+    "regression_test": "tests/test_android_worker_self_recovery.py::test_recovery_preserves_untrusted_source_failure_code"
+  },
+  "limits": [
+    "does not establish Android device execution",
+    "does not establish reboot persistence on a physical handset",
+    "does not establish Base44 credential availability",
+    "does not establish DEVICE_VALIDATED or PERSISTENT_VALIDATED"
+  ]
+}
