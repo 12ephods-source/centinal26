@@ -1,0 +1,46 @@
+{
+  "schema": "ds2.local-net-modular-convergence-contract.v1",
+  "continuum_target": {
+    "model": "free massless scalar / Weyl net in the source-anchored dS2 line",
+    "factor_type": "hyperfinite Type III_1 local factor target fixed independently by PR 389",
+    "finite_regulators_do_not_determine_factor_type": true
+  },
+  "prerequisites": [
+    "PASS_DS2_CONTINUUM_TYPE_III1_SOURCE_ANCHOR",
+    "PASS_TWO_AXIS_BOUNDED_WEYL_CORRELATOR_BRIDGE"
+  ],
+  "necessary_numerical_subgate": {
+    "name": "DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
+    "requirements": [
+      "freeze nested compact localization regions before execution",
+      "freeze a finite phase-space smearing family before execution",
+      "refine the continuum mode reference independently",
+      "refine the lattice regulator on a predeclared size sequence",
+      "compare modular-flow Weyl two-point functions on a frozen modular-parameter grid",
+      "verify thermal modular-state invariance inside each regulator",
+      "preserve support membership under the nested-region bookkeeping"
+    ],
+    "promotion_ceiling": "necessary bounded diagnostic only; never operator-topology proof"
+  },
+  "full_operator_topology_gate": {
+    "status": "OPEN_NOT_ESTABLISHED_BY_THIS_CANDIDATE",
+    "must_eventually_supply": [
+      "a common GNS/standard-subspace comparison framework or explicitly defined inter-regulator isometries",
+      "a dense local domain/core whose approximation maps are specified",
+      "strong or weak convergence criterion for bounded local observables on that domain",
+      "Tomita/modular operator or modular-unitary convergence criterion with domains controlled",
+      "uniform-on-compact modular-parameter control for the declared dense test domain",
+      "isotony and locality compatibility of the approximation maps",
+      "negative controls capable of rejecting correlation-only or finite-matrix false promotion"
+    ]
+  },
+  "forbidden_promotions": [
+    "full local Weyl net convergence from finitely many correlators",
+    "strong or weak von Neumann algebra convergence from matrix-size refinement alone",
+    "Type III_1 classification from finite-dimensional numerics",
+    "Type II_infinity or Type II_1 gravity from the free-field bridge",
+    "Hollands-Wald canonical-energy equality",
+    "Einstein dynamics or nonlinear reconstruction"
+  ],
+  "next_gate_if_numerical_subgate_passes": "COMMON_GNS_OR_STANDARD_SUBSPACE_OPERATOR_TOPOLOGY_CONVERGENCE"
+}
