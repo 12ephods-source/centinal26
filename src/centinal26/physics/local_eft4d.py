@@ -1,94 +1,107 @@
-"""Restricted 4D local-EFT domain plugin for the theory kernel.
-
-Initial scope: real scalar extensions around a GR+SM baseline. The plugin is a
-benchmark domain, not the definition of all fundamental theories.
-"""
+"""Restricted scalar EFT benchmark domain for the theory-testing kernel."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from enum import Enum
 
-from .theory_kernel import CandidateRecord, PropositionEvidence, TestStatus, TheoryCore
+from .theory_kernel import CandidateRecord, ProofObligation, TheoryCore
+
+
+class MetricConvention(str, Enum):
+    MOSTLY_PLUS = "-+++"
+    MOSTLY_MINUS = "+---"
 
 
 @dataclass(frozen=True)
-class ScalarOperator:
+class Parameter:
     name: str
     mass_dimension: int
-    coefficient_dimension: int
-    real: bool = True
-    gauge_invariant: bool = True
+    positive: bool | None = None
+
+    def canonical_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ScalarTerm:
+    name: str
+    chi_power: int
+    derivatives: int
+    coefficient: Parameter
+    coefficient_sign: int
+    curvature_power: int = 0
 
     @property
-    def total_dimension(self) -> int:
-        return self.mass_dimension + self.coefficient_dimension
+    def operator_dimension(self) -> int:
+        # In 4D a canonically normalized real scalar has mass dimension 1;
+        # each derivative has dimension 1 and R has dimension 2.
+        return self.chi_power + self.derivatives + 2 * self.curvature_power
+
+    @property
+    def term_dimension(self) -> int:
+        return self.operator_dimension + self.coefficient.mass_dimension
+
+    @property
+    def z2_even(self) -> bool:
+        return self.chi_power % 2 == 0
+
+    def canonical_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "chi_power": self.chi_power,
+            "derivatives": self.derivatives,
+            "coefficient": self.coefficient.canonical_dict(),
+            "coefficient_sign": self.coefficient_sign,
+            "curvature_power": self.curvature_power,
+        }
 
 
-def make_scalar_candidate(*, operators: list[ScalarOperator], z2: bool = False, cutoff: str = "Lambda") -> CandidateRecord:
+@dataclass(frozen=True)
+class LocalScalarEFT4D:
+    terms: tuple[ScalarTerm, ...]
+    z2: bool = False
+    cutoff: Parameter = Parameter("Lambda", 1, True)
+    metric: MetricConvention = MetricConvention.MOSTLY_PLUS
+
+    def canonical_dict(self) -> dict[str, object]:
+        terms = sorted((t.canonical_dict() for t in self.terms), key=lambda x: str(x))
+        return {
+            "domain": "LocalScalarEFT4D/v2",
+            "terms": terms,
+            "z2": self.z2,
+            "cutoff": self.cutoff.canonical_dict(),
+            "metric": self.metric.value,
+        }
+
+    @property
+    def input_hash(self) -> str:
+        import hashlib
+        import json
+
+        raw = json.dumps(self.canonical_dict(), sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def make_scalar_candidate(model: LocalScalarEFT4D) -> CandidateRecord:
     theory = TheoryCore(
-        hypothesis_space="LocalEFT4D/scalar-v1",
-        fundamental_objects=("metric", "SM_fields", "real_scalar_chi"),
-        declared_symmetries=("diffeomorphism", "Lorentz", "SM_gauge") + (("Z2_chi",) if z2 else ()),
-        dynamics_kind="local_action",
-        assumptions=("4D", "local_EFT", "natural_units"),
-        regime_of_validity=f"E << {cutoff}",
+        hypothesis_space="LocalScalarEFT4D/v2",
+        fundamental_objects=("real_scalar_chi",),
+        declared_symmetries=(("Z2_chi",) if model.z2 else ()),
+        dynamics_kind="local_scalar_effective_action_overlay",
+        assumptions=("4D", "local_EFT", "natural_units", f"metric={model.metric.value}"),
+        regime_of_validity=f"E << {model.cutoff.name}",
         unification_claim="COUPLED_SECTORS_ONLY",
     )
-    payload = {
-        "cutoff": cutoff,
-        "z2": z2,
-        "operators": [o.__dict__ for o in operators],
-    }
+    scope = "LocalScalarEFT4D/v2 declared action"
+    obligations = [
+        ProofObligation("well_formed", scope, ("structural_check",)),
+        ProofObligation("dimensions_consistent", scope, ("derived_structural_check",)),
+        ProofObligation("declared_symmetries_respected", scope, ("derived_symmetry_check",)),
+        ProofObligation("kinetic_sign_consistent", scope, ("derived_dynamical_check",)),
+    ]
     return CandidateRecord(
         theory=theory,
-        domain_payload=payload,
-        obligations=["well_formed", "dimensions_consistent", "reality_consistent"],
-        provenance={"domain_plugin": "LocalEFT4D/scalar-v1"},
+        domain_model=model,
+        obligations=obligations,
+        provenance={"domain_plugin": "LocalScalarEFT4D/v2"},
     )
-
-
-def evaluate_basic_consistency(candidate: CandidateRecord) -> list[PropositionEvidence]:
-    ops = [ScalarOperator(**x) for x in candidate.domain_payload.get("operators", [])]
-    evidence: list[PropositionEvidence] = []
-    evidence.append(
-        PropositionEvidence(
-            proposition="well_formed",
-            scope="LocalEFT4D/scalar-v1 payload",
-            assumptions=("operator metadata is complete",),
-            method="schema-level domain checks",
-            status=TestStatus.PASS if ops else TestStatus.FAIL,
-            evidence_type="symbolic_structure",
-            validator_id="local_eft4d.basic",
-            validator_version="1.0",
-            details={"operator_count": len(ops)},
-        )
-    )
-    bad_dim = [o.name for o in ops if o.total_dimension != 4]
-    evidence.append(
-        PropositionEvidence(
-            proposition="dimensions_consistent",
-            scope="declared 4D Lagrangian terms only",
-            assumptions=("hbar=c=1", "Lagrangian density has mass dimension 4"),
-            method="operator_dimension + coefficient_dimension == 4",
-            status=TestStatus.PASS if not bad_dim else TestStatus.FAIL,
-            evidence_type="analytic_check",
-            validator_id="local_eft4d.dimensions",
-            validator_version="1.0",
-            details={"failing_operators": bad_dim},
-        )
-    )
-    nonreal = [o.name for o in ops if not o.real]
-    evidence.append(
-        PropositionEvidence(
-            proposition="reality_consistent",
-            scope="declared operator metadata only",
-            assumptions=("real=True denotes a Hermitian/reality-qualified operator in this restricted plugin",),
-            method="metadata gate",
-            status=TestStatus.PASS if not nonreal else TestStatus.FAIL,
-            evidence_type="symbolic_check",
-            validator_id="local_eft4d.reality",
-            validator_version="1.0",
-            details={"failing_operators": nonreal},
-        )
-    )
-    candidate.evidence.extend(evidence)
-    return evidence
