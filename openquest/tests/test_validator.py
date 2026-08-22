@@ -1,22 +1,28 @@
 import json
 import unittest
 
-from openquest.validator import Character, GateStatus, export_character, resolve_ruleset, validate_character
+from openquest.validator import (
+    Character,
+    GateStatus,
+    export_character,
+    resolve_ruleset,
+    validate_character,
+)
 
 
 class ValidatorTests(unittest.TestCase):
     def make_character(self, **overrides):
-        base = dict(
-            name="Test Hero",
-            ability_scores={"str": 15, "dex": 14, "con": 13, "int": 12, "wis": 10, "cha": 8},
-            class_name="Fighter",
-            species="Human",
-            background="Soldier",
-            proficiencies=["light armor", "medium armor", "shields"],
-            skill_proficiencies=["athletics", "perception"],
-            hit_points=11,
-            armor_class=16,
-        )
+        base = {
+            "name": "Test Hero",
+            "ability_scores": {"str": 15, "dex": 14, "con": 13, "int": 12, "wis": 10, "cha": 8},
+            "class_name": "Fighter",
+            "species": "Human",
+            "background": "Soldier",
+            "proficiencies": ["light armor", "medium armor", "shields"],
+            "skill_proficiencies": ["athletics", "perception"],
+            "hit_points": 11,
+            "armor_class": 16,
+        }
         base.update(overrides)
         return Character(**base)
 
