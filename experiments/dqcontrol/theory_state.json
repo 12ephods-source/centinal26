@@ -1,0 +1,36 @@
+{
+  "project": "Frost Deterministic Quantum Control Program",
+  "version": "0.1.0",
+  "scope": "Equation-level candidate models for ultra-low-error quantum control; cosmology, dark matter, inflation, and deep-space sectors are excluded from this branch.",
+  "epistemic_rule": "Software PASS does not imply new physics. Novelty requires outperforming matched conventional baselines and surviving prior-art review.",
+  "fixed_seed": 260822,
+  "candidates": {
+    "A": {
+      "name": "Deterministic Latent-Bath Cancellation",
+      "status": "ADMISSIBLE_ENGINEERING_MODEL",
+      "kill": "FAIL_DISTINCT_METHOD if <=5% improvement over matched AR/Kalman-class baseline; FAIL_USEFUL if no improvement over no-control in high-structure regime"
+    },
+    "B": {
+      "name": "Lyapunov Attractor Logical Stabilization",
+      "status": "ADMISSIBLE_CONTROL_MODEL_PRIOR_ART_OVERLAP",
+      "kill": "FAIL_STABILITY if local perturbations fail to contract; NOT_NOVEL if no separable prediction beyond reservoir/autonomous QEC"
+    },
+    "C": {
+      "name": "Predictive-Attractor Hybrid",
+      "status": "COMPOSITE_ENGINEERING_HYPOTHESIS",
+      "kill": "FAIL_SYNERGY if hybrid does not exceed the best component by 5%"
+    }
+  },
+  "benchmark": {
+    "dt": 0.01,
+    "steps": 12000,
+    "latency_steps": 10,
+    "regimes": {"R0": 0.0, "R1": 0.5, "R2": 0.8},
+    "gates": {
+      "A_useful_R2_Sphi_min": 1.20,
+      "A_distinct_vs_baseline_relative_gain_min": 0.05,
+      "B_local_contraction_ratio_max": 0.50,
+      "C_synergy_vs_best_component_min": 0.05
+    }
+  }
+}
