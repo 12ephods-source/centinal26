@@ -1,1 +1,0 @@
-Final repair intent: update `skynet_core.py` to use paired preflight + fast-forward promotion + safe rollback. This file should be removed after the verified core update lands.
