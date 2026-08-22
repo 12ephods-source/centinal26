@@ -4,12 +4,16 @@ on:
   push:
     paths:
       - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'automation/persistent/**'
       - 'tests/test_persistent_autopilot_v2.sh'
+      - 'tests/test_persistent_kernel.py'
       - '.github/workflows/persistent-autopilot-v2.yml'
   pull_request:
     paths:
       - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'automation/persistent/**'
       - 'tests/test_persistent_autopilot_v2.sh'
+      - 'tests/test_persistent_kernel.py'
       - '.github/workflows/persistent-autopilot-v2.yml'
 
 permissions:
@@ -20,5 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Syntax and deterministic self-test
+      - name: Shell syntax and deterministic installer self-test
         run: bash tests/test_persistent_autopilot_v2.sh
+      - name: Transactional kernel adversarial tests
+        run: python3 tests/test_persistent_kernel.py
+      - name: Kernel syntax
+        run: python3 -m py_compile automation/persistent/kernel.py
