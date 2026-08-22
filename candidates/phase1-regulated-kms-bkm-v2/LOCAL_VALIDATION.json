@@ -1,0 +1,15 @@
+{
+  "environment": "assistant_sandbox",
+  "status": "PASS_REGULATED_KMS_MODULAR_COCYCLE_BKM_BASELINE",
+  "strict_numerical_gates": "6/6 PASS",
+  "bkm": {
+    "n_cut_6_max_relative_error": 1.3525254194319297e-12,
+    "epsilon_0.05_to_0.025_refinement_relative_change": 8.574474106262819e-13,
+    "n_cut_5_to_6_refinement_relative_change": 4.9888825805412064e-11
+  },
+  "finite_type_I_cocycle": {
+    "maximum_algebraic_residual": 1.324685263466422e-15,
+    "maximum_generator_relative_error": 1.4227082644900508e-10
+  },
+  "scope": "local sandbox evidence only; GitHub CI remains independently required"
+}
