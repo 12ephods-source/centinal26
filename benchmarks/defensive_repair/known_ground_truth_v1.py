@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
 """Known-ground-truth defensive repair benchmark.
 
 This is an intentionally defective local fixture, not a vulnerability scanner.
 It tests Centinal26 promotion semantics: reproduce -> repair -> regression ->
 independent verification.
 """
-from dataclasses import dataclass
+
 import hashlib
+from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class Case:
     value: str
     expected: str
+
 
 CASES = (
     Case("alpha", "ALPHA"),
@@ -19,18 +21,23 @@ CASES = (
     Case("", ""),
 )
 
+
 def defective_normalize(value: str) -> str:
     """Known defect: lowercases when the contract requires uppercase."""
     return value.lower()
 
+
 def candidate_repair(value: str) -> str:
     return value.upper()
+
 
 def reproduce() -> bool:
     return any(defective_normalize(c.value) != c.expected for c in CASES)
 
+
 def regression() -> bool:
     return all(candidate_repair(c.value) == c.expected for c in CASES)
+
 
 def independent_verify() -> dict:
     # Verifier consumes only fixture contract + candidate behavior; it does not
@@ -45,6 +52,7 @@ def independent_verify() -> dict:
         "independently_verified": reproduced and repaired,
         "evidence_sha256": hashlib.sha256(payload.encode()).hexdigest(),
     }
+
 
 if __name__ == "__main__":
     result = independent_verify()
