@@ -10,7 +10,7 @@
     "PASS_TWO_AXIS_BOUNDED_WEYL_CORRELATOR_BRIDGE"
   ],
   "necessary_numerical_subgate": {
-    "name": "DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
+    "name": "FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
     "requirements": [
       "freeze nested compact localization regions before execution",
       "freeze a finite phase-space smearing family before execution",
@@ -18,9 +18,10 @@
       "refine the lattice regulator on a predeclared size sequence",
       "compare modular-flow Weyl two-point functions on a frozen modular-parameter grid",
       "verify thermal modular-state invariance inside each regulator",
-      "preserve support membership under the nested-region bookkeeping"
+      "preserve support membership under the nested-region bookkeeping",
+      "include a deliberate wrong-modular-direction control and require its rejection"
     ],
-    "promotion_ceiling": "necessary bounded diagnostic only; never operator-topology proof"
+    "promotion_ceiling": "necessary bounded finite-family diagnostic only; never a density or operator-topology proof"
   },
   "full_operator_topology_gate": {
     "status": "OPEN_NOT_ESTABLISHED_BY_THIS_CANDIDATE",
@@ -35,6 +36,7 @@
     ]
   },
   "forbidden_promotions": [
+    "density of a finite smearing family without a separate density theorem",
     "full local Weyl net convergence from finitely many correlators",
     "strong or weak von Neumann algebra convergence from matrix-size refinement alone",
     "Type III_1 classification from finite-dimensional numerics",
