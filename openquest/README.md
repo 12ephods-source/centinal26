@@ -1,6 +1,6 @@
 # OpenQuest Character Creator + Rules Validator
 
-Status: vertical-slice implementation.
+Status: bounded character-creator vertical slice.
 
 ## Canon policy
 
@@ -25,11 +25,21 @@ Every rule record must carry source/version/license/provenance metadata. A build
 
 No copyrighted source text is embedded by this slice. The engine stores compact rule facts and provenance metadata only.
 
-## Vertical-slice finish line
+## Construction workflow
 
-`source gate -> canon gate -> level-1 character model -> deterministic validator -> JSON export -> tests`
+`openquest.builder` turns the rules profile into legal construction options before a character exists. The current bounded slice exposes the supported class/species/background choices, requires an exact standard-array assignment, checks class-skill choices, derives level-1 HP and class proficiencies, then sends the constructed character through the independent validator.
 
-Out of scope for this slice: combat, AI DM, world generation, multiplayer, marketplace, adventure generation, and full campaign simulation.
+This creates two fail-closed layers:
+
+`BUILD_GATE -> SOURCE_GATE -> CANON_GATE -> CHARACTER_GATE -> VALIDATION_GATE -> RULE_DATA_GATE`
+
+The builder currently supports the intentionally narrow Fighter/Human/Soldier level-1 path in both versioned profiles. Unsupported choices fail instead of being guessed or silently mixed across rules generations.
+
+## Current finish line
+
+`versioned source -> generated legal options -> bounded construction -> derived mechanics -> independent validation -> deterministic JSON export -> CI`
+
+Out of scope: combat, spells, feats, equipment simulation, AI DM, world generation, multiplayer, marketplace, adventure generation, and full campaign simulation.
 
 Run:
 
