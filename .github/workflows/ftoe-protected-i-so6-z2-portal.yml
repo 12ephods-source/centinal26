@@ -25,6 +25,12 @@ jobs:
           echo "expected_head=$expected"
           echo "actual_head=$actual"
           test "$actual" = "$expected"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -e ".[dev]"
       - name: Run deterministic scientific gate
         run: python scripts/ftoe_protected_i_so6_z2_portal_gate.py
       - name: Run focused tests
