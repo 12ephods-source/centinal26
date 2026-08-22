@@ -29,9 +29,24 @@
     "openquest_pr": 390,
     "observed_failure": "Initial canonical-closure head failed Ruff EXE001 because a shebang was present on a non-executable file.",
     "verified_repair": "Remove the unnecessary shebang; the subsequent exact-head required workflow matrix passed.",
+    "pattern_qualification_pr": 423,
+    "pattern_qualification_head": "f4df38fdea52720569a4c7cf0ea62399002daa48",
+    "pattern_merge_commit": "3406d2402d52b0e2b488b9e2609e772d21521cf8",
+    "workflow_matrix": {
+      "Project Goal Reconciler": "PASS",
+      "Project Federation": "PASS",
+      "validate": "PASS",
+      "Mature Product Qualification": "PASS",
+      "Release Engineering Gate": "PASS",
+      "federation-gates": "PASS",
+      "Governance Enforcement": "PASS",
+      "Automation Validation": "PASS",
+      "automation-gates": "PASS",
+      "CI": "PASS"
+    },
     "scope": "lint/integration hygiene only; no OpenQuest semantic or physical-gate change"
   },
   "reuse_policy": "On future EXE001 recurrence, search this registry first and apply the decision table before designing a bespoke repair.",
   "risk": "LOW",
-  "status": "PROPOSED_PENDING_EXACT_HEAD_QUALIFICATION"
+  "status": "INDEPENDENTLY_QUALIFIED_EXACT_HEAD"
 }
