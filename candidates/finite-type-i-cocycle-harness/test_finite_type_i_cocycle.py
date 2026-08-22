@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import math
 import unittest
 
-import numpy as np
-
 import finite_type_i_cocycle as coc
+import numpy as np
 
 
 class SpectralStateTests(unittest.TestCase):
