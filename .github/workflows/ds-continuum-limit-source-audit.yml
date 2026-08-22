@@ -33,7 +33,10 @@ jobs:
         run: |
           python --version > ds_continuum_environment.txt
           git --version >> ds_continuum_environment.txt
-          sha256sum candidates/ds-continuum-limit-audit/* ds_continuum_limit_audit.json ds_continuum_environment.txt > ds_continuum_sha256.txt
+          find candidates/ds-continuum-limit-audit -maxdepth 1 -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > ds_continuum_sha256.txt
+          sha256sum ds_continuum_limit_audit.json ds_continuum_environment.txt >> ds_continuum_sha256.txt
       - uses: actions/upload-artifact@v4
         with:
           name: ds-continuum-limit-source-audit-${{ matrix.python-version }}
