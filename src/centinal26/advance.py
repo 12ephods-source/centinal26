@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .chat_bridge import register_chat_bridge_capabilities
 from .core import AuditLog, Grant
 from .event_state import (
     TERMINAL_TASK_STATES,
@@ -73,6 +74,7 @@ def build_advance_engine(home: Path) -> AutomatedEngine:
             verifier_independent=True,
         )
     )
+    register_chat_bridge_capabilities(runtime, home)
     return runtime
 
 
