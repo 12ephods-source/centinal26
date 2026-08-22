@@ -72,7 +72,7 @@ boot_probe=FAIL
 
 if pass_or_fail self_test.txt run_cli self-test; then self_test=PASS; fi
 if pass_or_fail sqlite_integrity.txt run_cli doctor; then sqlite_integrity=PASS; fi
-if pass_or_fail audit_verify.txt run_cli verify-audit; then audit_verify=PASS; fi
+if pass_or_fail audit_verify.txt run_cli audit-verify; then audit_verify=PASS; fi
 
 probe_dir="${OUT_ROOT}/AAARD_DEVICE_PROBE_${TS}"
 mkdir -p "$probe_dir"
