@@ -1,1 +1,0 @@
-This marker is superseded by the verified core commit. It exists only because an intermediate repair step was attempted after a stale-SHA write rejection.
