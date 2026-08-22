@@ -29,3 +29,22 @@ jobs:
         run: python -m openquest.validator > /tmp/openquest-character.json
       - name: Verify export is valid JSON
         run: python -m json.tool /tmp/openquest-character.json > /dev/null
+      - name: Exercise CLI options contract
+        run: python -m openquest.cli options > /tmp/openquest-options.json
+      - name: Exercise CLI create-validate-export contract
+        run: >-
+          python -m openquest.cli create
+          --name 'CI Hero'
+          --class Fighter
+          --species Human
+          --background Soldier
+          --skill athletics
+          --skill perception
+          --abilities '{"str":15,"dex":14,"con":13,"int":12,"wis":10,"cha":8}'
+          --output /tmp/openquest-cli-character.json
+          > /tmp/openquest-cli-stdout.json
+      - name: Verify CLI outputs
+        run: |
+          python -m json.tool /tmp/openquest-options.json > /dev/null
+          python -m json.tool /tmp/openquest-cli-character.json > /dev/null
+          cmp /tmp/openquest-cli-character.json /tmp/openquest-cli-stdout.json
