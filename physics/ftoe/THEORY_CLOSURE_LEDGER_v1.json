@@ -25,6 +25,10 @@
     {
       "path": "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
       "git_blob_sha": "434efabda9205183c43c182de52ae402e247bf34"
+    },
+    {
+      "path": "physics/ftoe/FTOE_MUI_LAMBDAX_BETA_PROVENANCE_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "d9b408c081f73ba24777dadfb2b1ff87f229cf18"
     }
   ],
   "closure_items": [
@@ -47,26 +51,39 @@
       "id": "protected-i-uv-matching",
       "priority": 2,
       "severity": "CRITICAL",
-      "status": "REVIEW",
-      "execution_state": "READY",
+      "status": "BLOCKED",
+      "execution_state": "MISSING_SOURCE",
       "evidence_paths": [
         "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
         "scripts/ftoe_protected_i_uv_matching_source_audit_v20.py"
       ],
       "question": "Can protected-I role separation be matched explicitly to the SO(10)-breaking heavy scalar sector without assuming missing portals?",
-      "smallest_next_action": "Construct or source-audit an explicit versioned interaction/matching Lagrangian retaining distinct SM-Higgs and protected-I electroweak roles and specifying couplings/sequestering to 210_H, 45_H, 126_H and 10_C,H."
+      "required_evidence": [
+        "explicit versioned interaction/matching Lagrangian retaining distinct SM-Higgs and protected-I electroweak roles",
+        "explicit couplings or sequestering to 210_H, 45_H, 126_H and 10_C,H",
+        "source-derived symmetry/representation assignments sufficient to decide which heavy portals exist"
+      ],
+      "smallest_next_action": "Recover a primary-source matching/interactions Lagrangian, or introduce a separately versioned DEVELOPMENT matching hypothesis derived from explicit symmetry assumptions; do not set unspecified portals to zero or order one."
     },
     {
       "id": "muI-lambdaX-beta-provenance",
       "priority": 3,
       "severity": "CRITICAL",
-      "status": "REVIEW",
-      "execution_state": "READY",
+      "status": "FAIL",
+      "execution_state": "MISSING_SOURCE",
       "evidence_paths": [
-        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json"
+        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+        "physics/ftoe/FTOE_MUI_LAMBDAX_BETA_PROVENANCE_RECONCILIATION_2026-08-22.json"
       ],
       "question": "Are mu_I, Lambda_X and beta independently derived, or is an intermediate scale functioning as an external input?",
-      "smallest_next_action": "Close the recorded mandatory gate 'derive mu_I independently before propagating mu_I -> Lambda_X -> beta' and preserve a parameter-status ledger by theory level."
+      "scientific_verdict": "BETA_1E_MINUS_15_IS_AN_INPUT_EQUIVALENT_TO_MU_I_9P54_TEV_NOT_A_PARAMETER_FREE_PREDICTION",
+      "required_evidence": [
+        "explicit SO(10)-breaking scalar potential sufficient to derive mu_I",
+        "representation couplings and relevant heavy VEV matching",
+        "vacuum/matching conditions",
+        "RG evolution and threshold prescription from the high-scale sector to mu_I"
+      ],
+      "smallest_next_action": "Do not propagate the quoted 9.54 TeV or beta=1e-15 as predictions. Recover or construct a versioned explicit SO(10)-breaking interaction basis and derive mu_I independently before recomputing Lambda_X, beta and m_I."
     },
     {
       "id": "complete-scalar-action",
