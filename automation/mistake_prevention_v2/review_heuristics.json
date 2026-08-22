@@ -1,0 +1,40 @@
+{
+  "schema_version": "2.0.0",
+  "review_heuristics": [
+    {
+      "heuristic_id": "H001",
+      "name": "AMBIGUOUS_INTENT_REVIEW",
+      "trigger": "Ambiguous language could authorize multiple materially different actions.",
+      "check": "Prefer reversible preparation; identify materially different interpretations before irreversible/external mutation.",
+      "blocking": false
+    },
+    {
+      "heuristic_id": "H002",
+      "name": "CAUSAL_ATTRIBUTION_REVIEW",
+      "trigger": "A cause/actor is inferred from indirect or incomplete evidence.",
+      "check": "State alternatives and distinguish observation from attribution; require direct evidence for strong attribution.",
+      "blocking": false
+    },
+    {
+      "heuristic_id": "H003",
+      "name": "SCOPE_PROMOTION_REVIEW",
+      "trigger": "A local/partial result is being generalized to system-wide, production, physical, or scientific validity.",
+      "check": "Preserve qualifiers and validation domain; do not promote scope without matching evidence.",
+      "blocking": false
+    },
+    {
+      "heuristic_id": "H004",
+      "name": "SOURCE_SUFFICIENCY_REVIEW",
+      "trigger": "A source-derived answer includes a claim not directly supported by the requested sources.",
+      "check": "Mark unsupported material UNKNOWN/INFERENCE or omit it; do not silently fill gaps.",
+      "blocking": false
+    },
+    {
+      "heuristic_id": "H005",
+      "name": "AGREEMENT_BIAS_REVIEW",
+      "trigger": "User preference or prior framing could bias factual conclusion.",
+      "check": "Prefer evidence over agreement; surface contrary evidence when material.",
+      "blocking": false
+    }
+  ]
+}
