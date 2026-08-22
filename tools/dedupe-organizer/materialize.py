@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import base64, gzip, hashlib
+import base64
+import gzip
+import hashlib
 
 ROOT = Path(__file__).resolve().parent
 PAYLOAD = ROOT / "payload"
