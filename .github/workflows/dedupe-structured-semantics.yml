@@ -1,0 +1,33 @@
+name: Dedupe Structured Semantics
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/structured_semantic_dedupe.py'
+      - 'tests/test_structured_semantic_dedupe.py'
+      - 'scripts/canonical_store.py'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'docs/DEDUPE_STRUCTURED_SEMANTICS.md'
+      - '.github/workflows/dedupe-structured-semantics.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/structured_semantic_dedupe.py'
+      - 'tests/test_structured_semantic_dedupe.py'
+      - 'scripts/canonical_store.py'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'docs/DEDUPE_STRUCTURED_SEMANTICS.md'
+      - '.github/workflows/dedupe-structured-semantics.yml'
+
+jobs:
+  structured-semantics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Run structured semantic regression tests
+        run: python -m pytest -q tests/test_structured_semantic_dedupe.py
