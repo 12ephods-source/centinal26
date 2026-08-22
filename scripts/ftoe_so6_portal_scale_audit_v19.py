@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
 import json
-import math
 from pathlib import Path
 
 CONTRACT = Path("research/ftoe/protected_i/so6_portal_scale_audit_v19.json")
