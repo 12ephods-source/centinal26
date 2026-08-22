@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -83,7 +84,7 @@ def local_dimension_scan() -> dict[str, object]:
         "d32_worst_error": worst_errors[-1],
         "improvement_ratio_d2_to_d32": worst_errors[0] / worst_errors[-1],
         "strictly_decreasing_worst_error": all(
-            later < earlier for earlier, later in zip(worst_errors, worst_errors[1:])
+            later < earlier for earlier, later in pairwise(worst_errors)
         ),
     }
 
@@ -193,7 +194,7 @@ def spatial_mode_scan() -> dict[str, object]:
         "errors": errors,
         "relative_errors": relative_errors,
         "strictly_decreasing_error": all(
-            later < earlier for earlier, later in zip(errors, errors[1:])
+            later < earlier for earlier, later in pairwise(errors)
         ),
         "observed_convergence_order": observed_order,
         "weyl_rows": weyl_rows,
