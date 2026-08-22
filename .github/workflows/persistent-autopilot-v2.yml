@@ -7,6 +7,7 @@ on:
       - 'automation/persistent/**'
       - 'tests/test_persistent_autopilot_v2.sh'
       - 'tests/test_persistent_kernel.py'
+      - 'tests/test_persistent_security.py'
       - '.github/workflows/persistent-autopilot-v2.yml'
   pull_request:
     paths:
@@ -14,6 +15,7 @@ on:
       - 'automation/persistent/**'
       - 'tests/test_persistent_autopilot_v2.sh'
       - 'tests/test_persistent_kernel.py'
+      - 'tests/test_persistent_security.py'
       - '.github/workflows/persistent-autopilot-v2.yml'
 
 permissions:
@@ -28,11 +30,13 @@ jobs:
         run: bash tests/test_persistent_autopilot_v2.sh
       - name: Transactional kernel adversarial tests
         run: python3 tests/test_persistent_kernel.py
+      - name: Security-policy adversarial tests
+        run: python3 tests/test_persistent_security.py
       - name: Python syntax and lint
         run: |
-          python3 -m py_compile automation/persistent/kernel.py tests/test_persistent_kernel.py
+          python3 -m py_compile automation/persistent/kernel.py automation/persistent/security.py tests/test_persistent_kernel.py tests/test_persistent_security.py
           pip install ruff
-          ruff check automation/persistent/kernel.py tests/test_persistent_kernel.py
+          ruff check automation/persistent/kernel.py automation/persistent/security.py tests/test_persistent_kernel.py tests/test_persistent_security.py
       - name: Canonical migration matrix
         run: |
           python3 - <<'PY'
