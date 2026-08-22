@@ -1,0 +1,39 @@
+name: Mistake Prevention V2
+
+on:
+  pull_request:
+    paths:
+      - "automation/mistake_prevention_v2/**"
+      - ".github/workflows/mistake-prevention-v2.yml"
+  push:
+    branches: [main]
+    paths:
+      - "automation/mistake_prevention_v2/**"
+      - ".github/workflows/mistake-prevention-v2.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify content-hashed event store and rebuild projection
+        run: python automation/mistake_prevention_v2/mistake_prevention_v2.py project automation/mistake_prevention_v2
+      - name: Holdout/adversarial guard evaluation
+        run: python automation/mistake_prevention_v2/mistake_prevention_v2.py evaluate automation/mistake_prevention_v2
+      - name: Fail if a historical event batch is modified or deleted in a PR
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          bad="$(git diff --name-status "origin/${{ github.base_ref }}"...HEAD -- automation/mistake_prevention_v2/events | awk '$1 != "A" {print}')"
+          if [ -n "$bad" ]; then
+            echo "Historical event batches are append-only; only new event files may be added."
+            echo "$bad"
+            exit 1
+          fi
