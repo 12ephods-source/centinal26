@@ -1,6 +1,5 @@
 import subprocess
 
-
 SCRIPT = "tools/dedupe-organizer/device_zero_precondition.sh"
 PIN = "18941855035ec0bc463a40283e4893a724a7dae2"
 RUNTIME_SHA = "ac8560aa3cb077ca100f204604f2f98ea10bb03c9b7dc6b17c6c10e07d41404f"
