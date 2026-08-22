@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "classification": "SOURCE_ANCHORED_CONTINUUM_TARGET",
+  "scope": "two-dimensional de Sitter canonical free scalar local observable net",
+  "finite_dependency": {
+    "reconciliation_pr": 327,
+    "status": "PASS_DS2_DIAMOND_REGULATED_RELATIONAL_BASELINE",
+    "scope_boundary": "finite Type-I geometry-bearing surrogate only"
+  },
+  "control_dependency": {
+    "pr": 387,
+    "status": "PASS_CONTINUUM_CONSTRUCTION_CONTROL_ONLY",
+    "scope_boundary": "Powers/ITPFI Type-III_lambda construction control; not physical de Sitter"
+  },
+  "primary_source_claims": [
+    {
+      "id": "DS2_FREE_LOCAL_TYPE_III1",
+      "citation": "J. C. A. Barata, C. D. Jaekel, J. Mund, The P(phi)_2 Model on de Sitter Space, Memoirs of the American Mathematical Society 281 (2023), no. 1389, Proposition 8.2.3(iii)",
+      "claim": "For each open interval I on the time-zero circle, the canonical free-field local observable algebra R(I) is *-isomorphic to the unique hyperfinite factor of Type III_1.",
+      "direct_text_location": "Chapter 8, Proposition 8.2.3(iii)",
+      "verified_from_source_text": true
+    },
+    {
+      "id": "DS_GEODESIC_KMS",
+      "citation": "C. D. Jaekel, J. Mund, Canonical Interacting Quantum Fields on Two-Dimensional de Sitter Space, Physics Letters B 772 (2017) 208-213",
+      "claim": "The de Sitter vacuum is Lorentz invariant and satisfies the geodesic KMS condition; the same condition is the thermal/modular equilibrium anchor used for the free theory.",
+      "direct_text_location": "discussion of the vacuum and geodesic KMS property",
+      "verified_from_source_text": true
+    }
+  ],
+  "established_target": {
+    "local_factor_type": "HYPERFINITE_TYPE_III_1",
+    "model": "canonical free scalar field on dS2",
+    "equilibrium_anchor": "geodesic KMS vacuum",
+    "target_role": "continuum AQFT object against which the finite dS2 regulator must be related"
+  },
+  "verdict": "PASS_DS2_CONTINUUM_TYPE_III1_SOURCE_ANCHOR",
+  "scientific_scope": "source-level identification of the continuum free-field target only",
+  "unresolved_bridge": [
+    "no proved or numerically qualified approximation map from the finite oscillator/matrix regulator to the continuum Weyl/local von Neumann algebra",
+    "finite-dimensional oscillator cutoffs cannot exactly realize the CCR and therefore cannot embed as exact CCR representations",
+    "the local-dimension cutoff and the field-mode/spatial cutoff require separate convergence controls",
+    "no convergence of local nets in a declared operator topology has yet been established",
+    "no Type-II crossed-product or gravitational conclusion follows from this source anchor"
+  ],
+  "forbidden_inferences": [
+    "do not promote the finite Type-I regulator itself to Type III_1",
+    "do not infer Type III_1 merely from low-mode residual convergence",
+    "do not extend this dS2 free-field proposition to arbitrary dimensions or interacting models without separate sources",
+    "do not infer gravity, Einstein equations, or observer gluing"
+  ],
+  "next_gate": "TWO_AXIS_WEYL_BRIDGE_LOCAL_DIMENSION_THEN_MODE_LIMIT"
+}
