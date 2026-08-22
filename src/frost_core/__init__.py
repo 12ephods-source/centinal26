@@ -8,6 +8,13 @@ from .capability_factory import (
     PromotionDecision,
 )
 from .condition_watch import ConditionWatchLedger, DeliveryClaim, WatchDecision
+from .defensive_repair_adapter import (
+    AUTHORIZED_SCOPE,
+    DefensiveRepairAdapter,
+    DefensiveRepairOperation,
+    DefensiveRepairRequest,
+    DefensiveRepairResult,
+)
 from .effects import (
     EffectAuthorization,
     EffectClaim,
@@ -80,6 +87,7 @@ from .software_creation import (
 from .strategic import BranchForecast, BranchOption, StrategicBranchForecaster
 
 __all__ = [
+    "AUTHORIZED_SCOPE",
     "AdapterDescriptor",
     "AdapterKind",
     "AdapterStatus",
@@ -99,6 +107,10 @@ __all__ = [
     "CognitionTask",
     "ConditionWatchLedger",
     "ControlPlaneSnapshot",
+    "DefensiveRepairAdapter",
+    "DefensiveRepairOperation",
+    "DefensiveRepairRequest",
+    "DefensiveRepairResult",
     "DelegatedCognitionRouter",
     "DeliveryClaim",
     "EffectAuthorization",
