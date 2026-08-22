@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "epistemic-integrity-v1",
+  "principles": [
+    "PROVENANCE_ESTABLISHES_LINEAGE_NOT_TRUTH",
+    "INTEGRITY_ESTABLISHES_RECORD_STABILITY_NOT_TRUTH",
+    "CONSENSUS_IS_NOT_INDEPENDENT_CORROBORATION",
+    "ABSENCE_OF_OBSERVED_EVIDENCE_IS_NOT_EVIDENCE_OF_ABSENCE",
+    "UNKNOWN_MUST_NOT_COLLAPSE_TO_FALSE",
+    "NO_CLAIM_PROMOTION_BEYOND_STRONGEST_INDEPENDENT_EVIDENCE",
+    "A_PASS_IN_ONE_VALIDATION_DIMENSION_NEVER_PROMOTES_ANOTHER",
+    "FAILED_AND_SUPERSEDED_REASONING_MUST_BE_PRESERVED"
+  ],
+  "claim_kinds": {
+    "SOURCE_SEMANTICS": {"domain_gate": "source_semantics_status"},
+    "SOFTWARE_BEHAVIOR": {"domain_gate": "reproduction_status"},
+    "DEVICE_BEHAVIOR": {"domain_gate": "device_validation_status"},
+    "EMPIRICAL": {"domain_gate": "empirical_status"},
+    "SCIENTIFIC": {"domain_gate": "scientific_status"},
+    "HISTORICAL_EVENT": {"domain_gate": "historical_verification_status"},
+    "ATTRIBUTION": {"domain_gate": "attribution_status"},
+    "GENERAL": {"domain_gate": null}
+  },
+  "epistemic_levels": [
+    "UNKNOWN",
+    "HYPOTHESIS",
+    "PLAUSIBLE",
+    "SUPPORTED",
+    "STRONGLY_SUPPORTED",
+    "ESTABLISHED_WITHIN_SCOPE"
+  ],
+  "dimension_statuses": ["PASS", "FAIL", "REVIEW", "BLOCKED", "UNKNOWN", "NOT_APPLICABLE"],
+  "evidence_classes": [
+    "USER_REPORTED",
+    "DERIVED",
+    "DIRECT_SOURCE",
+    "REPRODUCED",
+    "INDEPENDENT_DIRECT",
+    "EMPIRICAL",
+    "SCIENTIFIC_TEST"
+  ]
+}
