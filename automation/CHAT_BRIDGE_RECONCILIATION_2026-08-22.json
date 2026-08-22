@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "source_pr": 100,
+  "source_head": "546371ef9a66bbebd36e9bd299980d535c8304bf",
+  "successor_branch": "automation/chat-bridge-mainline-v2",
+  "capability": "conversation.import_chatgpt_export",
+  "authority_boundary": {
+    "task_payload_fields": ["receipt_id"],
+    "receipt_format": "lowercase_sha256_64",
+    "remote_path_selection": false,
+    "remote_shell_selection": false,
+    "remote_credential_selection": false,
+    "remote_evidence_root_selection": false
+  },
+  "verification": [
+    "reverify content-addressed export receipt",
+    "reconstruct selected current_node parent chain when available",
+    "hash manifest and transcripts",
+    "independently rehash source, manifest, and transcripts before state mutation"
+  ],
+  "evidence_boundary": "host qualification does not establish Android/Termux device execution",
+  "lifecycle_state": "built"
+}

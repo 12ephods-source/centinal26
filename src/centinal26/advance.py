@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .chat_bridge import register_chat_bridge_capabilities
 from .core import AuditLog, Grant
 from .event_state import (
     TERMINAL_TASK_STATES,
@@ -73,6 +74,7 @@ def build_advance_engine(home: Path) -> AutomatedEngine:
             verifier_independent=True,
         )
     )
+    register_chat_bridge_capabilities(runtime, home)
     return runtime
 
 
@@ -270,56 +272,26 @@ def advance_until_idle(
             capability = task.get("capability")
             if not isinstance(capability, str) or not capability:
                 blockers[task_id] = "NO_CAPABILITY"
-                _record_blocker_once(
-                    store,
-                    state,
-                    task_id,
-                    "NO_CAPABILITY",
-                    "task has no registered capability name",
-                )
+                _record_blocker_once(store, state, task_id, "NO_CAPABILITY", "task has no registered capability name")
                 continue
             spec = runtime.capabilities.get(capability)
             if spec is None:
                 blockers[task_id] = "NO_CAPABILITY"
-                _record_blocker_once(
-                    store,
-                    state,
-                    task_id,
-                    "NO_CAPABILITY",
-                    f"capability is not registered: {capability}",
-                )
+                _record_blocker_once(store, state, task_id, "NO_CAPABILITY", f"capability is not registered: {capability}")
                 continue
             if not spec.verifier_independent:
                 blockers[task_id] = "VERIFIER_NOT_INDEPENDENT"
-                _record_blocker_once(
-                    store,
-                    state,
-                    task_id,
-                    "VERIFIER_NOT_INDEPENDENT",
-                    f"capability lacks independent verification: {capability}",
-                )
+                _record_blocker_once(store, state, task_id, "VERIFIER_NOT_INDEPENDENT", f"capability lacks independent verification: {capability}")
                 continue
 
             mode = _authorization_mode(capability, authorization_modes, task=task)
             if mode == EFFECT_PROTOCOL:
                 blockers[task_id] = "EFFECT_PROTOCOL_REQUIRED"
-                _record_blocker_once(
-                    store,
-                    state,
-                    task_id,
-                    "EFFECT_PROTOCOL_REQUIRED",
-                    "external-effect capability must use the frost-effect protocol",
-                )
+                _record_blocker_once(store, state, task_id, "EFFECT_PROTOCOL_REQUIRED", "external-effect capability must use the frost-effect protocol")
                 continue
             if not authorize and mode != AUTO_SAFE:
                 blockers[task_id] = "APPROVAL_REQUIRED"
-                _record_blocker_once(
-                    store,
-                    state,
-                    task_id,
-                    "APPROVAL_REQUIRED",
-                    "capability policy or task provenance requires explicit authorization",
-                )
+                _record_blocker_once(store, state, task_id, "APPROVAL_REQUIRED", "capability policy or task provenance requires explicit authorization")
                 continue
             try:
                 _task_payload(task)
@@ -328,9 +300,7 @@ def advance_until_idle(
                 _record_blocker_once(store, state, task_id, "INVALID_TASK_INPUT", str(error))
                 continue
 
-            authorization_source = (
-                "explicit_advance_invocation" if authorize else "capability_policy_auto_safe"
-            )
+            authorization_source = "explicit_advance_invocation" if authorize else "capability_policy_auto_safe"
             runnable.append((task_id, authorization_source))
 
         report.blocked.update(blockers)
@@ -340,13 +310,7 @@ def advance_until_idle(
         task_id, authorization_source = runnable[0]
         state = rebuild_state(store.events())
         task = state.tasks[task_id]
-        ok, _runtime_state = _run_task(
-            store,
-            runtime,
-            task_id,
-            task,
-            authorization_source=authorization_source,
-        )
+        ok, _runtime_state = _run_task(store, runtime, task_id, task, authorization_source=authorization_source)
         report.executed.append(task_id)
         if ok:
             report.completed.append(task_id)
@@ -355,11 +319,7 @@ def advance_until_idle(
 
     state = rebuild_state(store.events())
     report.remaining_ready = derive_ready_tasks(state)
-    unfinished = [
-        task_id
-        for task_id, task in state.tasks.items()
-        if task.get("status") not in TERMINAL_TASK_STATES
-    ]
+    unfinished = [task_id for task_id, task in state.tasks.items() if task.get("status") not in TERMINAL_TASK_STATES]
 
     if len(report.executed) >= max_tasks and report.remaining_ready:
         report.stop_reason = "RESOURCE_LIMIT"
