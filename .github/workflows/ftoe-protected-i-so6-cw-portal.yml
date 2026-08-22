@@ -1,0 +1,61 @@
+name: FToE Protected-I SO6 Coleman-Weinberg Portal Gate
+
+on:
+  pull_request:
+    paths:
+      - 'research/ftoe/protected_i_so6_cw_portal_contract.json'
+      - 'scripts/ftoe_protected_i_so6_cw_portal_gate.py'
+      - 'tests/test_ftoe_protected_i_so6_cw_portal_gate.py'
+      - '.github/workflows/ftoe-protected-i-so6-cw-portal.yml'
+
+jobs:
+  cw-portal-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout literal PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal exact head
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          expected="${{ github.event.pull_request.head.sha }}"
+          echo "expected_head=$expected"
+          echo "actual_head=$actual"
+          test "$actual" = "$expected"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run deterministic scientific gate
+        run: python scripts/ftoe_protected_i_so6_cw_portal_gate.py
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_ftoe_protected_i_so6_cw_portal_gate.py
+      - name: Capture environment and hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/ftoe-protected-i-so6-cw-portal-evidence
+          {
+            echo "git_head=$(git rev-parse HEAD)"
+            echo "python=$(python --version 2>&1)"
+            echo "git=$(git --version)"
+            cat /etc/os-release
+          } > artifacts/ftoe-protected-i-so6-cw-portal-evidence/environment.txt
+          cp research/ftoe/protected_i_so6_cw_portal_contract.json artifacts/ftoe-protected-i-so6-cw-portal-evidence/
+          cp artifacts/ftoe_protected_i_so6_cw_portal_gate.json artifacts/ftoe-protected-i-so6-cw-portal-evidence/
+          sha256sum \
+            research/ftoe/protected_i_so6_cw_portal_contract.json \
+            scripts/ftoe_protected_i_so6_cw_portal_gate.py \
+            tests/test_ftoe_protected_i_so6_cw_portal_gate.py \
+            artifacts/ftoe_protected_i_so6_cw_portal_gate.json \
+            > artifacts/ftoe-protected-i-so6-cw-portal-evidence/SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-so6-cw-portal-evidence
+          path: artifacts/ftoe-protected-i-so6-cw-portal-evidence
