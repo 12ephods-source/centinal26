@@ -1,5 +1,5 @@
 {
-  "schema": "ds2.local-net-modular-convergence-contract.v1",
+  "schema": "ds2.local-net-modular-convergence-contract.v2",
   "continuum_target": {
     "model": "free massless scalar / Weyl net in the source-anchored dS2 line",
     "factor_type": "hyperfinite Type III_1 local factor target fixed independently by PR 389",
@@ -10,18 +10,35 @@
     "PASS_TWO_AXIS_BOUNDED_WEYL_CORRELATOR_BRIDGE"
   ],
   "necessary_numerical_subgate": {
-    "name": "FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
+    "name": "FROZEN_FIELD_WEYL_MODULAR_CORRELATOR_SUBGATE",
+    "scope_reason": "the preceding PR 393 bridge qualified field-smeared Weyl/covariance observables; the first mixed initial momentum-smearing extension failed the predeclared convergence-order and final-error gates and is retained as an unresolved stronger stress case",
     "requirements": [
       "freeze nested compact localization regions before execution",
-      "freeze a finite phase-space smearing family before execution",
+      "freeze a finite family of compactly supported field smearings before execution",
       "refine the continuum mode reference independently",
       "refine the lattice regulator on a predeclared size sequence",
       "compare modular-flow Weyl two-point functions on a frozen modular-parameter grid",
+      "verify modular evolution generates the conjugate momentum component",
       "verify thermal modular-state invariance inside each regulator",
       "preserve support membership under the nested-region bookkeeping",
       "include a deliberate wrong-modular-direction control and require its rejection"
     ],
     "promotion_ceiling": "necessary bounded finite-family diagnostic only; never a density or operator-topology proof"
+  },
+  "failed_stronger_stress_case": {
+    "name": "MIXED_INITIAL_PHASE_SPACE_SMEARING_V1",
+    "status": "FAIL_PREDECLARED_NUMERICAL_GATES",
+    "observed_on_head": "7443d2451f67de0033b075f1f4498fb3b9fe6178",
+    "observed_order": 1.2447772249187183,
+    "final_N256_complex_two_point_error": 0.006011255810794998,
+    "passed_controls": [
+      "continuum reference refinement",
+      "monotone/material error reduction",
+      "thermal modular-state invariance",
+      "compact support bookkeeping",
+      "wrong modular-direction negative control"
+    ],
+    "meaning": "stronger mixed initial phase-space convergence remains open; the failure is not reclassified as PASS"
   },
   "full_operator_topology_gate": {
     "status": "OPEN_NOT_ESTABLISHED_BY_THIS_CANDIDATE",
@@ -36,6 +53,7 @@
     ]
   },
   "forbidden_promotions": [
+    "initial momentum-smeared or arbitrary phase-space convergence from the field-smeared subgate",
     "density of a finite smearing family without a separate density theorem",
     "full local Weyl net convergence from finitely many correlators",
     "strong or weak von Neumann algebra convergence from matrix-size refinement alone",
