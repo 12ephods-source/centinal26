@@ -1,0 +1,63 @@
+{
+  "id": "frost-forge/dedupe-organizer/v2",
+  "name": "Dedupe Organizer v2",
+  "kind": "device-automation-tool",
+  "source": {
+    "adapter_path": "automation/connectors/dedupe_organizer_adapter.py",
+    "release_artifact": "Dedupe_Organizer_v2.0.0_2026-08-22.zip",
+    "release_sha256": "e417bbfc3706acb67115293f7dae1983f771d434f53fffacefc3cc1377b9dd8d",
+    "runtime_sha256": "36d2f05b6920078144448604b40fef3585840e781f095a951965fe55ee78724a",
+    "release_version": "2.0.0"
+  },
+  "interface": {
+    "operations": {
+      "organizer.status": {},
+      "organizer.doctor": {},
+      "organizer.duplicates": {},
+      "organizer.near_duplicates": {},
+      "organizer.audit_verify": {},
+      "organizer.manifest": {},
+      "organizer.export_state": {},
+      "organizer.scan": {
+        "parameters": {
+          "path": "must resolve inside a locally configured allowed scan root"
+        },
+        "forced_arguments": [
+          "--no-organize"
+        ]
+      }
+    },
+    "excluded_operations": [
+      "quarantine",
+      "restore",
+      "delete",
+      "arbitrary shell",
+      "caller-selected executable",
+      "caller-supplied CLI arguments"
+    ]
+  },
+  "verification": {
+    "host_release_validation": "PASS",
+    "built_in_self_test": "17/17 PASS",
+    "release_integration": "PASS",
+    "installer_bash_syntax": "PASS",
+    "onepaste_bash_syntax": "PASS",
+    "temporary_prefix_install": "PASS",
+    "onepaste_install": "PASS",
+    "readonly_api_boundary": "PASS: authenticated GET=200, unauthenticated GET=401, POST=405",
+    "adapter_tests": "tests/test_dedupe_organizer_adapter.py",
+    "physical_device_execution": "PENDING_REAL_ANDROID_TERMUX",
+    "termux_boot_reboot": "PENDING_REAL_ANDROID_TERMUX",
+    "device_endurance": "PENDING_REAL_ANDROID_TERMUX"
+  },
+  "provenance": {
+    "origin": "Dedupe/Organizer project consolidation completed in ChatGPT on 2026-08-22",
+    "architecture": "immutable canonical object envelope + provenance + non-destructive organizer + bounded Termux runtime",
+    "authority_boundary": "Automation adapter exposes observation/reporting only. Registration grants no deletion, quarantine, restore, arbitrary shell, remote reboot, or physical-validation promotion authority."
+  },
+  "lifecycle": {
+    "rollback": "disable/remove the Automation adapter while leaving the locally installed Dedupe/Organizer runtime and its evidence/state untouched",
+    "removal": "mark SUPERSEDED in a versioned successor registry entry before removing implementation references; preserve provenance and prior manifests"
+  },
+  "status": "EXPERIMENTAL"
+}
