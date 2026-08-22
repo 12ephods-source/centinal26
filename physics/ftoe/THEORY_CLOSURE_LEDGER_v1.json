@@ -1,0 +1,112 @@
+{
+  "schema": "frost.ftoe.theory_closure_ledger/v1",
+  "date": "2026-08-22",
+  "mode": "DEVELOPMENT",
+  "policy": {
+    "freeze_evidence_and_history": true,
+    "allow_versioned_development_changes": true,
+    "confirmatory_versions_are_immutable": true,
+    "no_retuning_after_confirmatory_outcome": true,
+    "software_pass_is_not_scientific_pass": true
+  },
+  "source_records": [
+    {
+      "path": "physics/ftoe/FTOE_10C_SELF_SECTOR_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "1383b26bcc4b59d1c6a7a5ddd3ca8bcd21e0020d"
+    },
+    {
+      "path": "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "9f461fb01756cf3059534d89c83121dd3477344b"
+    },
+    {
+      "path": "physics/ftoe/PROTECTED_I_LEGACY_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "3403f43a87e3b04e9748b70b37aa2cb9b34a49b0"
+    },
+    {
+      "path": "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
+      "git_blob_sha": "434efabda9205183c43c182de52ae402e247bf34"
+    }
+  ],
+  "closure_items": [
+    {
+      "id": "inflation-r-branch-reconciliation",
+      "priority": 1,
+      "severity": "CRITICAL",
+      "status": "BLOCKED",
+      "execution_state": "MISSING_SOURCE",
+      "question": "Why do historical inflation branches report materially different r values (~0.0908, ~0.010, ~0.008)?",
+      "required_evidence": [
+        "exact historical action/equations for each branch",
+        "parameter sets and conventions",
+        "pivot/reheating assumptions",
+        "solver source and execution records"
+      ],
+      "smallest_next_action": "Locate and hash the exact historical inflation artifacts before attempting reconciliation; do not choose the observationally preferred branch."
+    },
+    {
+      "id": "protected-i-uv-matching",
+      "priority": 2,
+      "severity": "CRITICAL",
+      "status": "REVIEW",
+      "execution_state": "READY",
+      "evidence_paths": [
+        "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
+        "scripts/ftoe_protected_i_uv_matching_source_audit_v20.py"
+      ],
+      "question": "Can protected-I role separation be matched explicitly to the SO(10)-breaking heavy scalar sector without assuming missing portals?",
+      "smallest_next_action": "Construct or source-audit an explicit versioned interaction/matching Lagrangian retaining distinct SM-Higgs and protected-I electroweak roles and specifying couplings/sequestering to 210_H, 45_H, 126_H and 10_C,H."
+    },
+    {
+      "id": "muI-lambdaX-beta-provenance",
+      "priority": 3,
+      "severity": "CRITICAL",
+      "status": "REVIEW",
+      "execution_state": "READY",
+      "evidence_paths": [
+        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json"
+      ],
+      "question": "Are mu_I, Lambda_X and beta independently derived, or is an intermediate scale functioning as an external input?",
+      "smallest_next_action": "Close the recorded mandatory gate 'derive mu_I independently before propagating mu_I -> Lambda_X -> beta' and preserve a parameter-status ledger by theory level."
+    },
+    {
+      "id": "complete-scalar-action",
+      "priority": 4,
+      "severity": "CRITICAL",
+      "status": "REVIEW",
+      "execution_state": "READY",
+      "evidence_paths": [
+        "physics/ftoe/FTOE_10C_SELF_SECTOR_RECONCILIATION_2026-08-22.json",
+        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json"
+      ],
+      "question": "Is the complete renormalizable 210_H + 45_H + 126_H + 10_C,H + protected-I scalar action enumerated and frozen?",
+      "smallest_next_action": "Enumerate unresolved mixed sectors, freeze the full action, then derive vacuum/Hessian/heavy spectrum before threshold calculations."
+    },
+    {
+      "id": "inflation-normalization-joint-observables",
+      "priority": 5,
+      "severity": "HIGH",
+      "status": "BLOCKED",
+      "execution_state": "MISSING_SOURCE",
+      "question": "Do one set of equations and explicit nuisance assumptions jointly determine N, A_s, n_s, r and alpha_s?",
+      "required_evidence": [
+        "canonical inflation action",
+        "normalization convention",
+        "reheating/nuisance model",
+        "background and perturbation solver artifacts"
+      ],
+      "smallest_next_action": "Recover the exact inflation source artifacts and build a joint observable provenance graph."
+    },
+    {
+      "id": "modular-bkm-geometry-bridge",
+      "priority": 6,
+      "severity": "HIGH",
+      "status": "BLOCKED",
+      "execution_state": "MISSING_SOURCE",
+      "question": "Which arrows from finite BKM/modular results to continuum algebra, crossed product, finite corner, geometry and Einstein dynamics are proved versus conjectured?",
+      "required_evidence": [
+        "exact modular/BKM source artifacts and derivations"
+      ],
+      "smallest_next_action": "Locate exact source artifacts, then classify each mathematical arrow independently as PROVED, NUMERICALLY_VERIFIED, SUPPORTED, CONJECTURED, OPEN or FAILED."
+    }
+  ]
+}

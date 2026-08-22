@@ -1,0 +1,35 @@
+name: FToE Theory Closure Gate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 14 * * *"
+  pull_request:
+    paths:
+      - "physics/ftoe/**"
+      - "scripts/ftoe_*"
+      - ".github/workflows/ftoe-theory-closure.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  closure-ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run existing protected-I source audit
+        run: python scripts/ftoe_protected_i_uv_matching_source_audit_v20.py
+      - name: Validate theory closure ledger and choose next unblocked gate
+        run: >-
+          python scripts/ftoe_theory_closure_controller.py
+          --strict-integrity
+          --json-out artifacts/ftoe_theory_closure_gate.json
+      - name: Upload closure evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-theory-closure-gate
+          path: artifacts/ftoe_theory_closure_gate.json
