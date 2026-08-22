@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "gate_id": "FTOE_PROTECTED_I_SO6_CW_PORTAL_V17",
+  "parent_head": "c7b186e72d52adc981274ae77b18de9b5476bd2d",
+  "question": "Does the published minimal SO(6)/(SO(4)xSO(2)) composite two-doublet reference mechanism eliminate the mixed renormalizable norm portal at the generated scalar-potential level?",
+  "frozen_fields": {
+    "H1_role": "SM_HIGGS_REFERENCE",
+    "H2_role": "PROTECTED_I_CANDIDATE_REFERENCE_ONLY",
+    "portal_operator": "(Phi1^dagger Phi1)(Phi2^dagger Phi2)",
+    "operator_dimension": 4,
+    "published_potential_term": "lambda3*(Phi1^dagger Phi1)*(Phi2^dagger Phi2)",
+    "potential_origin": "loop_generated_Coleman_Weinberg_from_explicit_SO6_breaking",
+    "decision_rule": "FAIL_MINIMAL_REFERENCE_PORTAL_SUPPRESSION if the published generated two-doublet potential contains the mixed norm operator with an independent lambda3 coefficient"
+  },
+  "primary_sources": [
+    "arXiv:1105.5403",
+    "arXiv:1610.02687"
+  ],
+  "source_claims": {
+    "1105.5403": "SO(6)/(SO(4)xSO(2)) supplies two pNGB electroweak doublets and a distinguishing discrete symmetry; explicit breaking arises from SM gauge and proto-Yukawa couplings and generates the scalar potential.",
+    "1610.02687": "The composite two-doublet scalar potential is taken in the softly-broken Z2 2HDM form and explicitly contains lambda3*(Phi1^dagger Phi1)*(Phi2^dagger Phi2); the potential is generated through the Coleman-Weinberg mechanism."
+  },
+  "scientific_scope": "Candidate-specific adjudication of whether the published minimal SO6 composite two-doublet reference mechanism itself provides the portal suppression required by the FToE protected-I naturalness gate.",
+  "not_established": [
+    "a no-go theorem against all composite, collective, nonlinear, or sequestered portal suppression mechanisms",
+    "the numerical value or running of lambda3 in an FToE embedding",
+    "SO10 embedding or sequestering",
+    "mu_I or 13.5 TeV mass matching",
+    "representation-specific radiative stability",
+    "precision or partner viability",
+    "publication readiness"
+  ],
+  "successor_allowed_only_if_versioned": true,
+  "post_result_retuning_allowed": false
+}
