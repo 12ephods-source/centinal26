@@ -44,7 +44,7 @@ jobs:
           python tools/dedupe-organizer/materialize.py
           runtime="tools/dedupe-organizer/generated/dedupe_organizer.py"
           python "$runtime" --help | tee /tmp/dedupe-help.txt
-          for command in self-test doctor verify-audit daemon; do
+          for command in self-test doctor audit-verify daemon; do
             if ! grep -q -- "$command" /tmp/dedupe-help.txt; then
               echo "Missing required CLI command: $command"
               exit 1
