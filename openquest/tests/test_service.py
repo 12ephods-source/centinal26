@@ -71,6 +71,16 @@ class LiveServiceTests(unittest.TestCase):
         with urlopen(request, timeout=2) as response:
             return response.status, json.loads(response.read())
 
+    def test_frontend_is_served_from_root(self):
+        with urlopen(self.base + "/", timeout=2) as response:
+            page = response.read().decode("utf-8")
+            self.assertEqual(response.status, HTTPStatus.OK)
+            self.assertIn("text/html", response.headers["Content-Type"])
+        self.assertIn("OpenQuest Character Creator", page)
+        self.assertIn("/v1/options", page)
+        self.assertIn("/v1/characters", page)
+        self.assertIn("Download JSON", page)
+
     def test_live_health_and_options(self):
         status, health = self.read_json(self.base + "/health")
         self.assertEqual(status, HTTPStatus.OK)
