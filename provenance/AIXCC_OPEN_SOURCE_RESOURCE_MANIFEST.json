@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "DISCOVERY_VERIFIED_PINNING_REQUIRED_BEFORE_EXECUTABLE_REUSE",
+  "observed_at": "2026-08-22",
+  "purpose": "Defensive software repair research only",
+  "resources": [
+    {"name":"AIxCC Competition API","repository":"AIxCyberChallenge/competition-api","role":"challenge packaging, submission intake, test job pipeline","pin_status":"REQUIRED"},
+    {"name":"AIxCC cAPI","repository":"aixcc-public/capi","role":"vulnerability-discovery and generated-patch validation interface","pin_status":"REQUIRED"},
+    {"name":"AIxCC CRS sandbox","repository":"aixcc-public/crs-sandbox","role":"sandbox reference","pin_status":"REQUIRED"},
+    {"name":"Atlantis","repository":"Team-Atlanta/aixcc-afc-atlantis","role":"finalist CRS architecture study","pin_status":"REQUIRED"},
+    {"name":"Buttercup","repository":"trailofbits/afc-buttercup","role":"orchestration/patcher/program-model study","pin_status":"REQUIRED"},
+    {"name":"Theori AFC archive","repository":"theori-io/aixcc-afc-archive","role":"finalist CRS architecture/evaluation study","pin_status":"REQUIRED"},
+    {"name":"Lacrosse","repository":"siftech/afc-crs-lacrosse","role":"fuzzing/symbolic/multi-agent analyzer study","pin_status":"REQUIRED"},
+    {"name":"BugBuster","repository":"42-b3yond-6ug/42-b3yond-6ug-crs","role":"finalist CRS architecture study","pin_status":"REQUIRED"}
+  ],
+  "constraints": [
+    "Do not execute imported upstream code until exact source identity and license are independently recorded.",
+    "Do not grant arbitrary shell, arbitrary remote targeting, credential harvesting, exploit deployment, or autonomous promotion authority.",
+    "Analyzer output remains CANDIDATE until deterministic reproduction and independent verification succeed.",
+    "Reuse Centinal26 as the sole canonical authorization/evidence/control plane."
+  ]
+}
