@@ -1,0 +1,61 @@
+{
+  "schema": "frost.ftoe.so10_422_reconciliation/v1",
+  "date": "2026-08-22",
+  "source_pr": 105,
+  "source_head": "e6ea779bca4e2703dcc157c1a76e13199d4ae912",
+  "source_state": "STALE_STACK_PRESERVED",
+  "source_commits": 176,
+  "qualification": {
+    "CI": "PASS",
+    "validate": "PASS",
+    "automation-gates": "PASS",
+    "federation-gates": "PASS",
+    "Mature Product Qualification": "PASS",
+    "FToE SO10 422 Gate": "PASS",
+    "protected_i_and_scalar_action_dedicated_gates": "PASS"
+  },
+  "scientific_status": "REVIEW_FAIL_CLOSED",
+  "verified_gauge_only_state": {
+    "m_I_TeV": 13.4916,
+    "M_I_GeV": 7.0374912e9,
+    "M_U_GeV": 2.0499099e16,
+    "alpha_U": 0.03206733,
+    "max_inverse_coupling_spread": 2.04e-11,
+    "preferred_n": 9,
+    "schematic_operator_dimension": 13,
+    "c9_Ceff": 2.04
+  },
+  "preserved_results": [
+    "Direct SM+I unification branch fails.",
+    "The two-loop SO(10)->G422->SM gauge-only branch has a deterministic numerical solution at the recorded thresholds.",
+    "The 2HDM+G422 reference branch is independently reproduced near the published numerical neighborhood.",
+    "Ordinary finite-dimensional unitary linear internal symmetries cannot forbid the norm portal (I^dagger I)(Phi^dagger Phi).",
+    "An unprotected informational doublet at the recorded M_U requires lambda_Iphi of order 2.17e-25 or smaller.",
+    "A single-spurion GUT-scale pNGB estimate is far above the target informational scale and fails as the protection mechanism under the frozen diagnostic assumptions.",
+    "The 45+126+10_C core sub-potential is source-complete for that restricted sector only; it is not the full FToE scalar action.",
+    "The Z_11 construction is a selector for the specific B3 S^k tower and is not an exhaustive SO(10) tensor enumeration."
+  ],
+  "failed_or_excluded_branches": [
+    "ordinary embedded light doublet",
+    "ordinary linear-internal-symmetry protection of the norm portal",
+    "single-spurion GUT-scale pNGB protection"
+  ],
+  "unresolved_mandatory_gates": [
+    "construct an explicit nonlinear/collective/sequestered/exact protection mechanism compatible with the informational field gauge couplings and demonstrate radiative stability",
+    "enumerate and freeze the complete renormalizable 210_H + 45_H + 126_H + 10_C,H + protected-I scalar action",
+    "derive the vacuum, Hessian, and heavy spectrum from that frozen action and re-test light-Higgs perturbativity",
+    "derive threshold corrections from the frozen heavy spectrum without post-result mass tuning",
+    "construct the explicit preferred-dimension SO(10) singlet operator and calculate C_eff",
+    "exhaustively exclude or suppress lower-dimensional symmetry-breaking invariants",
+    "derive mu_I independently before propagating mu_I -> Lambda_X -> beta",
+    "calculate p -> e+ pi0 from the same frozen spectrum",
+    "package manuscript-level reproducibility from the same frozen inputs and provenance hashes"
+  ],
+  "relationship_to_main": {
+    "pr_109": "Later bounded L1 UV-closure module already reconciled and merged on current main.",
+    "pr_157_pr_319": "10_C,H self-sector source enumeration is preserved separately on current main.",
+    "pr_308": "Later merged result preserves the unresolved UV-matching bifurcation and fail-closed heavy-sector matching boundary.",
+    "rule": "This record preserves the broader validated PR #105 gauge/naturalness/protection state without importing its stale stacked history."
+  },
+  "promotion_rule": "CI/software success does not establish FToE scientific closure. Status remains REVIEW until the unresolved mandatory gates are independently closed without retuning."
+}
