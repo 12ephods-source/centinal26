@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -13,6 +14,7 @@ MARKER = "# FROST-AUTORUN:1"
 DEFAULT_ROOT = Path.home() / ".local" / "share" / "frost-clipboard-autorun"
 MAX_BYTES = int(os.environ.get("FROST_CLIPBOARD_MAX_BYTES", "262144"))
 REPLAY_WINDOW_SECONDS = float(os.environ.get("FROST_CLIPBOARD_REPLAY_WINDOW", "2.0"))
+TERMUX_BASH = Path("/data/data/com.termux/files/usr/bin/bash")
 
 
 def now_iso() -> str:
@@ -31,7 +33,7 @@ def canonical_input(raw: str) -> tuple[str, str]:
     if first_index is None:
         raise ValueError("clipboard is empty")
     marker = lines[first_index].strip()
-    if not marker.startswith(MARKER):
+    if marker != MARKER and not marker.startswith(MARKER + " "):
         raise ValueError("clipboard text is not marked for Frost autorun")
     shell = "bash"
     if "shell=python" in marker or "lang=python" in marker:
@@ -62,9 +64,21 @@ def read_state(path: Path) -> dict:
 def write_json(path: Path, value: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     os.chmod(temporary, 0o600)
     temporary.replace(path)
+
+
+def bash_path() -> str:
+    if TERMUX_BASH.is_file():
+        return str(TERMUX_BASH)
+    resolved = shutil.which("bash")
+    if resolved:
+        return resolved
+    raise RuntimeError("bash executable unavailable")
 
 
 def main() -> int:
@@ -74,7 +88,9 @@ def main() -> int:
         print(json.dumps({"status": "IGNORED", "reason": "clipboard_too_large"}))
         return 0
 
-    root = Path(os.environ.get("FROST_CLIPBOARD_STATE_ROOT", str(DEFAULT_ROOT))).expanduser()
+    root = Path(
+        os.environ.get("FROST_CLIPBOARD_STATE_ROOT", str(DEFAULT_ROOT))
+    ).expanduser()
     inbox = root / "inbox"
     runs = root / "runs"
     root.mkdir(parents=True, exist_ok=True)
@@ -92,8 +108,19 @@ def main() -> int:
     replay_path = root / "last_event.json"
     previous = read_state(replay_path)
     now = time.time()
-    if previous.get("sha256") == digest and now - float(previous.get("time", 0)) < REPLAY_WINDOW_SECONDS:
-        print(json.dumps({"status": "IGNORED", "reason": "duplicate_clipboard_event", "sha256": digest}))
+    if (
+        previous.get("sha256") == digest
+        and now - float(previous.get("time", 0)) < REPLAY_WINDOW_SECONDS
+    ):
+        print(
+            json.dumps(
+                {
+                    "status": "IGNORED",
+                    "reason": "duplicate_clipboard_event",
+                    "sha256": digest,
+                }
+            )
+        )
         return 0
 
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
@@ -103,11 +130,23 @@ def main() -> int:
     receipt_path = runs / f"{stamp}-{digest[:16]}.json"
     script_path.write_text(body, encoding="utf-8")
     os.chmod(script_path, 0o700)
-    write_json(replay_path, {"sha256": digest, "time": now, "captured_at": now_iso()})
+    write_json(
+        replay_path,
+        {"sha256": digest, "time": now, "captured_at": now_iso()},
+    )
 
-    command = [sys.executable, str(script_path)] if shell == "python" else ["/data/data/com.termux/files/usr/bin/bash", str(script_path)]
+    command = (
+        [sys.executable, str(script_path)]
+        if shell == "python"
+        else [bash_path(), str(script_path)]
+    )
     started = time.time()
-    completed = subprocess.run(command, text=True, capture_output=True, check=False)
+    completed = subprocess.run(
+        command,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
     output = (completed.stdout or "") + (completed.stderr or "")
     log_path.write_text(output, encoding="utf-8")
     os.chmod(log_path, 0o600)
