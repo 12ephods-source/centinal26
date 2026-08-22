@@ -1,6 +1,6 @@
 # OpenQuest Character Creator + Rules Validator
 
-Status: bounded character-creator vertical slice.
+Status: bounded character-creator application vertical slice.
 
 ## Canon policy
 
@@ -29,21 +29,31 @@ No copyrighted source text is embedded by this slice. The engine stores compact 
 
 `openquest.builder` turns the rules profile into legal construction options before a character exists. The current bounded slice exposes the supported class/species/background choices, requires an exact standard-array assignment, checks class-skill choices, derives level-1 HP and class proficiencies, then sends the constructed character through the independent validator.
 
-This creates two fail-closed layers:
+This creates fail-closed layers:
 
 `BUILD_GATE -> SOURCE_GATE -> CANON_GATE -> CHARACTER_GATE -> VALIDATION_GATE -> RULE_DATA_GATE`
 
 The builder currently supports the intentionally narrow Fighter/Human/Soldier level-1 path in both versioned profiles. Unsupported choices fail instead of being guessed or silently mixed across rules generations.
 
+## Interfaces
+
+- `python -m openquest.cli options` lists profile-derived legal construction choices.
+- `python -m openquest.cli create ...` executes create -> validate -> deterministic JSON export.
+- `python -m openquest.service` starts the localhost HTTP service on `127.0.0.1:8765`.
+- Opening `http://127.0.0.1:8765/` presents the minimal browser character creator.
+- `GET /v1/options` and `POST /v1/characters` are the browser/API contracts.
+
+The browser UI assigns the standard array, selects the versioned rules profile and legal character choices, submits through the same HTTP validation boundary, displays gate failures, and provides the validated character JSON as a local download.
+
 ## Current finish line
 
-`versioned source -> generated legal options -> bounded construction -> derived mechanics -> independent validation -> deterministic JSON export -> CI`
+`versioned source -> generated legal options -> bounded construction -> derived mechanics -> independent validation -> deterministic JSON -> CLI -> local HTTP API -> browser UI -> CI`
 
-Out of scope: combat, spells, feats, equipment simulation, AI DM, world generation, multiplayer, marketplace, adventure generation, and full campaign simulation.
+Out of scope: combat, spells, feats, equipment simulation, AI DM, world generation, multiplayer, marketplace, adventure generation, remote hosting, authentication, and full campaign simulation.
 
 Run:
 
 ```bash
-python -m openquest.validator
+python -m openquest.service
 python -m unittest discover -s openquest/tests -v
 ```
