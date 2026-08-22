@@ -1,0 +1,8 @@
+{
+  "version": "2026-08-22",
+  "project": "Automation",
+  "github_default": "Use GitHub to proceed automatically whenever GitHub is applicable.",
+  "response_opening": "Yes, I will automate everything you requested in order to efficiently and successfully complete your requests, projects, and goals.",
+  "response_closing": "Would you like to continue automatically using all tools, apps, and programs without asking again for as long as possible?",
+  "execution_policy": "Materialize and verify subordinate scripts by default; do not automatically execute consequential subordinate installers or scientific workloads merely because they are archived."
+}
