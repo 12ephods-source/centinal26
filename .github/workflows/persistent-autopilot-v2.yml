@@ -1,0 +1,24 @@
+name: Persistent Autopilot v2
+
+on:
+  push:
+    paths:
+      - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'tests/test_persistent_autopilot_v2.sh'
+      - '.github/workflows/persistent-autopilot-v2.yml'
+  pull_request:
+    paths:
+      - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'tests/test_persistent_autopilot_v2.sh'
+      - '.github/workflows/persistent-autopilot-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and deterministic self-test
+        run: bash tests/test_persistent_autopilot_v2.sh
