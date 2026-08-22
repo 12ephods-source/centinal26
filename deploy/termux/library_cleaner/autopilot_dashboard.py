@@ -49,7 +49,7 @@ def status_payload() -> dict:
 
 
 class Handler(BaseHTTPRequestHandler):
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         if self.path == "/api/status":
             body = json.dumps(status_payload(), sort_keys=True).encode()
             self.send_response(200)
