@@ -5,6 +5,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 HERE = Path(__file__).resolve().parent
 SOURCE = HERE / "network_invariant_scan.py"
 SPEC = importlib.util.spec_from_file_location("ds2_markov_network_invariant", SOURCE)
