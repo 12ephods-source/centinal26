@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 from centinal26.test_a_theory import evaluate_model
 
 ROOT = Path(__file__).resolve().parents[1]
