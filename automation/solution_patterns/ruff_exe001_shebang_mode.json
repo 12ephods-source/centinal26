@@ -1,0 +1,37 @@
+{
+  "schema": "frost.solution-pattern.v1",
+  "id": "ci-lint/ruff-exe001-shebang-mode/v1",
+  "name": "Ruff EXE001 shebang and executable-mode alignment",
+  "trigger": "Ruff reports EXE001 because a file contains a shebang while its repository executable bit is not set.",
+  "failure_class": "SHEBANG_EXECUTABLE_MODE_MISMATCH",
+  "standing_rule": "Before changing program semantics, classify whether the file is intended to be directly executable. If it is a library, test helper, validator invoked explicitly through an interpreter, or other non-entrypoint file, remove the unnecessary shebang. If it is intentionally a direct executable, preserve the shebang and set the executable bit. Never weaken or disable Ruff EXE001 to obtain PASS.",
+  "sequence": [
+    "inspect_file_role_and_call_sites",
+    "decide_direct_executable_vs_interpreter_invoked",
+    "remove_unnecessary_shebang_for_non_executable_file_or_set_executable_bit_for_true_entrypoint",
+    "make_no_unrelated_semantic_changes",
+    "rerun_ruff_or_repository_lint",
+    "rerun_full_exact_head_required_workflows",
+    "preserve_failed_head_as_negative_evidence"
+  ],
+  "decision_table": {
+    "interpreter_invoked_or_imported": "remove_shebang_keep_non_executable_mode",
+    "true_direct_entrypoint": "keep_shebang_set_executable_mode",
+    "ambiguous": "fail_closed_and_inspect_call_sites_before_mutation"
+  },
+  "counterexamples": [
+    "do_not_chmod_every_python_file_merely_to_satisfy_EXE001",
+    "do_not_remove_a_shebang_from_a_required_direct_entrypoint_without_call_site_evidence",
+    "do_not_ignore_or_disable_EXE001",
+    "do_not_mix_functional_repairs_into_a_mode_only_lint_fix"
+  ],
+  "evidence_basis": {
+    "openquest_pr": 390,
+    "observed_failure": "Initial canonical-closure head failed Ruff EXE001 because a shebang was present on a non-executable file.",
+    "verified_repair": "Remove the unnecessary shebang; the subsequent exact-head required workflow matrix passed.",
+    "scope": "lint/integration hygiene only; no OpenQuest semantic or physical-gate change"
+  },
+  "reuse_policy": "On future EXE001 recurrence, search this registry first and apply the decision table before designing a bespoke repair.",
+  "risk": "LOW",
+  "status": "PROPOSED_PENDING_EXACT_HEAD_QUALIFICATION"
+}
