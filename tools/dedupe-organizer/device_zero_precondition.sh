@@ -15,7 +15,9 @@ fail(){ printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 [[ "${PREFIX:-}" == *com.termux* ]] || fail 'Termux environment not detected'
 
 command -v pkg >/dev/null 2>&1 || fail 'pkg unavailable'
-pkg install -y git python coreutils >/dev/null
+# gh is a fixed dependency because device_autopilot.sh uses it for evidence PR
+# submission when credentials are already available on the handset.
+pkg install -y git python coreutils gh >/dev/null
 
 if [[ ! -d "$HOME/storage/shared" ]]; then
   command -v termux-setup-storage >/dev/null 2>&1 || fail 'termux-setup-storage unavailable'
