@@ -12,7 +12,7 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from validate_canonical_kernel import validate_bundle
 
@@ -95,7 +95,7 @@ class CanonicalStore:
     def close(self) -> None:
         self.conn.close()
 
-    def __enter__(self) -> "CanonicalStore":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
