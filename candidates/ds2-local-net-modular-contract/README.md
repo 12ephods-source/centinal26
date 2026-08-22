@@ -1,6 +1,6 @@
 # dS2 local-net / modular convergence contract
 
-This candidate advances the gate explicitly left open by merged PR #393 without promoting a finite correlation calculation into a von Neumann-algebra convergence theorem.
+This candidate advances the gate explicitly left open by merged PR #393 without promoting finite correlation agreement into a von Neumann-algebra convergence theorem.
 
 ## What is implemented
 
@@ -14,7 +14,7 @@ using the exact mode-by-mode thermal covariance and the KMS identity
 
 `sigma_s = alpha_{-beta s}`.
 
-The continuum result is refined from 512 to 1024 sine modes. The finite-difference harmonic chain is refined over `N=16,32,64,128,256`. The diagnostic compares the complex modular-flow Weyl two-point functions over every frozen smearing pair and modular parameter, checks state-invariance inside each regulator, and verifies that the compact supports have the declared nested-region memberships.
+The continuum result is refined from 512 to 1024 sine modes. The finite-difference harmonic chain is refined over `N=16,32,64,128,256`. The diagnostic compares the complex modular-flow Weyl two-point functions over every frozen smearing pair and modular parameter, checks state-invariance inside each regulator, verifies that compact supports have the declared nested-region memberships, and includes a deliberate wrong-sign modular-flow control that must be rejected.
 
 ## Why this is stronger than PR #393
 
@@ -24,20 +24,22 @@ PR #393 established two separate regulator limits for selected bounded Weyl/cova
 - complex Weyl product phases, not only one-point characteristics;
 - explicit modular/KMS evolution on the frozen observable family;
 - nested local-region bookkeeping;
+- an adversarial wrong-modular-direction control;
 - a separate written contract for what a future operator-topology promotion would actually require.
 
 ## PASS meaning
 
 A green numerical result is only:
 
-`PASS_DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE`
+`PASS_FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE`
 
-It establishes controlled convergence on the frozen finite dense-test-family proxy. It is a necessary numerical subgate, not the full local-net/operator-topology gate.
+A PASS establishes controlled convergence on one **frozen finite test family**. It is a necessary numerical subgate, not a proof that the family is dense and not the full local-net/operator-topology gate.
 
 ## Explicitly still open
 
 This candidate does **not** establish:
 
+- density of the finite smearing family in the local one-particle/Weyl test space;
 - strong or weak convergence of the full local von Neumann net;
 - strong-resolvent convergence of modular generators;
 - convergence of Tomita operators on a common core;
