@@ -1,0 +1,49 @@
+name: FToE Protected-I UV Matching Source Audit
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_i_uv_matching_source_audit_v20.json'
+      - 'scripts/ftoe_protected_i_uv_matching_source_audit_v20.py'
+      - 'tests/test_ftoe_protected_i_uv_matching_source_audit_v20.py'
+      - '.github/workflows/ftoe-protected-i-uv-matching-source-audit-v20.yml'
+
+jobs:
+  uv-matching-source-audit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal pull-request head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Run frozen source audit
+        run: python scripts/ftoe_protected_i_uv_matching_source_audit_v20.py | tee uv_matching_result.json
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_ftoe_protected_i_uv_matching_source_audit_v20.py
+      - name: Capture environment and hashes
+        run: |
+          python --version > environment.txt
+          git --version >> environment.txt
+          sha256sum \
+            physics/ftoe/protected_i_uv_matching_source_audit_v20.json \
+            scripts/ftoe_protected_i_uv_matching_source_audit_v20.py \
+            tests/test_ftoe_protected_i_uv_matching_source_audit_v20.py \
+            uv_matching_result.json \
+            environment.txt > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-uv-matching-source-audit-${{ matrix.python-version }}
+          path: |
+            physics/ftoe/protected_i_uv_matching_source_audit_v20.json
+            uv_matching_result.json
+            environment.txt
+            SHA256SUMS.txt
