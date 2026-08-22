@@ -29,6 +29,10 @@
     {
       "path": "physics/ftoe/FTOE_MUI_LAMBDAX_BETA_PROVENANCE_RECONCILIATION_2026-08-22.json",
       "git_blob_sha": "d9b408c081f73ba24777dadfb2b1ff87f229cf18"
+    },
+    {
+      "path": "physics/ftoe/FTOE_COMPLETE_SCALAR_ACTION_COVERAGE_2026-08-22.json",
+      "git_blob_sha": "de71db204ef7c0439f2c6a6da45f1e77a7b910fc"
     }
   ],
   "closure_items": [
@@ -89,14 +93,25 @@
       "id": "complete-scalar-action",
       "priority": 4,
       "severity": "CRITICAL",
-      "status": "REVIEW",
-      "execution_state": "READY",
+      "status": "BLOCKED",
+      "execution_state": "MISSING_SOURCE",
       "evidence_paths": [
         "physics/ftoe/FTOE_10C_SELF_SECTOR_RECONCILIATION_2026-08-22.json",
-        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json"
+        "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+        "physics/ftoe/PROTECTED_I_LEGACY_RECONCILIATION_2026-08-22.json",
+        "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
+        "physics/ftoe/FTOE_COMPLETE_SCALAR_ACTION_COVERAGE_2026-08-22.json"
       ],
       "question": "Is the complete renormalizable 210_H + 45_H + 126_H + 10_C,H + protected-I scalar action enumerated and frozen?",
-      "smallest_next_action": "Enumerate unresolved mixed sectors, freeze the full action, then derive vacuum/Hessian/heavy spectrum before threshold calculations."
+      "scientific_verdict": "BLOCKED_COMPLETE_SCALAR_ACTION_NOT_ENUMERATED",
+      "required_evidence": [
+        "source-backed 210_H self-sector invariant basis",
+        "source-backed 210_H mixed invariants with 45_H, 126_H and 10_C,H",
+        "protected-I self-sector and explicit coupling or sequestering with 210_H, 45_H, 126_H and 10_C,H",
+        "complete representation-level enumeration of all allowed quadratic, cubic and quartic multi-representation singlet contractions",
+        "frozen coefficient/convention map sufficient for vacuum, Hessian and heavy-spectrum derivation"
+      ],
+      "smallest_next_action": "Recover/source-audit the missing representation-level invariant basis or introduce a separately versioned DEVELOPMENT action derived from explicit symmetry assumptions; do not infer vacuum, Hessian, heavy spectrum or thresholds from the current partial action."
     },
     {
       "id": "inflation-normalization-joint-observables",
