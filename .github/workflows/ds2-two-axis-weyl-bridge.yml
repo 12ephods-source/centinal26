@@ -1,0 +1,45 @@
+name: dS2 Two-Axis Weyl Bridge
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/ds2-two-axis-weyl-bridge/**'
+      - '.github/workflows/ds2-two-axis-weyl-bridge.yml'
+
+jobs:
+  two-axis-bridge:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: python -m pip install numpy pytest
+      - name: Run frozen bridge
+        run: python candidates/ds2-two-axis-weyl-bridge/two_axis_weyl_bridge.py --output ds2_two_axis_weyl_bridge.json
+      - name: Run focused tests
+        run: python -m pytest -q candidates/ds2-two-axis-weyl-bridge/test_two_axis_weyl_bridge.py
+      - name: Capture provenance
+        shell: bash
+        run: |
+          python --version > ds2_two_axis_environment.txt
+          python -c 'import numpy; print(numpy.__version__)' >> ds2_two_axis_environment.txt
+          git --version >> ds2_two_axis_environment.txt
+          find candidates/ds2-two-axis-weyl-bridge -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > ds2_two_axis_sha256.txt
+          sha256sum ds2_two_axis_weyl_bridge.json ds2_two_axis_environment.txt >> ds2_two_axis_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds2-two-axis-weyl-bridge-${{ matrix.python-version }}
+          path: |
+            ds2_two_axis_weyl_bridge.json
+            ds2_two_axis_environment.txt
+            ds2_two_axis_sha256.txt
