@@ -26,12 +26,18 @@ jobs:
         run: python automation/mistake_prevention_v2/mistake_prevention_v2.py project automation/mistake_prevention_v2
       - name: Holdout/adversarial guard evaluation
         run: python automation/mistake_prevention_v2/mistake_prevention_v2.py evaluate automation/mistake_prevention_v2
-      - name: Fail if a historical event batch is modified or deleted in a PR
-        if: github.event_name == 'pull_request'
+      - name: Fail if a historical event batch is modified or deleted
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          bad="$(git diff --name-status "origin/${{ github.base_ref }}"...HEAD -- automation/mistake_prevention_v2/events | awk '$1 != "A" {print}')"
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "No prior branch tip is available; skipping historical-event diff for this initial push."
+            exit 0
+          fi
+          bad="$(git diff --name-status "$BASE_SHA" "$HEAD_SHA" -- automation/mistake_prevention_v2/events | awk '$1 != "A" {print}')"
           if [ -n "$bad" ]; then
             echo "Historical event batches are append-only; only new event files may be added."
             echo "$bad"
