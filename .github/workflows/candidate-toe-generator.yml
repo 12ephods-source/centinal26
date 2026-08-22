@@ -1,0 +1,51 @@
+name: Candidate ToE Generator
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/toe-generator-v0.1/**'
+      - '.github/workflows/candidate-toe-generator.yml'
+  push:
+    branches:
+      - 'agent/candidate-toe-generator-v01'
+    paths:
+      - 'candidates/toe-generator-v0.1/**'
+      - '.github/workflows/candidate-toe-generator.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit and regression tests
+        working-directory: candidates/toe-generator-v0.1
+        run: python -m unittest -v test_toe_engine.py
+      - name: Historical regression smoke test
+        working-directory: candidates/toe-generator-v0.1
+        run: python toe_engine.py regressions > regressions.json
+      - name: Deterministic candidate generation smoke test
+        working-directory: candidates/toe-generator-v0.1
+        run: python toe_engine.py generate --top 12 > generated.json
+      - name: Assert certification firewall
+        working-directory: candidates/toe-generator-v0.1
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('generated.json').read_text())
+          assert payload['candidate_count'] == 48, payload['candidate_count']
+          for candidate in payload['top']:
+              assert candidate['verdict'] != 'VERIFIED'
+              assert candidate['certification_permitted'] is False
+          print('certification firewall: PASS')
+          PY
