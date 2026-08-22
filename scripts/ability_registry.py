@@ -1,4 +1,4 @@
-"""Register, validate, and list reusable Frost Forge abilities.
+"""Register, validate, discover, and list reusable Frost Forge abilities.
 
 This helper does not grant authority. It records tools/adapters that have already
 been built within an authorized scope so later automation can discover and reuse
@@ -8,6 +8,7 @@ them instead of rebuilding equivalent machinery.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 from pathlib import Path
@@ -43,6 +44,13 @@ def load_registry(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise TypeError("registry must be a JSON object")
+    return data
+
+
+def load_ability(path: Path) -> dict[str, Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise TypeError(f"ability file must contain a JSON object: {path}")
     return data
 
 
@@ -127,6 +135,67 @@ def validate_registry(data: dict[str, Any]) -> list[str]:
     return errors
 
 
+def manifest_paths(registry_path: Path, manifests_dir: Path | None = None) -> list[Path]:
+    directory = manifests_dir if manifests_dir is not None else registry_path.parent
+    registry_resolved = registry_path.resolve()
+    return [
+        path
+        for path in sorted(directory.glob("*.json"))
+        if path.resolve() != registry_resolved
+    ]
+
+
+def merge_manifests(
+    registry: dict[str, Any],
+    paths: list[Path],
+) -> tuple[dict[str, Any], int, int]:
+    registry_errors = validate_registry(registry)
+    if registry_errors:
+        raise ValueError("invalid registry: " + "; ".join(registry_errors))
+
+    merged = copy.deepcopy(registry)
+    existing = {item["id"]: item for item in merged["abilities"]}
+    added_count = 0
+    existing_count = 0
+
+    for path in paths:
+        ability = load_ability(path)
+        errors = validate_ability(ability)
+        if errors:
+            raise ValueError(f"invalid ability manifest {path}: " + "; ".join(errors))
+
+        ability_id = ability["id"]
+        prior = existing.get(ability_id)
+        if prior is not None:
+            if prior != ability:
+                raise ValueError(
+                    f"ability manifest conflicts with registry entry: {ability_id}"
+                )
+            existing_count += 1
+            continue
+
+        merged["abilities"].append(ability)
+        existing[ability_id] = ability
+        added_count += 1
+
+    merged["abilities"].sort(key=lambda item: item["id"])
+    post_errors = validate_registry(merged)
+    if post_errors:
+        raise ValueError("effective registry invalid: " + "; ".join(post_errors))
+    return merged, added_count, existing_count
+
+
+def effective_registry(
+    path: Path,
+    manifests_dir: Path | None = None,
+) -> dict[str, Any]:
+    merged, _, _ = merge_manifests(
+        load_registry(path),
+        manifest_paths(path, manifests_dir),
+    )
+    return merged
+
+
 def write_registry_atomic(path: Path, data: dict[str, Any]) -> None:
     temp_path = path.with_name(f".{path.name}.tmp")
     try:
@@ -146,9 +215,7 @@ def register_ability(path: Path, ability_path: Path) -> None:
     if registry_errors:
         raise ValueError("invalid registry: " + "; ".join(registry_errors))
 
-    ability = json.loads(ability_path.read_text(encoding="utf-8"))
-    if not isinstance(ability, dict):
-        raise TypeError("ability file must contain a JSON object")
+    ability = load_ability(ability_path)
     errors = validate_ability(ability)
     if errors:
         raise ValueError("; ".join(errors))
@@ -165,33 +232,42 @@ def register_ability(path: Path, ability_path: Path) -> None:
     write_registry_atomic(path, data)
 
 
+def sync_manifests(path: Path, manifests_dir: Path | None = None) -> tuple[int, int]:
+    merged, added_count, existing_count = merge_manifests(
+        load_registry(path),
+        manifest_paths(path, manifests_dir),
+    )
+    if added_count:
+        write_registry_atomic(path, merged)
+    return added_count, existing_count
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    parser.add_argument("--manifests-dir", type=Path)
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("list")
     sub.add_parser("validate")
+    sub.add_parser("sync-manifests")
     register = sub.add_parser("register")
     register.add_argument("ability", type=Path)
 
     args = parser.parse_args()
     try:
         if args.command == "list":
-            data = load_registry(args.registry)
-            errors = validate_registry(data)
-            if errors:
-                raise ValueError("invalid registry: " + "; ".join(errors))
+            data = effective_registry(args.registry, args.manifests_dir)
             for item in data["abilities"]:
                 print(f"{item['id']}\t{item['status']}\t{item['name']}")
             return 0
         if args.command == "validate":
-            errors = validate_registry(load_registry(args.registry))
-            if errors:
-                for error in errors:
-                    print(error)
-                return 1
+            effective_registry(args.registry, args.manifests_dir)
             print("ABILITY_REGISTRY_VALID")
+            return 0
+        if args.command == "sync-manifests":
+            added, existing = sync_manifests(args.registry, args.manifests_dir)
+            print(f"ABILITY_MANIFESTS_SYNCED added={added} existing={existing}")
             return 0
         if args.command == "register":
             register_ability(args.registry, args.ability)
