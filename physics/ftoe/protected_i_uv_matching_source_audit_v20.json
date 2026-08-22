@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "gate": "FTOE_PROTECTED_I_UV_MATCHING_SOURCE_AUDIT_V20",
+  "predecessor_state": "MINIMAL_SO6_PROTECTED_I_REVIEW_AFTER_PORTAL_SCALE_AUDIT",
+  "question": "Do existing primary reference constructions simultaneously provide role-separated two-pNGB electroweak doublets and explicit SO(10)-organized composite/GUT matching sufficient to derive heavy portals to protected I?",
+  "sources": [
+    {
+      "id": "arXiv:1910.13699",
+      "role": "SO6 composite 2HDM reference",
+      "frozen_fact": "SO(6)->SO(4)xSO(2) yields two pNGB electroweak doublets with a resonance-based composite-sector potential, but this reference does not specify the FToE SO(10) heavy-scalar matching Lagrangian."
+    },
+    {
+      "id": "arXiv:1103.2997",
+      "role": "composite GUT reference",
+      "frozen_fact": "The minimal composite-GUT construction uses SO(11)->SO(10); its ten pNGBs transform as a 10 of SO(10), decomposing into one electroweak (1,2,2)_0 fourplet plus coloured triplet partners, not two independent electroweak doublet roles."
+    }
+  ],
+  "checks": {
+    "so6_reference_has_two_pnGB_doublets": true,
+    "so6_reference_has_explicit_ftoe_so10_heavy_matching": false,
+    "so11_so10_reference_has_so10_organized_pnGB_sector": true,
+    "so11_so10_reference_has_two_independent_electroweak_doublet_roles": false,
+    "existing_reference_closes_both_requirements": false
+  },
+  "verdict": "UNRESOLVED_UV_MATCHING_BIFURCATION",
+  "smallest_missing_input": "An explicit versioned interaction/matching Lagrangian that simultaneously retains distinct SM-Higgs and protected-I electroweak doublets and specifies their couplings or sequestering with the SO(10)-breaking 210_H, 45_H, 126_H and 10_C,H sectors.",
+  "fail_closed_boundaries": [
+    "Do not set unspecified heavy portals to zero.",
+    "Do not assume order-one heavy portals without an explicit interaction basis.",
+    "Do not transfer the SO(11)/SO(10) single-doublet result into the SO(6) two-doublet model by notation similarity.",
+    "Do not promote protected-I radiative stability or publication readiness from source proximity alone.",
+    "Preserve all predecessor PASS, FAIL and REVIEW records unchanged."
+  ],
+  "scientific_status": "REVIEW_FAIL_CLOSED"
+}
