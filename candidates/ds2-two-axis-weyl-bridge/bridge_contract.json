@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "classification": "BOUNDED_FINITE_TO_CONTINUUM_BRIDGE",
+  "dependencies": [
+    "PR #327 finite dS2 geometry-bearing Type-I surrogate",
+    "PR #389 physical dS2 continuum target source-anchored as hyperfinite Type III_1"
+  ],
+  "frozen_axes": {
+    "local_dimension": {
+      "observable": "thermal displacement D(alpha)",
+      "dimensions": [2, 4, 8, 12, 16, 24, 32],
+      "beta_omega": [0.7, 1.5, 3.0],
+      "alpha": [0.2, 0.5, 0.8],
+      "reference": "exact untruncated harmonic-oscillator thermal characteristic function",
+      "gates": {
+        "d2_worst_error_min": 0.05,
+        "strict_error_decrease": true,
+        "d32_worst_error_max": 1e-8,
+        "d2_to_d32_improvement_min": 1000000.0
+      }
+    },
+    "spatial_mode": {
+      "model": "massless free scalar on unit Dirichlet interval at beta=2*pi",
+      "smearing": "L2-normalized Gaussian centered at 0.5 with sigma=0.12",
+      "lattice_sizes": [16, 32, 64, 128, 256],
+      "continuum_mode_references": [256, 512],
+      "bounded_weyl_amplitudes": [0.5, 1.0, 1.5],
+      "gates": {
+        "reference_refinement_max": 1e-10,
+        "strict_error_decrease": true,
+        "observed_order_min": 1.8,
+        "final_relative_covariance_error_max": 2e-5,
+        "final_weyl_error_max": 5e-6
+      }
+    }
+  },
+  "success_status": "PASS_TWO_AXIS_BOUNDED_WEYL_CORRELATOR_BRIDGE",
+  "scientific_pass": false,
+  "promotion_ceiling": "bounded-observable and selected Gaussian-state/correlation convergence only",
+  "forbidden_inferences": [
+    "do not claim the d=2 finite regulator is continuum accurate",
+    "do not claim convergence of the entire local Weyl net",
+    "do not claim strong/weak/modular convergence of local von Neumann algebras",
+    "do not derive Type III_1 classification from numerical residuals",
+    "do not infer interacting continuum, Type-II gravity, Einstein dynamics, or observer gluing"
+  ],
+  "next_gate": "LOCAL_NET_TOPOLOGY_AND_MODULAR_CONVERGENCE_CONTRACT"
+}

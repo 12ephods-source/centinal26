@@ -1,0 +1,97 @@
+{
+  "schema": "frost.ftoe.mui_lambdax_beta_provenance_reconciliation/v1",
+  "date": "2026-08-22",
+  "mode": "DEVELOPMENT_AUDIT",
+  "source_basis": [
+    {
+      "kind": "FILE_LIBRARY_ARTIFACT",
+      "title": "36-ftoe_beta_derivation_audit_results.json",
+      "created_at": "2026-08-21T06:10:34Z",
+      "role": "prior deterministic derivation audit result"
+    },
+    {
+      "kind": "FILE_LIBRARY_ARTIFACT",
+      "title": "36-ftoe_beta_derivation_audit.py",
+      "created_at": "2026-08-21T06:10:34Z",
+      "role": "prior dependency-free executable audit"
+    },
+    {
+      "kind": "FILE_LIBRARY_MANUSCRIPT",
+      "title": "FToE_Final_Recalibrated_arXiv-1.md",
+      "role": "equations and quoted parameters audited"
+    },
+    {
+      "kind": "GITHUB_RECONCILIATION",
+      "path": "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+      "role": "current mandatory-gate context"
+    }
+  ],
+  "question": "Are mu_I, Lambda_X and beta independently derived by the supplied theory, or does the quoted chain propagate a target/input?",
+  "frozen_equations": {
+    "beta_from_scale": "beta=(Lambda/M_P)^2",
+    "symmetry_breaking_condition": "-mu_I^2 + (7.31*xi_I/2)*(Lambda_X^4/M_P^2)=0",
+    "xi_I": "1/6",
+    "quoted_beta_target": 1e-15,
+    "quoted_mu_I_GeV": 9540.0,
+    "M_P_GeV": 1.22089e19,
+    "quoted_Lambda_GUT_GeV": 2.43e16
+  },
+  "independent_reproduction": {
+    "beta_from_GUT": 3.961498301790532e-06,
+    "beta_from_GUT_over_target": 3961498301.790532,
+    "Lambda_X_from_beta_target_GeV": 386079317252.29724,
+    "mu_I_from_beta_target_GeV": 9528.940211381938,
+    "Lambda_X_from_quoted_mu_I_GeV": 386303304247.63495,
+    "beta_from_quoted_mu_I": 1.0011606525356149e-15,
+    "quoted_mu_relative_closure_error": 0.0011593069830253835,
+    "dln_beta_dln_mu": 1.0
+  },
+  "claim_adjudication": [
+    {
+      "claim": "beta=(Lambda_GUT/M_P)^2 equals 1e-15",
+      "status": "FAIL_REJECTED_BY_ARITHMETIC"
+    },
+    {
+      "claim": "Lambda_X approximately 3.86e11 GeV follows after imposing beta=1e-15",
+      "status": "PASS_CONDITIONAL_IDENTITY"
+    },
+    {
+      "claim": "mu_I approximately 9.54 TeV follows from the imposed beta target through the quoted symmetry-breaking relation",
+      "status": "PASS_CONDITIONAL_IDENTITY"
+    },
+    {
+      "claim": "beta=1e-15 is independently predicted",
+      "status": "FAIL_NOT_DERIVED"
+    },
+    {
+      "claim": "mu_I approximately 9.54 TeV is independently derived from SO(10) breaking",
+      "status": "FAIL_NOT_DERIVED"
+    },
+    {
+      "claim": "m_I approximately 13.5 TeV is independently predicted",
+      "status": "FAIL_DEPENDS_ON_CONSTRAINED_MU_I"
+    }
+  ],
+  "causal_direction": {
+    "as_supplied": "beta_target -> Lambda_X -> mu_I",
+    "required_for_prediction": "independently_derived_mu_I -> Lambda_X -> beta"
+  },
+  "canonical_verdict": "BETA_1E_MINUS_15_IS_AN_INPUT_EQUIVALENT_TO_MU_I_9P54_TEV_NOT_A_PARAMETER_FREE_PREDICTION",
+  "scientific_status": "FAIL_NOT_INDEPENDENTLY_DERIVED",
+  "execution_state": "MISSING_SOURCE",
+  "missing_source": [
+    "explicit SO(10)-breaking scalar potential sufficient to derive mu_I",
+    "representation couplings entering the relevant 126_H/other heavy VEV matching",
+    "vacuum/matching conditions that determine mu_I rather than fit it",
+    "RG evolution and threshold prescription connecting high-scale breaking parameters to mu_I",
+    "predictive uncertainty propagation for mu_I, Lambda_X, beta and m_I"
+  ],
+  "next_legitimate_transition": "Recover or construct a separately versioned explicit SO(10)-breaking interaction basis and derive mu_I without using beta=1e-15, Lambda_X, 9.54 TeV, or 13.5 TeV as fit targets.",
+  "fail_closed_boundaries": [
+    "Do not relabel the algebraic beta_target -> Lambda_X -> mu_I chain as a prediction.",
+    "Do not set missing SO(10) couplings or portals to zero without an explicit symmetry or interaction basis.",
+    "Do not assume order-one couplings merely to estimate a preferred scale.",
+    "Do not use the 13.5 TeV threshold in downstream prediction claims as independently derived while this gate remains unresolved.",
+    "Preserve the historical manuscript and prior audit as immutable provenance."
+  ]
+}
