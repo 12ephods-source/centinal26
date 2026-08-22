@@ -19,7 +19,7 @@ Accordingly:
 
 ## Investigation state
 
-The investigation is beyond the question of whether there is material worth investigating. Current records support a mature DFIR architecture, provider-origin account/security events, contemporaneous incident testimony, recovered provider transaction anchors, and partial device lineage. They do not yet establish event-specific authorization or human actor attribution.
+The investigation is beyond the question of whether there is material worth investigating. Current records support a mature DFIR architecture, provider-origin account/security events, contemporaneous incident testimony, recovered provider transaction anchors, a primary Takeout archive index, and partial device lineage. They do not yet establish event-specific authorization or human actor attribution.
 
 Canonical evidentiary ladder:
 
@@ -32,10 +32,11 @@ Principal open evidentiary gate:
 ## Highest-value current findings
 
 1. Exact provider anchors (`eid`, `aneid`, notification IDs, Takeout job IDs, and hashed recovery-flow identifiers) exist for multiple January account-control events and are stronger correlation targets than timestamps alone.
-2. Three distinct January Takeout cycles are established in provider records; the middle Cycle B index was materialized and hashed, while Cycle A/C archive bytes remain unrecovered in current connected searches.
-3. Distinct Samsung A15 and A06 lineages are supported. The A15 branch contains high-value close temporal correlations; the A06 branch includes a provider-reported model-specific action. Neither is sufficient by itself for human attribution.
-4. Exact recovery is cryptographic/provenance-defined, not filename-defined. A post-suspected-compromise baseline is not proof of cleanliness.
-5. AI/model output can accelerate extraction and correlation but cannot independently promote a claim to primary observed evidence.
+2. Three distinct January Takeout cycles are established in provider records. Cycle B's primary archive index is materialized and hashed. It directly records Google Account `ChangeHistory` and `SubscriberInfo` files and records five January 12 Takeout ZIP objects inside the Drive export. Those file contents are not all recovered, so inclusion is established while content-level conclusions remain gated.
+3. The preserved Access Log device-table copy has been recovered and hashed from authenticated raw MIME. It expands the account-associated device inventory, but model strings and repeated rows are not unique physical-device identifiers.
+4. Distinct Samsung A15 and A06 lineages are supported. Additional model-level provider sign-in corroboration exists for other entries in the recovered device table. None of those facts independently supplies the common January action/session/device key.
+5. Exact recovery is cryptographic/provenance-defined, not filename-defined. A post-suspected-compromise baseline is not proof of cleanliness.
+6. AI/model output can accelerate extraction and correlation but cannot independently promote a claim to primary observed evidence.
 
 ## Validation state
 
@@ -43,11 +44,14 @@ Principal open evidentiary gate:
 - Android-specific logic exercised only outside the live handset: at most `ANDROID_LOGIC_VERIFIED` when supported by fixture evidence.
 - Current handset evidence-origin claims: `NOT_TESTED` unless an authentic device-origin artifact is present and verified.
 - Provider-authenticated records and independently checked primary artifacts: `EXTERNAL_CORROBORATED` where the source record explicitly supports that status.
+- The current read-only Android health gate remains queued/unclaimed; no authentic Android/Termux worker is presently observed.
 
 The absence of a handset run does **not** block unrelated software or provider-evidence work. It only leaves live-handset-origin claims open.
 
 ## Explicitly unresolved
 
+- Original bytes/content for Cycle B Google Account `ChangeHistory` and `SubscriberInfo` records.
+- Original January 12 Takeout ZIP parts indexed inside Cycle B Drive data.
 - Common provider session/device key for the highest-value disputed events.
 - Owner authorization, event by event.
 - Controller/possession at relevant event times.
@@ -60,6 +64,8 @@ The absence of a handset run does **not** block unrelated software or provider-e
 
 - `possible evidence exists != evidence currently available != verified evidence != final conclusion`
 - `provider event != session identity != device identity != authorization != human actor`
+- `archive index inclusion != recovered file contents`
+- `model string != unique physical handset`
 - `hash/fixity != historical authenticity`
 - `model inference != observed primary evidence`
 - `not found in current query != never existed`
@@ -67,12 +73,14 @@ The absence of a handset run does **not** block unrelated software or provider-e
 
 ## Highest-value next actions
 
-1. Correlate exact provider anchors to session creation/refresh, IP/user-agent, provider device/session IDs, token issuance/revocation, recovery-flow state, and common internal audit keys.
-2. Recover Cycle A and C Takeout bytes if available; hash and diff A/B/C across Android Device Configuration, Access Logs, Chrome Device Information, and Google Account records.
-3. Resolve remaining Android configuration IDs by model/stable identifier.
-4. Run live-handset collection only for claims that specifically require current-device provenance; verify hashes/manifests independently.
-5. Compare current handset state against trusted Git/package/vendor/backup references rather than a post-incident baseline alone.
-6. Adjudicate authorization per disputed event before attempting human attribution.
+1. Recover the Cycle B Google Account `ChangeHistory` and `SubscriberInfo` originals or equivalent provider records, hash them immediately, and search them for exact transaction/session/device joins.
+2. Recover the January 12 Takeout parts indexed in Cycle B Drive data, then cryptographically inventory them against the January 20/21 snapshots.
+3. Correlate exact provider anchors to session creation/refresh, IP/user-agent, provider device/session IDs, token issuance/revocation, recovery-flow state, and common internal audit keys.
+4. Recover Cycle A and C Takeout bytes if available; hash and diff A/B/C across Android Device Configuration, Access Logs, Chrome Device Information, and Google Account records.
+5. Resolve remaining Android configuration IDs by stable provider/hardware identifiers rather than model name or record count.
+6. Run live-handset collection only for claims that specifically require current-device provenance; verify hashes/manifests independently.
+7. Compare current handset state against trusted Git/package/vendor/backup references rather than a post-incident baseline alone.
+8. Adjudicate authorization per disputed event before attempting human attribution.
 
 ## Monolith workstream disposition
 
