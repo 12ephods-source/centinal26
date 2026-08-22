@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenQuest Character Creator</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#171717;background:#f3f4f6}body{margin:0}main{max-width:860px;margin:auto;padding:24px}.card{background:white;border:1px solid #d1d5db;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 1px 3px #0001}h1{margin:0 0 4px}.muted{color:#60656f}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}label{display:grid;gap:5px;font-weight:650}input,select,button{font:inherit;padding:10px;border:1px solid #aab0b8;border-radius:8px;background:white}button{cursor:pointer;background:#171717;color:white;border-color:#171717;font-weight:700}.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.skills label{display:flex;align-items:center;gap:7px;font-weight:500}.status{padding:10px;border-radius:8px;background:#eef2f7;white-space:pre-wrap}.error{background:#fee2e2}.success{background:#dcfce7}pre{overflow:auto;background:#111827;color:#e5e7eb;padding:14px;border-radius:9px;max-height:360px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.small{font-size:.9rem}a{color:inherit}</style>
+</head>
+<body>
+<main>
+<section class="card">
+<h1>OpenQuest Character Creator</h1>
+<p class="muted">Bounded level-1 creator using versioned SRD profiles. Unsupported choices fail closed.</p>
+</section>
+<form id="creator" class="card">
+<div class="grid">
+<label>Name<input id="name" value="OpenQuest Hero" required></label>
+<label>Ruleset<select id="ruleset"><option value="srd-5.2.1">SRD 5.2.1 (2024 default)</option><option value="srd-5.1">SRD 5.1 (2014 compatibility)</option></select></label>
+<label>Class<select id="className"></select></label>
+<label>Species<select id="species"></select></label>
+<label>Background<select id="background"></select></label>
+<label>Armor class<input id="armorClass" type="number" min="1" max="40" value="10"></label>
+</div>
+<h2>Standard array</h2>
+<p class="muted small">Assign each value exactly once.</p>
+<div id="abilities" class="grid"></div>
+<h2>Class skills</h2>
+<p id="skillHint" class="muted small"></p>
+<div id="skills" class="skills"></div>
+<p><button type="submit">Create & validate character</button></p>
+</form>
+<section class="card">
+<h2>Validation</h2>
+<div id="status" class="status">Loading legal options…</div>
+</section>
+<section id="resultCard" class="card" hidden>
+<div class="row"><h2>Finished character</h2><button id="download" type="button">Download JSON</button></div>
+<pre id="result"></pre>
+</section>
+</main>
+<script>
+const abilities=['str','dex','con','int','wis','cha'];
+const standard=[15,14,13,12,10,8];
+const fighterSkills=['acrobatics','animal handling','athletics','history','insight','intimidation','perception','persuasion','survival'];
+const abilityBox=document.querySelector('#abilities');
+const skillsBox=document.querySelector('#skills');
+for(const ability of abilities){const label=document.createElement('label');label.textContent=ability.toUpperCase();const select=document.createElement('select');select.id='ability-'+ability;for(const n of standard){const o=document.createElement('option');o.value=n;o.textContent=n;select.append(o)}select.value=standard[abilities.indexOf(ability)];label.append(select);abilityBox.append(label)}
+for(const skill of fighterSkills){const label=document.createElement('label');const box=document.createElement('input');box.type='checkbox';box.value=skill;box.name='skill';label.append(box,document.createTextNode(skill));skillsBox.append(label)}
+document.querySelectorAll('input[name=skill]')[2].checked=true;document.querySelectorAll('input[name=skill]')[6].checked=true;
+const statusBox=document.querySelector('#status'), resultCard=document.querySelector('#resultCard'), resultBox=document.querySelector('#result');
+function setStatus(text,type=''){statusBox.textContent=text;statusBox.className='status '+type}
+async function loadOptions(){const ruleset=document.querySelector('#ruleset').value;try{const r=await fetch('/v1/options?ruleset='+encodeURIComponent(ruleset));const data=await r.json();if(!r.ok)throw new Error(data.gates?.[0]?.detail||'Option request failed');for(const [id,key] of [['className','classes'],['species','species'],['background','backgrounds']]){const el=document.querySelector('#'+id);el.innerHTML='';for(const value of data.options[key]){const o=document.createElement('option');o.value=value;o.textContent=value;el.append(o)}}document.querySelector('#skillHint').textContent='Choose exactly two Fighter skills.';setStatus('Legal choices loaded from '+ruleset+'.')}catch(err){setStatus(String(err),'error')}}
+document.querySelector('#ruleset').addEventListener('change',loadOptions);
+document.querySelector('#creator').addEventListener('submit',async(e)=>{e.preventDefault();const abilityScores={};for(const a of abilities)abilityScores[a]=Number(document.querySelector('#ability-'+a).value);const skillProficiencies=[...document.querySelectorAll('input[name=skill]:checked')].map(x=>x.value);const payload={name:document.querySelector('#name').value,ruleset:document.querySelector('#ruleset').value,class_name:document.querySelector('#className').value,species:document.querySelector('#species').value,background:document.querySelector('#background').value,armor_class:Number(document.querySelector('#armorClass').value),ability_scores:abilityScores,skill_proficiencies:skillProficiencies};setStatus('Validating…');resultCard.hidden=true;try{const r=await fetch('/v1/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok){const details=(data.gates||[]).map(g=>g.gate+': '+g.detail).join('\n');setStatus(details||'Validation failed','error');return}resultBox.textContent=JSON.stringify(data.result,null,2);resultCard.hidden=false;setStatus('PASS — character created and independently validated.','success')}catch(err){setStatus(String(err),'error')}});
+document.querySelector('#download').addEventListener('click',()=>{const blob=new Blob([resultBox.textContent+'\n'],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='openquest-character.json';a.click();URL.revokeObjectURL(a.href)});
+loadOptions();
+</script>
+</body>
+</html>
