@@ -1,0 +1,8 @@
+{
+  "CENTINAL26_AUTOPILOT_ONE_PASTE_INSTALLER_v2_0.sh": {"bash_n":0,"stderr":""},
+  "CENTINAL26_TERMUX_ONE_PASTE_INSTALLER_v1_1.sh": {"bash_n":0,"stderr":""},
+  "CENTINAL26_TERMUX_ONE_PASTE_INSTALLER_v2_0.sh": {"bash_n":0,"stderr":""},
+  "INSTALL_CENTINAL26_CODE_GATE.sh": {"bash_n":0,"stderr":""},
+  "INSTALL_CENTINAL26_CODE_GATE_v2_0.sh": {"bash_n":0,"stderr":""},
+  "unified_dry_run": {"returncode":0,"result":"CENTINAL26_AUTOPILOT_DRY_RUN=PASS"}
+}
