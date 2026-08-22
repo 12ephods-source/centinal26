@@ -1,6 +1,6 @@
 {
-  "schema_version": 4,
-  "status": "TWO_REFERENCES_PINNED_BENCHMARK_IMPLEMENTED_UPSTREAM_EXECUTION_STILL_LICENSE_GATED",
+  "schema_version": 5,
+  "status": "THREE_REFERENCES_PINNED_BENCHMARK_AND_BOUNDED_ADAPTER_IMPLEMENTED_UPSTREAM_EXECUTION_STILL_SELECTION_GATED",
   "observed_at": "2026-08-22",
   "purpose": "Defensive software repair research only",
   "resources": [
@@ -25,6 +25,16 @@
       "reuse_status": "REFERENCE_ONLY_UNTIL_MINIMAL_EVALUATION_PRIMITIVE_IS_EXPLICITLY_SELECTED"
     },
     {
+      "name": "Buttercup",
+      "repository": "trailofbits/afc-buttercup",
+      "role": "finalist orchestration, patcher and program-model architecture study",
+      "commit": "93ff9f4d21784f26a2acc038e46c8dafdaf1f88e",
+      "commit_verification": "GitHub reports pinned root commit is unsigned",
+      "license": "AGPL-3.0",
+      "license_blob_sha": "be3f7b28e564e7dd05eaf59d64adba1a4065ac0e",
+      "reuse_status": "REFERENCE_ONLY_LICENSE_COMPATIBILITY_REVIEW_REQUIRED_BEFORE_VENDORING_OR_DERIVATION"
+    },
+    {
       "name": "AIxCC cAPI",
       "repository": "aixcc-public/capi",
       "role": "vulnerability-discovery and generated-patch validation interface",
@@ -35,7 +45,6 @@
       "reuse_status": "REFERENCE_ONLY_DO_NOT_EXECUTE_OR_VENDOR_UNTIL_LICENSE_IS_RESOLVED"
     },
     {"name":"Atlantis","repository":"Team-Atlanta/aixcc-afc-atlantis","role":"finalist CRS architecture study","pin_status":"REQUIRED"},
-    {"name":"Buttercup","repository":"trailofbits/afc-buttercup","role":"orchestration/patcher/program-model study","pin_status":"REQUIRED"},
     {"name":"Theori AFC archive","repository":"theori-io/aixcc-afc-archive","role":"finalist CRS architecture/evaluation study","pin_status":"REQUIRED"},
     {"name":"Lacrosse","repository":"siftech/afc-crs-lacrosse","role":"fuzzing/symbolic/multi-agent analyzer study","pin_status":"REQUIRED"},
     {"name":"CGC repositories","repository":"CyberGrandChallenge/*","role":"historical challenge corpus and testing infrastructure study","pin_status":"SELECT_AND_PIN_ONLY_IF_NEEDED"}
@@ -51,6 +60,7 @@
     "Do not grant arbitrary shell, arbitrary remote targeting, credential harvesting, exploit deployment, or autonomous promotion authority.",
     "Analyzer output remains CANDIDATE until deterministic reproduction and independent verification succeed.",
     "Reuse Centinal26 as the sole canonical authorization/evidence/control plane.",
-    "A public GitHub repository without a verified reuse license is not treated as reusable source."
+    "A public GitHub repository without a verified reuse license is not treated as reusable source.",
+    "Copyleft-licensed finalist code remains architecture-reference-only until license compatibility is explicitly reviewed."
   ]
 }
