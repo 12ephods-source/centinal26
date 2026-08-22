@@ -3,7 +3,7 @@
   "name": "Dedupe Organizer v2",
   "kind": "device-automation-tool",
   "source": {
-    "adapter_path": "automation/connectors/dedupe_organizer_adapter.py",
+    "adapter_path": "src/centinal26/dedupe_organizer_adapter.py",
     "release_artifact": "Dedupe_Organizer_v2.0.0_2026-08-22.zip",
     "release_sha256": "e417bbfc3706acb67115293f7dae1983f771d434f53fffacefc3cc1377b9dd8d",
     "runtime_sha256": "36d2f05b6920078144448604b40fef3585840e781f095a951965fe55ee78724a",
