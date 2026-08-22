@@ -1,0 +1,41 @@
+name: dS Continuum Limit Source Audit
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/ds-continuum-limit-audit/**'
+      - '.github/workflows/ds-continuum-limit-source-audit.yml'
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run frozen source audit
+        run: python candidates/ds-continuum-limit-audit/check_continuum_limit_contract.py | tee ds_continuum_limit_audit.json
+      - name: Run focused test
+        run: python -m pytest -q candidates/ds-continuum-limit-audit/test_continuum_limit_contract.py
+      - name: Capture environment and hashes
+        shell: bash
+        run: |
+          python --version > ds_continuum_environment.txt
+          git --version >> ds_continuum_environment.txt
+          sha256sum candidates/ds-continuum-limit-audit/* ds_continuum_limit_audit.json ds_continuum_environment.txt > ds_continuum_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds-continuum-limit-source-audit-${{ matrix.python-version }}
+          path: |
+            ds_continuum_limit_audit.json
+            ds_continuum_environment.txt
+            ds_continuum_sha256.txt
