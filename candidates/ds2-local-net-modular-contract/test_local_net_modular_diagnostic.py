@@ -40,16 +40,26 @@ def test_modular_evolution_preserves_reference_covariance() -> None:
             assert abs(after - baseline) / max(1.0, abs(baseline)) <= 2.0e-12
 
 
-def test_diagnostic_passes_only_bounded_dense_family_subgate() -> None:
+def test_wrong_modular_direction_is_detected() -> None:
+    assert diagnostic.wrong_modular_direction_gap() >= 1.0e-4
+
+
+def test_diagnostic_passes_only_frozen_finite_family_subgate() -> None:
     result = diagnostic.evaluate()
     assert result["execution_pass"] is True
     assert result["scientific_pass"] is False
-    assert result["status"] == "PASS_DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE"
+    assert result["status"] == "PASS_FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE"
+    assert result["negative_control"]["detected"] is True
     interpretation = result["interpretation"]
-    assert interpretation["promotion_ceiling"] == "DENSE_TEST_FAMILY_NECESSARY_SUBGATE_ONLY"
+    assert interpretation["promotion_ceiling"] == (
+        "FROZEN_FINITE_TEST_FAMILY_NECESSARY_SUBGATE_ONLY"
+    )
     assert interpretation["next_gate"] == (
         "COMMON_GNS_OR_STANDARD_SUBSPACE_OPERATOR_TOPOLOGY_CONVERGENCE"
     )
+    assert "density of the finite smearing family in the local one-particle or Weyl test space" in interpretation[
+        "not_established"
+    ]
     assert "strong or weak operator convergence of the full local von Neumann net" in interpretation[
         "not_established"
     ]
