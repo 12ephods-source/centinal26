@@ -1,0 +1,35 @@
+{
+  "schema": "frost-account-goal-verification/v1",
+  "goal_id": "G05",
+  "goal_name": "Frost Sentinel cybersecurity and DFIR",
+  "prior_state": "IMPLEMENTED",
+  "verified_state": "INDEPENDENTLY_VERIFIED",
+  "verified_at": "2026-08-22T20:22:45Z",
+  "verdict": "VERIFIED",
+  "criteria": {
+    "defensive_observation": "PASS",
+    "immutable_evidence_preservation": "PASS",
+    "forensic_timelines": "PASS",
+    "independent_corroboration": "PASS"
+  },
+  "source": {
+    "verification_pr": 411,
+    "verification_head": "5c0a718c4f34ad78b5a051b7de8b5f1f076cd233",
+    "merge_commit": "9b4d9e29c9a2790d385e7a208628211bd3e42b78",
+    "verifier": "scripts/frost_sentinel_evidence_verify.py",
+    "collector": "tools/dfir/FROST_ANDROID_EVIDENCE_GUARDIAN_v3.1.sh",
+    "dedicated_workflow": "Frost Sentinel Independent Verifier",
+    "workflow_run_id": 32591907571,
+    "exact_head_workflows_passed": 10
+  },
+  "verification_scope": {
+    "artifact_integrity_and_provenance": "INDEPENDENTLY_CORROBORATED",
+    "acquisition_and_custody_timeline": "INDEPENDENTLY_CORROBORATED",
+    "device_origin": "NOT_ESTABLISHED",
+    "maliciousness": "NOT_ESTABLISHED",
+    "attacker_identity": "NOT_ESTABLISHED",
+    "forensic_attribution": "NOT_ESTABLISHED",
+    "semantic_truth": "NOT_ESTABLISHED"
+  },
+  "does_not_promote_G03": true
+}

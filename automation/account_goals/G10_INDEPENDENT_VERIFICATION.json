@@ -1,0 +1,39 @@
+{
+  "schema": "frost-account-goal-verification/v1",
+  "goal_id": "G10",
+  "goal_name": "Reusable solution-pattern registry",
+  "prior_state": "IMPLEMENTED",
+  "verified_state": "INDEPENDENTLY_VERIFIED",
+  "verified_at": "2026-08-22T20:21:30Z",
+  "verdict": "VERIFIED",
+  "criteria": {
+    "verified_recurring_failures_map_to_reusable_repair_patterns": "PASS",
+    "future_recurrence_searches_registry_first": "PASS",
+    "repair_has_regression_evidence": "PASS"
+  },
+  "evidence": {
+    "registry_path": "automation/solution_patterns",
+    "physical_boundary_pattern": {
+      "path": "automation/solution_patterns/physical_runtime_boundary_bridge.json",
+      "blob_sha": "af46f0e0c455b69676b677c8f540cf6eea18cd2e",
+      "qualified_head": "f30385aadd902c1115f7cf02b977e5e21dd9a2c2",
+      "production_merge": "715a6cb99c1436a5bbbb59f2bd5842528d4c40bb",
+      "host_pattern_status": "VERIFIED_HOST_PATTERN_DEVICE_EXECUTION_PENDING"
+    },
+    "ruff_exe001_pattern": {
+      "path": "automation/solution_patterns/ruff_exe001_shebang_mode.json",
+      "blob_sha": "297245e03b61294afe85f1adf40aa8dd99b17fe6",
+      "qualification_pr": 423,
+      "qualified_head": "f4df38fdea52720569a4c7cf0ea62399002daa48",
+      "merge_commit": "3406d2402d52b0e2b488b9e2609e772d21521cf8",
+      "status": "INDEPENDENTLY_QUALIFIED_EXACT_HEAD",
+      "exact_head_workflows_passed": 10
+    }
+  },
+  "scope": {
+    "software_pattern_registry": "INDEPENDENTLY_VERIFIED",
+    "physical_device_execution": "NOT_REQUIRED_FOR_G10_SOFTWARE_REGISTRY_PROMOTION",
+    "physical_boundary_pattern_device_execution": "PENDING_EXTERNAL_ANDROID_TERMUX",
+    "does_not_promote_G03": true
+  }
+}
