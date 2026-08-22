@@ -1,0 +1,20 @@
+{
+  "schema": "centinal26.lane_a.singleton_anchor_reconciliation.v1",
+  "date": "2026-08-22",
+  "ownership": "USER_EVIDENCE",
+  "purpose": "Preserve the scientific dose/replication sequence without bulk-merging the stale stacked ancestry or changing frozen thresholds.",
+  "chain": [
+    {"pr":158,"head_sha":"d11c29cb82adca86e540d832d1239db27192a14b","dose":0.10,"reported_result":"PASS","meaning":"Sparse 10% singleton sequence anchors can stabilize the supplied exact-C4 structured solution in the original v11 three-seed gate.","scope":"Synthetic mechanism only; no natural-language, frontier-model, FLOP-efficiency, Sophontic, 60x/1000x, or data-center claim."},
+    {"pr":161,"head_sha":"65e66e80dae81410a9dba90b972d51e9ec02267d","dose":0.02,"reported_result":"FAIL","meaning":"The unchanged v11 reliability gate did not survive a five-fold reduction to 2% anchors."},
+    {"pr":165,"head_sha":"f9bd9e6afc83d2b0469edae10c21f4ae8543b936","dose":0.05,"reported_result":"FAIL","meaning":"5% anchors remained insufficient under the unchanged gate."},
+    {"pr":166,"head_sha":"63f195eb1ddcd7787996f5361034b25f6f03011b","dose":0.075,"reported_result":"PASS","meaning":"7.5% passed the unchanged three-seed gate."},
+    {"pr":167,"head_sha":"5225b750502ee489eb9ec884630e87663cc15725","dose":0.0625,"reported_result":"FAIL","meaning":"6.25% failed the unchanged three-seed gate."},
+    {"pr":168,"head_sha":"5d5b67b4fc66e4bc355bc9babb1b252885535d49","dose":0.06875,"reported_result":"PASS","meaning":"6.875% passed the unchanged three-seed gate, motivating matched-seed replication rather than declaring a universal threshold."},
+    {"pr":169,"head_sha":"f36fc5d15c2dd08d7872b14e5431e00183c031d8","comparison":"0.0625_vs_0.06875_matched_12_fresh_seeds","reported_result":"FAIL","meaning":"The stronger matched-seed replication rejected the claimed reliable dose boundary; earlier dose-specific results remain historical but do not establish a universal critical anchor probability."},
+    {"pr":170,"head_sha":"f4f4f9b5ff6387bdb2a11ab925d5a0675f2722fa","dose":0.10,"confirmed_result":"FAIL","qualification":{"standard_repository_workflows":"PASS","dedicated_scientific_workflow":"FAIL_AS_DESIGNED","experiment_step":"PASS","checker_step":"PASS","evidence_upload":"PASS"},"counts":{"reliable_exact":10,"matched_seeds":12,"per_seed_margin_gt_0_20_vs_wrong":10,"per_seed_margin_gt_0_20_vs_gru":11},"means":{"exact_far_pair":0.8756849500868056,"exact_grounding":0.9081461588541666,"wrong_far_pair":0.2183905707465278,"gru_far_pair":0.12180582682291667},"failed_frozen_checks":["exact_mean_far_pair_gt_0_90","exact_mean_grounding_gt_0_98"],"meaning":"The 10% confirmatory replication produced 10/12 individually reliable exact-C4 seeds and large control margins, but failed the preregistered aggregate reliability requirements. This is a scientific negative result, not an infrastructure failure."}
+  ],
+  "current_conclusion":"Evidence supports a real synthetic structured-mechanism advantage on many seeds and some dose-specific successes, but reliability is seed-sensitive and the stronger confirmatory evidence does not support a robust universal anchor-dose threshold or an unconditional 10% reliability claim.",
+  "no_threshold_retuning":true,
+  "do_not_claim":["universal critical anchor probability","natural-language reasoning","frontier-model generalization","Sophontic replication","60x efficiency","1000x efficiency","data-center obsolescence"],
+  "supersession_policy":{"legacy_prs_candidate_for_closure_after_exact_head_qualification_and_merge":[158,161,165,166,167,168,169,170],"condition":"Close only after this reconciliation is merged and verified on main; closure preserves rather than reverses each result."}
+}
