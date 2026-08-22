@@ -1,0 +1,19 @@
+{
+  "providers": {
+    "example-local-llm-bridge": {
+      "executable": "~/.centinal26/adapters/example_provider_adapter.py",
+      "capabilities": ["llm.generate", "agent.run", "builder.generate", "image.generate"],
+      "auth": "provider-local",
+      "cost_policy": "free_or_preconfigured_only",
+      "rate_limit": "adapter-enforced",
+      "health_check": "adapter-specific",
+      "verification": "structured-result-plus-independent-postcondition"
+    }
+  },
+  "policy": {
+    "prefer_free": true,
+    "require_explicit_configuration": true,
+    "never_serialize_secrets": true,
+    "selection_order": ["authorization", "fitness", "reliability", "evidence_quality", "cost"]
+  }
+}
