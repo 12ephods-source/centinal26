@@ -1,0 +1,39 @@
+name: Dedupe Canonical Store
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/canonical_store.py'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'tests/test_canonical_store.py'
+      - 'examples/canonical_bundle.valid.json'
+      - 'docs/DEDUPE_ORGANIZER_CANONICAL_STORE.md'
+      - '.github/workflows/dedupe-canonical-store.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/canonical_store.py'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'tests/test_canonical_store.py'
+      - 'examples/canonical_bundle.valid.json'
+      - 'docs/DEDUPE_ORGANIZER_CANONICAL_STORE.md'
+      - '.github/workflows/dedupe-canonical-store.yml'
+
+jobs:
+  canonical-store:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate canonical fixture
+        run: python scripts/validate_canonical_kernel.py examples/canonical_bundle.valid.json
+      - name: Run canonical store tests
+        run: python -m unittest -v tests/test_canonical_store.py
+      - name: CLI smoke test
+        run: |
+          db="$RUNNER_TEMP/dedupe-canonical-store.db"
+          python scripts/canonical_store.py --db "$db" ingest examples/canonical_bundle.valid.json
+          python scripts/canonical_store.py --db "$db" rebuild-projection
+          python scripts/canonical_store.py --db "$db" stats
