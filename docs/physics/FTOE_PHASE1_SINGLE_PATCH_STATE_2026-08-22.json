@@ -9,6 +9,7 @@
   "phase_i_lock_status": "NOT_FULLY_LOCKED",
   "phase_ii_observer_overlap_status": "BLOCKED_PENDING_PHASE_I_CONTINUUM_AND_GATE7",
   "continuum_connes_cocycle_status": "BLOCKED_NOT_ESTABLISHED_BY_FINITE_MATRICES",
+  "finite_regulator_status": "MERGED_PASS_THROUGH_BOUNDED_2_TO_4_MODE_STRESS",
   "validated_sequence": [
     {
       "pr": 83,
@@ -27,11 +28,19 @@
     },
     {
       "pr": 240,
-      "status": "DRAFT_GREEN_UNMERGED",
+      "status": "MERGED_PASS_BOUNDED_MULTI_MODE_REGULATOR_STRESS",
       "head_commit": "724aadc636fdd368369b7103ad91a0cc341df1b0",
-      "workflows": "6/6 success"
+      "merge_commit": "53698deea8bf002bd502f90a8bef35da37a72e37",
+      "workflows": "6/6 success at exact head"
     }
   ],
+  "consolidation_pr": {
+    "pr": 300,
+    "status": "MERGED",
+    "head_commit": "549b31236ae8448afcff253961f2c012057a9041",
+    "merge_commit": "e30414fe728e906f4beaa491a2f6e9fb982be8fd",
+    "workflows": "6/6 success at exact head"
+  },
   "scientific_ceiling": "FINITE_REGULATOR_ONLY",
   "next_critical_boundary": "GATE_7_INTERACTION_SCRAMBLING_KMS_TRACE_MODULAR_GEOMETRIC_STABILITY"
 }
