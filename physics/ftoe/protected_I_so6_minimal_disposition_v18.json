@@ -1,0 +1,12 @@
+{
+  "schema": "FTOE-PROTECTED-I-SO6-MINIMAL-DISPOSITION-v1.8",
+  "scientific_status": "FAIL",
+  "parent_head": "fc562550e4f36e440de780e680ce948ccbed8806",
+  "parent_gate": "FAIL_MINIMAL_REFERENCE_PORTAL_SUPPRESSION",
+  "reference_mechanism": "SO(6)/(SO(4)xSO(2)) minimal composite two-pNGB-doublet reference",
+  "disposition": "KILLED_FOR_PROTECTED_I_ADMISSION",
+  "dependency_rule": "Do not advance mu_I mass matching, SO(10) embedding/sequestering, representation-specific radiative mass, or precision/partner constraints for this unchanged minimal reference realization. Any continuation must be a separately versioned mechanism that explicitly suppresses or sequesters the dangerous mixed norm portal before downstream protected-I admission gates resume.",
+  "scope_limit": "This disposition rejects only the unchanged published minimal SO(6)/(SO(4)xSO(2)) reference realization as a self-contained protected-I mechanism. It is not a no-go theorem against extended composite cosets, additional symmetries with derived portal suppression, collective mechanisms, sequestering, or other separately versioned constructions.",
+  "no_retuning": true,
+  "publication_readiness": "REVIEW_FAIL_CLOSED"
+}
