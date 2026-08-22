@@ -2,8 +2,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from frost_core.compute_router import ComputeProvider, RoutingDecision, Workload, route_workload
-from frost_core.external_evidence_gates import EvidenceCandidate, GateStatus, GateType, evaluate_gate
+from frost_core.compute_router import (
+    ComputeProvider,
+    RoutingDecision,
+    Workload,
+    route_workload,
+)
+from frost_core.external_evidence_gates import (
+    EvidenceCandidate,
+    GateStatus,
+    GateType,
+    evaluate_gate,
+)
 
 
 @dataclass(frozen=True)
