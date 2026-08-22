@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Regulated finite-Type-I KMS/modular/cocycle/BKM falsification harness.
 
 Numerical PASS is deliberately claim-scoped. It does not establish continuum
