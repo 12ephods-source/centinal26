@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "name": "centinal26-termux-execution-plane",
+  "role": "device_execution_plane",
+  "controller_relationship": "capability_of_existing_autopilot_not_competing_controller",
+  "canonical_chain": [
+    "intent",
+    "authorization_policy",
+    "planner",
+    "capability_selection",
+    "bounded_execution",
+    "independent_verification",
+    "evidence_provenance",
+    "canonical_state_update",
+    "next_action"
+  ],
+  "durable_source_of_truth": "github",
+  "physical_execution_worker": "android_termux_daemon",
+  "runtime": {
+    "daemon": "termux/centinal26_daemon.py",
+    "control_cli": "termux/centinal26ctl.py",
+    "service": "termux/centinal26_daemon_service.sh",
+    "installer": "termux/CENTINAL26_TERMUX_ONE_PASTE_INSTALLER_v1.sh",
+    "state": "~/.centinal26/state/daemon.sqlite3",
+    "logs": "~/.centinal26/logs",
+    "provider_config": "~/.centinal26/config/providers.json"
+  },
+  "capability_classes": [
+    "github_automation",
+    "local_termux_python_shell",
+    "authorized_llm_and_ai_agent_services",
+    "bridges_and_agent_protocols",
+    "application_building_services",
+    "image_generation_services",
+    "assistants",
+    "project_artifacts",
+    "future_explicitly_configured_capabilities"
+  ],
+  "adapter_policy": {
+    "provider_neutral": true,
+    "explicit_configuration_required": true,
+    "prefer_free_when_fit": true,
+    "selection_factors": ["authorization", "fitness", "reliability", "evidence_quality", "cost_rate_constraints", "health"],
+    "secret_serialization_forbidden": true
+  },
+  "worker_invariants": {
+    "sqlite_transactional_state": true,
+    "single_claim_leases": true,
+    "idempotency_keys": true,
+    "bounded_queue": true,
+    "retry_backoff_jitter": true,
+    "crash_recovery": true,
+    "rotating_logs": true,
+    "health_checks": true,
+    "resource_bounded_execution": true,
+    "deterministic_reconciliation": true,
+    "no_simultaneous_claims": true
+  },
+  "improvement_cycle": [
+    "observe_measure",
+    "analyze",
+    "hypothesize",
+    "compare_approaches",
+    "criticize",
+    "improve",
+    "implement",
+    "test",
+    "independently_verify",
+    "record_evidence",
+    "update_canonical_state",
+    "repeat"
+  ],
+  "evidence_required_fields": [
+    "task_id",
+    "intent",
+    "selected_capability",
+    "source_revision",
+    "command_or_action",
+    "timestamps",
+    "environment_identity",
+    "exit_status",
+    "relevant_hashes",
+    "verification_result",
+    "state_transition"
+  ],
+  "lifecycle": ["attempted", "built", "sandbox-tested", "device-tested", "production-ready"],
+  "promotion_rules": {
+    "github_ci_is_not_device_execution": true,
+    "host_or_simulation_is_not_device_execution": true,
+    "llm_statement_is_not_device_execution": true,
+    "device_tested_requires_authentic_device_origin_and_independent_verification": true,
+    "production_ready_requires_all_applicable_release_and_operational_gates": true
+  },
+  "addendum_integration": {
+    "controller": "Centinal26 Addendum Controller",
+    "record_daemon_execution": true,
+    "record_repairs_and_regressions": true,
+    "record_device_evidence": true,
+    "record_lifecycle_changes": true,
+    "scheduler_capacity_exhaustion_is_recoverable": true
+  }
+}
