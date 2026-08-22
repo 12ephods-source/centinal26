@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "canonical_runtime": "automation/persistent/kernel.py",
+  "canonical_supervisor_installer": "install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh",
+  "components": [
+    {
+      "component": "paired_updater",
+      "source": "integrations/cybersecurity_automation/2026-08-22__FROST_CYBERSECURITY_AUTOMATION_PAIR_ONE_PASTE_v1.1.sh",
+      "retained_capability": "cross-project fast-forward-safe synchronization",
+      "replacement_path": "persistent supervisor invokes and verifies paired updater",
+      "status": "COMPATIBLE_MODULE",
+      "deletion_criterion": "remove only after equivalent synchronization is independently verified inside the persistent supervisor"
+    },
+    {
+      "component": "skynet",
+      "source": "skynet/v0.1",
+      "retained_capability": "bounded worker coordination and audit verification",
+      "replacement_path": "persistent kernel consumes SKY NET audit result as an isolated capability gate",
+      "status": "COMPATIBLE_MODULE",
+      "deletion_criterion": "remove only after a replacement worker passes identical audit and recovery gates"
+    },
+    {
+      "component": "legacy_autopilot_monitors",
+      "source": "automation",
+      "retained_capability": "periodic reconciliation and recovery",
+      "replacement_path": "single persistent supervisor plus qualification kernel",
+      "status": "SUPERSEDED_WHEN_MIGRATED",
+      "deletion_criterion": "delete only after no unique capability or evidence source remains"
+    },
+    {
+      "component": "sentinel_evidence",
+      "source": "security and evidence modules",
+      "retained_capability": "evidence preservation and security-domain verification",
+      "replacement_path": "isolated worker feeds signed or hashed evidence into the causal ledger",
+      "status": "COMPATIBLE_MODULE",
+      "deletion_criterion": "never merge mutation authority into evidence collection; replace only with equivalent isolated trust boundary"
+    },
+    {
+      "component": "termux_boot_persistence",
+      "source": "Termux:Boot scripts",
+      "retained_capability": "restart survival",
+      "replacement_path": "persistent installer owns one canonical boot entry for the supervisor",
+      "status": "CANONICALIZED",
+      "deletion_criterion": "remove duplicate boot entries after device-origin restart verification"
+    }
+  ],
+  "invariants": [
+    "no component grants itself authority",
+    "no destructive synchronization of dirty or diverged repositories",
+    "evidence collection and mutation authority remain separable",
+    "PROJECT_GOAL_REACHED is release-scoped and revocable",
+    "physical-device qualification cannot be synthesized from host or CI evidence"
+  ]
+}
