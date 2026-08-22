@@ -1,0 +1,15 @@
+{
+  "canonical_main_at_bundle_creation": "be8a8f9d48a556712ed424b86274f1271c8195fb",
+  "created_utc": "2026-08-22T13:35:44Z",
+  "project": "Automation",
+  "schema_version": 1,
+  "suggested_conversation_name": "Centinal26 Full Autopilot: Termux Execution Plane, Evidence Provenance, and Autonomous Project Reconciliation",
+  "files": {
+    "CENTINAL26_AUTOPILOT_ONE_PASTE_INSTALLER_v2_0.sh": {"sha256":"38e97f41153b0b712c66c511b711d70d66f00561a77bac960cd496f8b080bdbb","bytes":8066},
+    "CENTINAL26_TERMUX_ONE_PASTE_INSTALLER_v1_1.sh": {"sha256":"f7ccbb3bae49dbd913d2f80c9e7dba5ee601a41dd2e18a6bd587c47fe579d291","bytes":4641},
+    "CENTINAL26_TERMUX_ONE_PASTE_INSTALLER_v2_0.sh": {"sha256":"c66e7a49a1df76218e82482ec6d746a323b94b23264c33e450baa869e3147953","bytes":138},
+    "CONVERSATION_CONSOLIDATION_SUMMARY.md": {"sha256":"aaf4122bad3e2b5bf878665b9088f94b55f1a48f3425defd0905abc160415dee","bytes":6036},
+    "INSTALL_CENTINAL26_CODE_GATE.sh": {"sha256":"df0668a19ecbb25a2ee0ba1ca1b1cb6fe9a3df0d514fcf440c308875b4b57bf8","bytes":1120},
+    "INSTALL_CENTINAL26_CODE_GATE_v2_0.sh": {"sha256":"95343eada8f0446199830b7dc4afd569ba2c353c04ba4a12ce092678a9e24a66","bytes":191}
+  }
+}
