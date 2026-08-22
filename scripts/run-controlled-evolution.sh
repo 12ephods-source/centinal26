@@ -31,7 +31,7 @@ if ! command -v goose >/dev/null 2>&1; then
 fi
 
 set +e
-python "$ROOT/scripts/controlled_evolution_hard.py" --repo "$ROOT" "$@"
+python "$ROOT/security/control_plane_guard.py" "$@"
 rc=$?
 set -e
 
