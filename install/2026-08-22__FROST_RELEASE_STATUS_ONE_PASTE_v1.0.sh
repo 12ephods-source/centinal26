@@ -19,6 +19,7 @@ state = pathlib.Path(sys.argv[1])
 module_path = pathlib.Path(sys.argv[2])
 spec = importlib.util.spec_from_file_location("release_profile", module_path)
 module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 print(json.dumps(module.evaluate_state_file(state), indent=2, sort_keys=True))
 PY
