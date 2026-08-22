@@ -48,3 +48,24 @@ jobs:
           python -m json.tool /tmp/openquest-options.json > /dev/null
           python -m json.tool /tmp/openquest-cli-character.json > /dev/null
           cmp /tmp/openquest-cli-character.json /tmp/openquest-cli-stdout.json
+      - name: Exercise HTTP dispatch contract
+        run: |
+          python - <<'PY'
+          import json
+          from http import HTTPStatus
+          from openquest.service import dispatch
+          status, health = dispatch('GET', '/health')
+          assert status == HTTPStatus.OK and health['status'] == 'PASS'
+          request = {
+              'name': 'HTTP CI Hero',
+              'ability_scores': {'str':15,'dex':14,'con':13,'int':12,'wis':10,'cha':8},
+              'class_name': 'Fighter',
+              'species': 'Human',
+              'background': 'Soldier',
+              'skill_proficiencies': ['athletics', 'perception'],
+          }
+          status, payload = dispatch('POST', '/v1/characters', json.dumps(request).encode())
+          assert status == HTTPStatus.CREATED
+          assert payload['status'] == 'PASS'
+          assert payload['result']['valid'] is True
+          PY
