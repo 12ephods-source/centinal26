@@ -1,0 +1,124 @@
+name: Governance Enforcement
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  governance-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install governance test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Validate canonical governance policy
+        run: |
+          python scripts/reconcile_main_branch_protection.py \
+            --mode validate-policy \
+            --output /tmp/governance-policy.json
+          python -m pytest -q tests/test_main_branch_protection.py
+
+      - name: Enforce release convergence when protected paths change
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          BASE=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE="$PR_BASE_SHA"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            BASE="$PUSH_BEFORE_SHA"
+          fi
+          if [ -z "$BASE" ] || printf '%s' "$BASE" | grep -Eq '^0+$'; then
+            BASE="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          fi
+          [ -n "$BASE" ] || exit 0
+          git diff --name-only "$BASE" "$GITHUB_SHA" > /tmp/governance-changed-paths.txt
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          policy = json.loads(Path("automation/governance/main_branch_protection.json").read_text())
+          changed = set(Path("/tmp/governance-changed-paths.txt").read_text().splitlines())
+          protected = set(policy["dynamic_release_convergence"]["paths"])
+          if changed & protected:
+              subprocess.run(
+                  ["python", policy["dynamic_release_convergence"]["validator"]],
+                  check=True,
+              )
+          PY
+
+      - name: Audit main-push provenance
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/reconcile_main_branch_protection.py \
+            --mode audit-push \
+            --sha "$GITHUB_SHA" \
+            --output /tmp/main-push-provenance.json \
+            --fail-on-drift
+
+      - name: Reconcile server-side branch protection
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FROST_GOVERNANCE_ADMIN_TOKEN: ${{ secrets.FROST_GOVERNANCE_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          if [ -n "$FROST_GOVERNANCE_ADMIN_TOKEN" ]; then
+            python scripts/reconcile_main_branch_protection.py \
+              --mode enforce \
+              --token-env FROST_GOVERNANCE_ADMIN_TOKEN \
+              --output /tmp/branch-protection-audit.json \
+              --fail-on-drift
+          else
+            python scripts/reconcile_main_branch_protection.py \
+              --mode audit \
+              --token-env GITHUB_TOKEN \
+              --output /tmp/branch-protection-audit.json \
+              --fail-on-drift
+          fi
+          RC=$?
+          set -e
+
+          STATUS="UNREADABLE"
+          if [ -f /tmp/branch-protection-audit.json ]; then
+            STATUS="$(python -c 'import json; print(json.load(open("/tmp/branch-protection-audit.json"))["status"])')"
+          fi
+
+          if [ "$STATUS" = "CONVERGED" ]; then
+            gh issue close 271 --repo "$GITHUB_REPOSITORY" --reason completed >/dev/null 2>&1 || true
+          else
+            gh issue reopen 271 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || true
+          fi
+
+          if [ -f /tmp/branch-protection-audit.json ]; then
+            cat /tmp/branch-protection-audit.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf 'Branch protection readback unavailable; issue #271 remains open.\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
