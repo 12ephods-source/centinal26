@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 
 class DedupeOrganizerAdapterError(RuntimeError):
@@ -100,8 +101,7 @@ class DedupeOrganizerAdapter:
             list(invocation.argv),
             shell=False,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=self.timeout_seconds,
             check=False,
         )
