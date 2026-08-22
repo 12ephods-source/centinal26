@@ -1,0 +1,33 @@
+name: Dedupe Organizer v2.1
+
+on:
+  pull_request:
+    paths:
+      - 'tools/dedupe-organizer/**'
+      - '.github/workflows/dedupe-organizer-v2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/dedupe-organizer/**'
+      - '.github/workflows/dedupe-organizer-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Materialize exact qualified sources
+        run: python tools/dedupe-organizer/materialize.py
+      - name: Compile
+        run: python -m py_compile tools/dedupe-organizer/generated/dedupe_organizer.py
+      - name: Self-test
+        run: python tools/dedupe-organizer/generated/dedupe_organizer.py --root /tmp/dedupe-organizer-ci self-test
+      - name: Device acceptance script syntax
+        run: bash -n tools/dedupe-organizer/generated/device_acceptance.sh
