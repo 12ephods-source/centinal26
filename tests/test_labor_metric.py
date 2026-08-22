@@ -5,7 +5,7 @@ import pytest
 from centinal26.labor_metric import LaborEvent, summarize
 
 
-def event(event_id: str, **kwargs: int | float) -> LaborEvent:
+def event(event_id: str, **kwargs: float) -> LaborEvent:
     return LaborEvent(event_id, evidence_refs=(f"fixture:{event_id}",), **kwargs)
 
 
