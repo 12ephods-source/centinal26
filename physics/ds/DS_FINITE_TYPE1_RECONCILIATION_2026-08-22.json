@@ -1,0 +1,34 @@
+{
+  "reconciliation_id": "ds-finite-type1-2026-08-22-v1",
+  "base_main": "227631d99cb8d590cafbc1693efe466d09a75d67",
+  "status": "RECONCILED_FINITE_TYPE_I_ONLY",
+  "lineage": [
+    {
+      "pr": 87,
+      "head": "da6edc94e3e47dd1c4565e346737de5b964a6c0e",
+      "verdict": "PASS_FINITE_TYPE_I_KMS_MODULAR_COCYCLE_BASELINE",
+      "qualification": ["CI", "validate", "automation-gates", "federation-gates", "Mature Product Qualification", "KMS modular cocycle harness"]
+    },
+    {
+      "pr": 102,
+      "head": "c8179937afe6fcee9c29fd64537a13b2be105a51",
+      "verdict": "PASS_DS2_DIAMOND_REGULATED_RELATIONAL_BASELINE",
+      "qualification": ["CI", "validate", "automation-gates", "federation-gates", "Mature Product Qualification", "dS diamond relational harness"]
+    },
+    {
+      "pr": 104,
+      "head": "57b529e87f3656650f5594be7b2a3363568d3bbe",
+      "verdict": "PASS_DS2_REGIONAL_MODULAR_OVERLAP_OBSTRUCTION_BASELINE",
+      "qualification": ["CI", "validate", "automation-gates", "federation-gates", "Mature Product Qualification", "dS regional modular overlap"]
+    }
+  ],
+  "supported_conclusion": "Finite regulated Type-I surrogates support the KMS/modular/cocycle baseline, a dS2 relational geometry-bearing construction, and a correlation-induced regional modular-overlap obstruction requiring conditional compatibility rather than unconditional overlap preservation.",
+  "fail_closed_ceiling": [
+    "No continuum Type III to Type II classification is established.",
+    "No continuum modular-inclusion theorem is established.",
+    "No Hollands-Wald canonical-energy identification is established.",
+    "No Einstein dynamics or nonlinear gravitational reconstruction is established.",
+    "No unique global gluing law or spacetime reconstruction from the overlap network is established."
+  ],
+  "next_gate": "Build a regulated network invariant from compatible inclusions plus quantified modular obstructions and test regulator-refinement stability before any continuum promotion."
+}
