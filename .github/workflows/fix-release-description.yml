@@ -1,4 +1,4 @@
-name: Fix release description wording
+name: Guard release description wording
 
 on:
   workflow_dispatch:
@@ -6,29 +6,42 @@ on:
     branches: [main]
     paths:
       - .github/workflows/fix-release-description.yml
+  release:
+    types: [published, edited, released]
 
 permissions:
   contents: write
 
 jobs:
-  fix-release-description:
+  sanitize-release-description:
     runs-on: ubuntu-latest
     steps:
-      - name: Remove wazoo wording from latest release
+      - name: Sanitize and verify latest release description
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
+
           release_json="$(gh api "repos/${GH_REPO}/releases/latest")"
           release_id="$(jq -r '.id' <<<"$release_json")"
           body="$(jq -r '.body // ""' <<<"$release_json")"
+
           cleaned="$(printf '%s' "$body" | sed -E 's/[Ww][Aa][Zz][Oo][Oo]/Centinal26/g')"
-          if [[ "$body" == "$cleaned" ]]; then
-            echo "No wazoo wording present; no release mutation required."
-            exit 0
+
+          if [[ "$body" != "$cleaned" ]]; then
+            jq -n --arg body "$cleaned" '{body:$body}' > /tmp/release.json
+            gh api --method PATCH "repos/${GH_REPO}/releases/${release_id}" --input /tmp/release.json >/dev/null
+            echo "Updated latest release description."
+          else
+            echo "Release description already complies."
           fi
-          jq -n --arg body "$cleaned" '{body:$body}' > /tmp/release.json
-          gh api --method PATCH "repos/${GH_REPO}/releases/${release_id}" --input /tmp/release.json
-          echo "Updated latest release description."
+
+          verified_body="$(gh api "repos/${GH_REPO}/releases/${release_id}" --jq '.body // ""')"
+          if grep -Eiq 'wazoo' <<<"$verified_body"; then
+            echo "Release description verification failed: prohibited wording remains." >&2
+            exit 1
+          fi
+
+          echo "Release description verification passed."
