@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "classification": "EXPERIMENTAL",
+  "dependency": "PASS_BOUNDED_MULTI_MODE_REGULATOR_STRESS",
+  "finite_parent": {
+    "mode_counts": [2, 3, 4],
+    "per_mode_dimension": 2,
+    "frequencies": [1.0, 1.37, 1.73, 2.11],
+    "beta": 6.283185307179586,
+    "continuum_status": "BLOCKED_NOT_ESTABLISHED_BY_FINITE_MATRICES"
+  },
+  "primary_sources": [
+    {
+      "citation": "H. Araki and E. J. Woods, A Classification of Factors, Publ. RIMS Kyoto Univ. 4 (1968) 51-130, DOI 10.2977/prims/1195195263",
+      "establishes": "infinite tensor products of Type-I factors can yield hyperfinite Type-II and Type-III factors; asymptotic ratio data determine the factor class in the classified cases"
+    },
+    {
+      "citation": "A. Connes, Une classification des facteurs de type III, Ann. Sci. ENS 6 (1973) 133-252",
+      "establishes": "Type-III classification through modular invariants; finite-dimensional Type-I behavior is insufficient to infer the continuum factor type"
+    }
+  ],
+  "audited_requirements": {
+    "explicit_inclusion_maps_A_m_to_A_mplus1": false,
+    "infinite_mode_frequency_or_state_sequence": false,
+    "compatible_state_family_under_embeddings": false,
+    "declared_operator_topology_or_GNS_limit": false,
+    "continuum_modular_generator_domain": false,
+    "type_discriminating_invariant_target": false
+  },
+  "source_derived_facts": {
+    "finite_type_I_truncations_can_participate_in_a_type_III_infinite_product_limit": true,
+    "current_finite_parent_defines_such_a_limit": false,
+    "type_III_is_ruled_out_by_finite_type_I_truncations_alone": false
+  },
+  "verdict": "UNRESOLVED_MISSING_INDUCTIVE_OR_INFINITE_PRODUCT_LIMIT_DATA",
+  "smallest_missing_inputs": [
+    "a specified infinite sequence of local algebras/states or mode Hamiltonians beyond the four frozen frequencies",
+    "explicit embeddings or another precise construction relating successive finite algebras",
+    "state compatibility/convergence in a declared topology or GNS representation",
+    "a continuum modular-flow/cocycle domain and a type-discriminating invariant such as the asymptotic ratio/Connes spectrum"
+  ],
+  "forbidden_inferences": [
+    "do not extrapolate Type-III behavior from residual trends in m=2,3,4",
+    "do not infer impossibility of Type III merely because every finite truncation is Type I",
+    "do not choose a Powers/Araki-Woods limit post hoc without deriving it from the frozen physical regulator"
+  ]
+}
