@@ -96,8 +96,7 @@ def main() -> int:
 
     for item in sorted(branches, key=lambda b: b["name"]):
         name = item["name"]
-        branch_sha = item["commit"]["sha"]
-        cmp = compare(branch_sha)
+        cmp = compare(name)
         prs = branch_prs(owner, name)
         state = classify(cmp, prs)
         rows.append(
@@ -116,12 +115,15 @@ def main() -> int:
         )
 
     counts = Counter(r["state"] for r in rows)
+    base_ref = request(f"/repos/{REPO}/git/ref/heads/{urllib.parse.quote(BASE, safe='')}")
+    base_sha = (base_ref.get("object") or {}).get("sha")
     generated = datetime.now(UTC).isoformat()
     result = {
-        "schema": "frost-agent-fleet-qualification/1.0",
+        "schema": "frost-agent-fleet-qualification/1.1",
         "generated_at": generated,
         "repository": REPO,
         "base": BASE,
+        "base_sha": base_sha,
         "agent_branch_count": len(rows),
         "counts": dict(sorted(counts.items())),
         "policy": {
@@ -142,6 +144,7 @@ def main() -> int:
         f"Generated: `{generated}`",
         f"Repository: `{REPO}`",
         f"Canonical base: `{BASE}`",
+        f"Canonical base SHA: `{base_sha}`",
         f"Agent branches inspected: **{len(rows)}**",
         "",
         "Agents are proposal sources only. This controller does not execute agent code, grant authorization, or auto-merge branches.",
