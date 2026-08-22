@@ -1,0 +1,63 @@
+{
+  "schema": "centinal26.ftoe.protected_i_legacy_reconciliation.v1",
+  "date": "2026-08-22",
+  "project": "Physics",
+  "purpose": "Preserve the exact scientifically meaningful protected-I legacy chain on current main without bulk-merging hundreds of divergent commits.",
+  "ownership": "USER_EVIDENCE",
+  "legacy_chain": [
+    {
+      "pr": 281,
+      "head_sha": "0dbefff119005505ed733190ed29a19a70079dd2",
+      "transition": "single-pNGB direct identification killed -> ROLE_SEPARATED_REFERENCE_MECHANISM_STRUCTURALLY_SPECIFIED / REVIEW",
+      "qualification": "PASS",
+      "dedicated_gate": "FToE Protected-I SO6 Role-Separation Gate",
+      "scientific_scope": "SO(6)/(SO(4)xSO(2)) supplies separable pNGB electroweak doublet roles; no mass matching, SO(10) embedding, portal suppression, or radiative stability derived."
+    },
+    {
+      "pr": 285,
+      "head_sha": "dbde5d5aa0d971f901aca47c96e8f21a25038904",
+      "transition": "identify_second_doublet_with_I_quantum_numbers: NOT_DERIVED -> LOW_ENERGY_EW_GAUGE_QUANTUM_NUMBERS_COMPATIBLE_REFERENCE_ONLY / REVIEW",
+      "qualification": "PASS",
+      "dedicated_gate": "FToE Protected-I SO6 EW Embedding Gate",
+      "scientific_scope": "Second SO(4) fourplet contains an SU(2)_L, Y=+1/2 complex doublet compatible with the frozen low-energy I assignment; no UV embedding or portal suppression derived."
+    },
+    {
+      "pr": 288,
+      "head_sha": "c7b186e72d52adc981274ae77b18de9b5476bd2d",
+      "transition": "Z2_role_separation_portal_suppression: NOT_DERIVED -> FAIL_Z2_ONLY_PORTAL_SUPPRESSION",
+      "qualification": "PASS",
+      "dedicated_gate": "FToE Protected-I SO6 Z2 Portal Gate",
+      "scientific_scope": "The role-separating Z2 does not forbid the mixed norm portal; this is not a no-go theorem against nonlinear, collective, sequestered, or extended mechanisms."
+    },
+    {
+      "pr": 295,
+      "head_sha": "904492673fe7ba73a4660702b1847581ceb1f21f",
+      "transition": "minimal_SO6_reference_portal_suppression: NOT_ADJUDICATED -> FAIL_MINIMAL_REFERENCE_PORTAL_SUPPRESSION",
+      "qualification": "PASS",
+      "dedicated_gates": [
+        "FToE Protected-I SO6 Coleman-Weinberg Portal Gate",
+        "FToE Protected-I SO6 Minimal Disposition Gate",
+        "FToE SO6 Portal Scale Relevance Gate"
+      ],
+      "scientific_scope": "Published minimal SO6 composite two-doublet reference does not self-suppress the generated mixed portal; extended mechanisms remain open."
+    }
+  ],
+  "later_current_main_boundary": {
+    "pr": 308,
+    "head_sha": "a20623e5e76c98abf2e1d37cebf04d09fc53e479",
+    "merge_commit": "3b9eff1e0eddcd27d0896067d457f34dca5ee736",
+    "verdict": "UNRESOLVED_UV_MATCHING_BIFURCATION / REVIEW_FAIL_CLOSED",
+    "smallest_missing_input": "An explicit versioned interaction/matching Lagrangian retaining distinct SM-Higgs and protected-I electroweak roles and deriving their couplings or sequestering with the SO(10)-breaking 210_H, 45_H, 126_H and 10_C,H sectors."
+  },
+  "supersession_policy": {
+    "may_close_legacy_prs_after_this_ledger_is_merged": [281, 285, 288, 295],
+    "reason": "Their scientific transitions, exact head identities, qualification states, and fail-closed scopes are preserved here, while the later UV-matching boundary is already merged on current main.",
+    "do_not_claim": [
+      "mu_I or 13.5 TeV UV derivation",
+      "SO(10) sequestering closure",
+      "representation-specific radiative stability",
+      "portal elimination in an extended realization",
+      "publication readiness"
+    ]
+  }
+}
