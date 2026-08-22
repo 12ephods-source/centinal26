@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
-from enum import Enum
 import json
-from typing import Any, Iterable
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass, field
+from enum import Enum
+from typing import Any
 
 
 class GateStatus(str, Enum):
@@ -20,12 +21,8 @@ class SourceRecord:
     attribution: str
     publication_status: str
 
-    def validate(self) -> "GateResult":
-        missing = [
-            name
-            for name, value in asdict(self).items()
-            if not value
-        ]
+    def validate(self) -> GateResult:
+        missing = [name for name, value in asdict(self).items() if not value]
         if missing:
             return GateResult(
                 "SOURCE_GATE",
