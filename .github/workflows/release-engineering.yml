@@ -24,19 +24,26 @@ jobs:
           scripts/build_release_evidence.py
           scripts/run_host_chaos_qualification.py
           scripts/validate_release_engineering.py
+          scripts/reconcile_main_branch_protection.py
           src/frost_core/continuity_bundle.py
           src/frost_core/sqlite_recovery.py
           tests/test_continuity_bundle.py
           tests/test_host_chaos_qualification.py
           tests/test_sqlite_recovery.py
           tests/test_release_evidence.py
-      - name: Focused release/recovery tests
+          tests/test_main_branch_protection.py
+      - name: Validate canonical branch-governance policy
+        run: >-
+          python scripts/reconcile_main_branch_protection.py
+          --mode validate-policy
+      - name: Focused release/recovery/governance tests
         run: >-
           pytest -q
           tests/test_continuity_bundle.py
           tests/test_host_chaos_qualification.py
           tests/test_sqlite_recovery.py
           tests/test_release_evidence.py
+          tests/test_main_branch_protection.py
       - name: Build deterministic release evidence twice
         run: |
           python scripts/build_release_evidence.py --output /tmp/release-evidence-a.json
