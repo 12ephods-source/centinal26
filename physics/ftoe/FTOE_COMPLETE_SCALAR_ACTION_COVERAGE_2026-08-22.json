@@ -1,0 +1,126 @@
+{
+  "schema": "frost.ftoe.complete_scalar_action_coverage/v1",
+  "date": "2026-08-22",
+  "mode": "DEVELOPMENT_AUDIT",
+  "question": "Is the complete renormalizable 210_H + 45_H + 126_H + 10_C,H + protected-I scalar action enumerated and frozen in canonical evidence?",
+  "field_set": ["210_H", "45_H", "126_H", "10_C,H", "protected-I"],
+  "source_basis": [
+    {
+      "path": "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "9f461fb01756cf3059534d89c83121dd3477344b",
+      "supports": "45_H + 126_H + 10_C,H restricted core is source-complete only for that restricted sector; full action remains unresolved"
+    },
+    {
+      "path": "physics/ftoe/FTOE_10C_SELF_SECTOR_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "1383b26bcc4b59d1c6a7a5ddd3ca8bcd21e0020d",
+      "supports": "10_C,H self-sector source enumeration and explicit unresolved mixed-sector boundaries"
+    },
+    {
+      "path": "physics/ftoe/PROTECTED_I_LEGACY_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "3403f43a87e3b04e9748b70b37aa2cb9b34a49b0",
+      "supports": "protected-I role separation and portal-suppression failures without a completed SO(10) matching action"
+    },
+    {
+      "path": "physics/ftoe/protected_i_uv_matching_source_audit_v20.json",
+      "git_blob_sha": "434efabda9205183c43c182de52ae402e247bf34",
+      "supports": "explicit versioned heavy-sector matching Lagrangian is still missing"
+    },
+    {
+      "path": "physics/ftoe/FTOE_MUI_LAMBDAX_BETA_PROVENANCE_RECONCILIATION_2026-08-22.json",
+      "git_blob_sha": "d9b408c081f73ba24777dadfb2b1ff87f229cf18",
+      "supports": "downstream mu_I/Lambda_X/beta prediction remains blocked until the heavy scalar interaction basis and matching are explicit"
+    }
+  ],
+  "source_enumerated_coverage": [
+    {
+      "id": "restricted-core-45-126-10C",
+      "fields": ["45_H", "126_H", "10_C,H"],
+      "status": "SOURCE_COMPLETE_RESTRICTED_SECTOR_ONLY",
+      "evidence_path": "physics/ftoe/FTOE_SO10_422_RECONCILIATION_2026-08-22.json",
+      "scope_boundary": "does not include 210_H or protected-I and is not the full FToE scalar action"
+    },
+    {
+      "id": "10C-self-sector",
+      "fields": ["10_C,H"],
+      "status": "SOURCE_ENUMERATED",
+      "evidence_path": "physics/ftoe/FTOE_10C_SELF_SECTOR_RECONCILIATION_2026-08-22.json",
+      "scope_boundary": "self-sector only"
+    },
+    {
+      "id": "protected-I-role-only",
+      "fields": ["protected-I"],
+      "status": "ROLE_STRUCTURE_ONLY_NOT_COMPLETE_POTENTIAL",
+      "evidence_path": "physics/ftoe/PROTECTED_I_LEGACY_RECONCILIATION_2026-08-22.json",
+      "scope_boundary": "low-energy role compatibility and failed minimal portal-suppression mechanisms do not enumerate a UV scalar action"
+    }
+  ],
+  "required_missing_coverage": [
+    {
+      "id": "210-self-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "no canonical source record enumerates the full renormalizable 210_H self-sector used by the FToE action"
+    },
+    {
+      "id": "210-45-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "explicitly unresolved in the 10_C,H reconciliation boundary"
+    },
+    {
+      "id": "210-126-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "explicitly unresolved in the 10_C,H reconciliation boundary"
+    },
+    {
+      "id": "210-10C-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "explicitly unresolved in the 10_C,H reconciliation boundary"
+    },
+    {
+      "id": "protected-I-self-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "protected-I self/portal potential is explicitly unresolved"
+    },
+    {
+      "id": "210-protected-I-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "explicitly unresolved and required by the UV matching audit"
+    },
+    {
+      "id": "45-protected-I-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "explicitly unresolved and required by the UV matching audit"
+    },
+    {
+      "id": "126-protected-I-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "the UV matching audit requires explicit coupling or sequestering to 126_H but supplies no matching Lagrangian"
+    },
+    {
+      "id": "10C-protected-I-mixed-sector",
+      "status": "MISSING_SOURCE",
+      "reason": "the UV matching audit requires explicit coupling or sequestering to 10_C,H but supplies no matching Lagrangian"
+    },
+    {
+      "id": "multi-representation-renormalizable-invariant-basis",
+      "status": "MISSING_SOURCE",
+      "reason": "a pairwise sector matrix is not sufficient to prove completeness; all allowed quadratic, cubic and quartic SO(10)-singlet contractions across the declared field content must be enumerated and provenance-bound"
+    }
+  ],
+  "pairwise_coverage_is_complete": false,
+  "pairwise_coverage_is_sufficient_for_action_completeness": false,
+  "renormalizable_invariant_basis_complete": false,
+  "complete_action_frozen": false,
+  "invented_coupling_values": [],
+  "canonical_verdict": "BLOCKED_COMPLETE_SCALAR_ACTION_NOT_ENUMERATED",
+  "scientific_status": "BLOCKED_MISSING_SOURCE",
+  "execution_state": "MISSING_SOURCE",
+  "next_legitimate_transition": "Source-audit or separately version an explicit representation-level invariant basis for the missing 210_H and protected-I sectors, including all allowed mixed and multi-representation renormalizable singlets; then freeze coefficients/conventions before any vacuum, Hessian, heavy-spectrum or threshold calculation.",
+  "fail_closed_boundaries": [
+    "Do not set an unenumerated coupling or portal to zero without a stated symmetry and explicit invariant basis.",
+    "Do not assume an unenumerated coupling is order one to estimate a preferred scale.",
+    "Do not treat pairwise sector coverage as proof that all cubic or quartic multi-representation invariants are enumerated.",
+    "Do not derive the vacuum, Hessian, heavy spectrum or threshold corrections from a partial action.",
+    "Do not promote the gauge-only numerical solution or the 10_C,H self-sector enumeration into full scalar-action closure.",
+    "Preserve all historical source and failure records unchanged."
+  ]
+}
