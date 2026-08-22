@@ -3,8 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from openquest.rules import get_profile, level_one_hit_points
-from openquest.validator import Character, GateResult, GateStatus, validate_character
-
+from openquest.validator import (
+    Character,
+    GateResult,
+    GateStatus,
+    validate_character,
+)
 
 STANDARD_ARRAY = (15, 14, 13, 12, 10, 8)
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
