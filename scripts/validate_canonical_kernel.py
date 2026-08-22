@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Semantic invariant validator for the Dedupe/Organizer canonical kernel.
 
 Uses only the Python standard library. JSON Schema files document structure;
@@ -69,9 +68,11 @@ def validate_bundle(bundle: dict[str, Any]) -> list[str]:
         if not isinstance(prov_ids, list):
             _err(errors, f"{oid}: provenance_ids must be a list")
             prov_ids = []
-        if obj.get("epistemic_status") in DERIVED_EPISTEMIC or authority in {"DERIVED_RECORD", "PROJECTION"}:
-            if not prov_ids:
-                _err(errors, f"{oid}: derived/projection object requires provenance")
+        if (
+            obj.get("epistemic_status") in DERIVED_EPISTEMIC
+            or authority in {"DERIVED_RECORD", "PROJECTION"}
+        ) and not prov_ids:
+            _err(errors, f"{oid}: derived/projection object requires provenance")
 
         payload = obj.get("payload")
         if not isinstance(payload, dict):
@@ -130,7 +131,11 @@ def validate_bundle(bundle: dict[str, Any]) -> list[str]:
         did = decision.get("filter_decision_id", f"filter_decisions[{i}]")
         action = decision.get("decision")
         if action not in ALLOWED_FILTER_DECISIONS:
-            _err(errors, f"{did}: illegal dedupe/filter decision {action!r}; deletion is not a canonicalization action")
+            _err(
+                errors,
+                f"{did}: illegal dedupe/filter decision {action!r}; "
+                "deletion is not a canonicalization action",
+            )
         input_id = decision.get("input_object_id")
         if input_id not in object_by_id:
             _err(errors, f"{did}: unresolved input_object_id {input_id}")
@@ -146,7 +151,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         data = json.loads(args.bundle.read_text(encoding="utf-8"))
-    except Exception as exc:
+    except (OSError, json.JSONDecodeError) as exc:
         print(f"FAIL: cannot read JSON bundle: {exc}", file=sys.stderr)
         return 2
     errors = validate_bundle(data)
