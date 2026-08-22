@@ -12,21 +12,24 @@ MODE="${1:---recover}"
 
 emit() { printf '%s\n' "$1"; }
 
-case "${PREFIX:-}" in
-  *com.termux*) ;;
-  *) emit 'WORKER_RECOVERY_NOT_ANDROID_TERMUX'; exit 10 ;;
-esac
-
 case "$MODE" in
   --self-test)
     [[ "$ROOT" != "/" ]]
     [[ "$START" == "$HOME/.local/bin/frost-fleet-worker-start" ]]
     [[ "$BOOTSTRAP" == "$REPO/deploy/termux/FROST_FLEET_BOOTSTRAP_v1.5.sh" ]]
+    grep -q 'WORKER_RECOVERY_AUTH_REQUIRED' "$0"
+    ! grep -Eq 'cat[[:space:]]+.*bridge\.env|printf.*BASE44_TOKEN|echo.*BASE44_TOKEN' "$0"
+    grep -q 'bash "$BOOTSTRAP" </dev/null' "$0"
     emit 'WORKER_AUTORECOVER_SELF_TEST=PASS'
     exit 0
     ;;
   --recover) ;;
   *) emit 'usage: FROST_WORKER_AUTORECOVER_v1.0.sh [--recover|--self-test]'; exit 2 ;;
+esac
+
+case "${PREFIX:-}" in
+  *com.termux*) ;;
+  *) emit 'WORKER_RECOVERY_NOT_ANDROID_TERMUX'; exit 10 ;;
 esac
 
 # A credential file is necessary but never copied, printed, or modified here.
