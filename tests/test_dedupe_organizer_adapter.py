@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from automation.connectors.dedupe_organizer_adapter import (
+from centinal26.dedupe_organizer_adapter import (
     DedupeOrganizerAdapter,
     DedupeOrganizerAdapterError,
     supported_operations,
