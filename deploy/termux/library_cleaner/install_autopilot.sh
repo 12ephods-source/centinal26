@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP="$HOME/.local/share/frost-library-cleaner"
 SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
+BOUNDARY_SOLVER="$SOURCE_DIR/../physical_boundary_solver/run.sh"
 WATCH_PID="$APP/action-watch.pid"
 DASH_PID="$APP/autopilot-dashboard.pid"
 
@@ -40,15 +41,20 @@ if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
   exit "$rc"
 fi
 
-# Reuse the established physical-boundary solution automatically when this
-# installer is actually running on Android/Termux. The helper is fail-closed:
-# it preserves the device package but never claims controller verification or
-# DEVICE_VALIDATED promotion.
-echo "Evaluating canonical physical-device resume gate."
-python "$APP/physical_resume.py" || physical_rc=$?
-physical_rc="${physical_rc:-0}"
-if [ "$physical_rc" -ne 0 ] && [ "$physical_rc" -ne 2 ]; then
-  echo "Physical resume is degraded; preserving blocker and continuing independent work (rc=$physical_rc)." >&2
+# Prefer the production-qualified full physical-boundary solver. It fails closed
+# outside real Android/Termux, reuses previously authorized local ADB endpoints,
+# captures bounded evidence, disarms after the first proof, and never promotes
+# DEVICE_VALIDATED/PERSISTENT_VALIDATED by itself. Keep physical_resume.py as a
+# compatibility fallback if the full solver is unavailable in an older checkout.
+echo "Evaluating canonical physical-device boundary."
+physical_rc=0
+if [ -f "$BOUNDARY_SOLVER" ]; then
+  bash "$BOUNDARY_SOLVER" --resume || physical_rc=$?
+else
+  python "$APP/physical_resume.py" || physical_rc=$?
+fi
+if [ "$physical_rc" -ne 0 ] && [ "$physical_rc" -ne 2 ] && [ "$physical_rc" -ne 20 ] && [ "$physical_rc" -ne 22 ]; then
+  echo "Physical-boundary execution is degraded; preserving blocker and continuing independent work (rc=$physical_rc)." >&2
 fi
 
 start_once "$WATCH_PID" python "$APP/action_watch.py" --loop --interval 3600
