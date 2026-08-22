@@ -1,0 +1,162 @@
+{
+  "schema": "frost-candidate-toe-registry/0.1",
+  "epistemic_rule": "A generated candidate is a structured hypothesis. Structural or numerical PASS is not scientific truth.",
+  "certification_rule": "This engine may emit FAIL, REVIEW, VIABLE_FOR_NEXT_GATE, or PENDING_INDEPENDENT_CROSS_CHECK. It must never emit VERIFIED.",
+  "components": {
+    "core": [
+      {
+        "id": "FTOE-REC-v3",
+        "status": "ACTIVE_HYPOTHESIS",
+        "score": 2,
+        "derived": true,
+        "hard_fail": false,
+        "issues": [
+          "L_cross is named but unspecified",
+          "L_suppression is named but unspecified",
+          "Planck-mass convention is inconsistent across the manuscript",
+          "displayed metric equation is incomplete relative to the displayed action",
+          "no single closed action-to-observable map is supplied"
+        ]
+      }
+    ],
+    "inflation": [
+      {
+        "id": "FUEF-INFL-GATE2B-EXACT",
+        "status": "TESTED_REVIEW",
+        "score": 4,
+        "derived": false,
+        "hard_fail": false,
+        "observables": {
+          "ns": 0.9691054699,
+          "r": 0.00789582082,
+          "alpha_s": -0.00118052662,
+          "n_t": -0.00101873333,
+          "A": 2.8317639512e-11
+        },
+        "gates": {
+          "exact_perturbations": "PASS",
+          "numerical_convergence": "PASS",
+          "self_reheating": "CONDITIONAL_KILL",
+          "external_cmb_likelihood": "NOT_EXECUTED"
+        }
+      },
+      {
+        "id": "FTOE-INFL-P3-BEST",
+        "status": "FALSIFIED",
+        "score": -30,
+        "derived": false,
+        "hard_fail": true,
+        "observables": {
+          "ns": 0.96747084,
+          "r": 0.09081107,
+          "N": 56.85255,
+          "As_source_approx": 40.7909
+        }
+      },
+      {
+        "id": "INFLATION-UNRESOLVED",
+        "status": "UNRESOLVED",
+        "score": 0,
+        "derived": false,
+        "hard_fail": false
+      }
+    ],
+    "dark": [
+      {
+        "id": "FTOE-DARK-NONMIN-v0",
+        "status": "UNRESOLVED",
+        "score": 1,
+        "derived": true,
+        "hard_fail": false,
+        "issues": ["suppression mechanism unspecified", "no complete relic-density/direct-detection calculation supplied"]
+      },
+      {
+        "id": "FTOE-DARK-MIN-102",
+        "status": "FALSIFIED",
+        "score": -30,
+        "derived": true,
+        "hard_fail": true
+      },
+      {
+        "id": "DARK-LCDM-EMPIRICAL-LIMIT",
+        "status": "EMPIRICAL_LIMIT",
+        "score": 4,
+        "derived": false,
+        "hard_fail": false
+      }
+    ],
+    "neutrino": [
+      {
+        "id": "NU-MSW-LMA-LIMIT",
+        "status": "EMPIRICAL_LIMIT",
+        "score": 4,
+        "derived": false,
+        "hard_fail": false
+      },
+      {
+        "id": "NU-THETA23-47-TOY",
+        "status": "PHENOMENOLOGICAL_INTERFACE",
+        "score": 1,
+        "derived": false,
+        "hard_fail": false
+      },
+      {
+        "id": "NEUTRINO-UNRESOLVED",
+        "status": "UNRESOLVED",
+        "score": 0,
+        "derived": false,
+        "hard_fail": false
+      }
+    ],
+    "unification": [
+      {
+        "id": "FTOE-GUT-v3",
+        "status": "ACTIVE_HYPOTHESIS",
+        "score": 2,
+        "derived": true,
+        "hard_fail": false,
+        "observables": {"Lambda_GUT_GeV": 2.43e16, "proton_lifetime_yr_claim": 1e35}
+      },
+      {
+        "id": "UNIFICATION-UNRESOLVED",
+        "status": "UNRESOLVED",
+        "score": 0,
+        "derived": false,
+        "hard_fail": false
+      }
+    ],
+    "information": [
+      {
+        "id": "FTOE-INFO-BETA-v3",
+        "status": "ACTIVE_HYPOTHESIS",
+        "score": 2,
+        "derived": true,
+        "hard_fail": false,
+        "observables": {"beta": 1e-15, "Lambda_X_GeV": 3.863e11, "m_I_TeV": 13.5}
+      },
+      {
+        "id": "INFO-UNRESOLVED",
+        "status": "UNRESOLVED",
+        "score": 0,
+        "derived": false,
+        "hard_fail": false
+      }
+    ],
+    "cosmology": [
+      {
+        "id": "FTOE-R2-BOUNCE-AS-WRITTEN",
+        "status": "FALSIFIED_AS_WRITTEN",
+        "score": -30,
+        "derived": true,
+        "hard_fail": true
+      },
+      {
+        "id": "GR-LCDM-NULL-LIMIT",
+        "status": "EMPIRICAL_LIMIT",
+        "score": 4,
+        "derived": false,
+        "hard_fail": false
+      }
+    ]
+  }
+}
