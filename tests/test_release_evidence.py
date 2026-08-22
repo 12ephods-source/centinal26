@@ -48,6 +48,7 @@ def test_release_evidence_contains_canonical_ledgers_and_no_physical_inference(t
     tracked = {entry["path"] for entry in manifest["source_tree"]["files"]}
     for path in (
         "automation/PROJECT_STATE.json",
+        "automation/governance/main_branch_protection.json",
         "releases/RELEASE_CONTRACT.json",
         "releases/AUTHORITY_MATRIX.json",
         "releases/RELEASE_ENGINEERING_CONTRACT.json",
@@ -56,6 +57,7 @@ def test_release_evidence_contains_canonical_ledgers_and_no_physical_inference(t
         "releases/RELEASE_RINGS.json",
     ):
         assert path in tracked
+        assert path in manifest["canonical_ledgers"]
     assert manifest["evidence_boundaries"]["host_manifest_generated"] is True
     assert manifest["evidence_boundaries"]["device_validation_inferred"] is False
     assert manifest["evidence_boundaries"]["persistence_validation_inferred"] is False
