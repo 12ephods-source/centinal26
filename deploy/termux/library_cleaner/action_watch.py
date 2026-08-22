@@ -164,15 +164,28 @@ def check(repo: str) -> dict[str, Any]:
     return status
 
 
+def emit(status: dict[str, Any], force_json: bool) -> int:
+    if force_json or status["actionable_count"]:
+        print(json.dumps(status, indent=2, sort_keys=True))
+    return 2 if status["actionable_count"] else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", default=os.environ.get("CENTINAL26_REPO", DEFAULT_REPO))
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--loop", action="store_true", help="repeat checks until interrupted")
+    parser.add_argument("--interval", type=int, default=3600, help="loop interval in seconds; minimum 60")
     args = parser.parse_args()
-    status = check(args.repo)
-    if args.json or status["actionable_count"]:
-        print(json.dumps(status, indent=2, sort_keys=True))
-    return 2 if status["actionable_count"] else 0
+    interval = max(60, args.interval)
+    if not args.loop:
+        return emit(check(args.repo), args.json)
+    try:
+        while True:
+            emit(check(args.repo), args.json)
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        return 0
 
 
 if __name__ == "__main__":
