@@ -64,6 +64,18 @@ def _tracked_source_inventory() -> tuple[list[dict[str, Any]], int]:
     return entries, total
 
 
+def _required_ledgers() -> list[str]:
+    engineering = json.loads(
+        (ROOT / "releases/RELEASE_ENGINEERING_CONTRACT.json").read_text(encoding="utf-8")
+    )
+    required = [
+        "automation/PROJECT_STATE.json",
+        "releases/RELEASE_ENGINEERING_CONTRACT.json",
+        *engineering["required_static_ledgers"],
+    ]
+    return list(dict.fromkeys(required))
+
+
 def build_manifest() -> dict[str, Any]:
     source_commit = _run_git("rev-parse", "HEAD").decode("ascii").strip()
     status = _run_git("status", "--porcelain", "--untracked-files=no").decode(
@@ -76,16 +88,7 @@ def build_manifest() -> dict[str, Any]:
     project = pyproject["project"]
     build_system = pyproject["build-system"]
     source_files, total_bytes = _tracked_source_inventory()
-    required_ledgers = [
-        "automation/PROJECT_STATE.json",
-        "releases/RELEASE_CONTRACT.json",
-        "releases/AUTHORITY_MATRIX.json",
-        "releases/CURRENT_RELEASE_STATE.json",
-        "releases/RELEASE_ENGINEERING_CONTRACT.json",
-        "releases/COMPATIBILITY_MATRIX.json",
-        "releases/DEPRECATION_REGISTRY.json",
-        "releases/RELEASE_RINGS.json",
-    ]
+    required_ledgers = _required_ledgers()
     known_paths = {item["path"] for item in source_files}
     missing = [path for path in required_ledgers if path not in known_paths]
     if missing:
