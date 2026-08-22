@@ -10,7 +10,12 @@ mkdir -p "$APP"
 install -m 0644 "$SOURCE_DIR/autopilot_cycle.py" "$APP/autopilot_cycle.py"
 install -m 0644 "$SOURCE_DIR/action_watch.py" "$APP/action_watch.py"
 install -m 0644 "$SOURCE_DIR/autopilot_dashboard.py" "$APP/autopilot_dashboard.py"
-python -m py_compile "$APP/autopilot_cycle.py" "$APP/action_watch.py" "$APP/autopilot_dashboard.py"
+install -m 0644 "$SOURCE_DIR/physical_resume.py" "$APP/physical_resume.py"
+python -m py_compile \
+  "$APP/autopilot_cycle.py" \
+  "$APP/action_watch.py" \
+  "$APP/autopilot_dashboard.py" \
+  "$APP/physical_resume.py"
 
 start_once() {
   local pidfile="$1"
@@ -33,6 +38,17 @@ rc="${rc:-0}"
 if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
   echo "Action watch priming failed with rc=$rc" >&2
   exit "$rc"
+fi
+
+# Reuse the established physical-boundary solution automatically when this
+# installer is actually running on Android/Termux. The helper is fail-closed:
+# it preserves the device package but never claims controller verification or
+# DEVICE_VALIDATED promotion.
+echo "Evaluating canonical physical-device resume gate."
+python "$APP/physical_resume.py" || physical_rc=$?
+physical_rc="${physical_rc:-0}"
+if [ "$physical_rc" -ne 0 ] && [ "$physical_rc" -ne 2 ]; then
+  echo "Physical resume is degraded; preserving blocker and continuing independent work (rc=$physical_rc)." >&2
 fi
 
 start_once "$WATCH_PID" python "$APP/action_watch.py" --loop --interval 3600
