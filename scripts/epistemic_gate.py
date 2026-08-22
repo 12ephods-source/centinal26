@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Deterministic epistemic promotion gate.
 
 This tool does NOT determine truth. It computes an upper bound on how strongly a
@@ -21,7 +20,14 @@ LEVELS = {
     "ESTABLISHED_WITHIN_SCOPE": 5,
 }
 REVERSE = {v: k for k, v in LEVELS.items()}
-VALID_DIMENSIONS = {"PASS", "FAIL", "REVIEW", "BLOCKED", "UNKNOWN", "NOT_APPLICABLE"}
+VALID_DIMENSIONS = {
+    "PASS",
+    "FAIL",
+    "REVIEW",
+    "BLOCKED",
+    "UNKNOWN",
+    "NOT_APPLICABLE",
+}
 EVIDENCE_WEIGHT = {
     "USER_REPORTED": 1,
     "DERIVED": 2,
@@ -42,12 +48,21 @@ DOMAIN_GATE = {
     "GENERAL": None,
 }
 
+
 class LedgerError(ValueError):
     pass
 
 
 def _validate_claim(c: dict[str, Any]) -> None:
-    for key in ("claim_id", "statement", "scope", "claim_kind", "current_epistemic_status", "dimensions"):
+    required = (
+        "claim_id",
+        "statement",
+        "scope",
+        "claim_kind",
+        "current_epistemic_status",
+        "dimensions",
+    )
+    for key in required:
         if key not in c:
             raise LedgerError(f"{c.get('claim_id', '<unknown>')}: missing {key}")
     if c["claim_kind"] not in DOMAIN_GATE:
@@ -71,7 +86,11 @@ def _validate_claim(c: dict[str, Any]) -> None:
 
 
 def _usable_support(c: dict[str, Any]) -> list[dict[str, Any]]:
-    return [e for e in c.get("support", []) if e.get("integrity", "UNKNOWN") in {"PASS", "NOT_APPLICABLE"}]
+    return [
+        e
+        for e in c.get("support", [])
+        if e.get("integrity", "UNKNOWN") in {"PASS", "NOT_APPLICABLE"}
+    ]
 
 
 def _decisive_counterevidence(c: dict[str, Any]) -> bool:
@@ -85,8 +104,6 @@ def _decisive_counterevidence(c: dict[str, Any]) -> bool:
 def compute_ceiling(c: dict[str, Any]) -> str:
     _validate_claim(c)
 
-    # A recorded rejection is allowed only when there is decisive counterevidence
-    # or an explicit failing domain gate.
     if c["current_epistemic_status"] == "REJECTED":
         gate = DOMAIN_GATE[c["claim_kind"]]
         gate_failed = gate is not None and c["dimensions"].get(gate) == "FAIL"
@@ -102,20 +119,19 @@ def compute_ceiling(c: dict[str, Any]) -> str:
 
     ceiling = 0
     if support:
-        ceiling = 2  # PLAUSIBLE
+        ceiling = 2
     if strongest >= 3:
-        ceiling = max(ceiling, 3)  # SUPPORTED
+        ceiling = max(ceiling, 3)
 
     independent_pass = dims.get("independent_verification_status") == "PASS"
     if independent_pass and (len(groups) >= 2 or strongest >= 4):
-        ceiling = max(ceiling, 4)  # STRONGLY_SUPPORTED
+        ceiling = max(ceiling, 4)
 
     gate_name = DOMAIN_GATE[c["claim_kind"]]
     gate_pass = gate_name is None or dims.get(gate_name) in {"PASS", "NOT_APPLICABLE"}
     if independent_pass and gate_pass and len(groups) >= 2 and not contradictions:
-        ceiling = max(ceiling, 5)  # ESTABLISHED_WITHIN_SCOPE
+        ceiling = max(ceiling, 5)
 
-    # Fatal/failing domain evidence caps the representation, regardless of provenance.
     if gate_name is not None and dims.get(gate_name) in {"FAIL", "BLOCKED"}:
         ceiling = min(ceiling, 2)
     if contradictions:
@@ -144,7 +160,9 @@ def evaluate_claim(c: dict[str, Any]) -> dict[str, Any]:
         "overpromoted": overpromoted,
         "gate_result": gate_result,
         "unresolved_contradictions": len(c.get("unresolved_contradictions", [])),
-        "independent_support_groups": len({e["independence_group"] for e in _usable_support(c)}),
+        "independent_support_groups": len(
+            {e["independence_group"] for e in _usable_support(c)}
+        ),
     }
 
 
@@ -162,10 +180,10 @@ def evaluate_ledger(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("ledger", type=Path)
-    p.add_argument("--output", type=Path)
-    args = p.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ledger", type=Path)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
     data = json.loads(args.ledger.read_text(encoding="utf-8"))
     report = evaluate_ledger(data)
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
