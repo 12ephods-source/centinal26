@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "deploy/termux/FROST_ANDROID_WORKER_SELF_RECOVERY_v1.0.sh"
