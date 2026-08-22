@@ -1,0 +1,49 @@
+name: Dedupe Canonical Kernel
+
+on:
+  pull_request:
+    paths:
+      - 'schemas/canonical_object.schema.json'
+      - 'schemas/provenance_event.schema.json'
+      - 'schemas/filter_decision.schema.json'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'tests/test_canonical_kernel.py'
+      - 'examples/canonical_bundle.valid.json'
+      - 'docs/DEDUPE_ORGANIZER_CANONICAL_KERNEL.md'
+      - '.github/workflows/dedupe-canonical-kernel.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'schemas/canonical_object.schema.json'
+      - 'schemas/provenance_event.schema.json'
+      - 'schemas/filter_decision.schema.json'
+      - 'scripts/validate_canonical_kernel.py'
+      - 'tests/test_canonical_kernel.py'
+      - 'examples/canonical_bundle.valid.json'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse schemas and fixtures
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          for p in [
+              'schemas/canonical_object.schema.json',
+              'schemas/provenance_event.schema.json',
+              'schemas/filter_decision.schema.json',
+              'examples/canonical_bundle.valid.json',
+          ]:
+              json.loads(pathlib.Path(p).read_text())
+              print('parsed', p)
+          PY
+      - name: Validate canonical fixture
+        run: python scripts/validate_canonical_kernel.py examples/canonical_bundle.valid.json
+      - name: Run invariant tests
+        run: python -m unittest discover -s tests -p 'test_canonical_kernel.py' -v
