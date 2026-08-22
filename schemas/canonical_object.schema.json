@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/canonical_object.schema.json",
+  "title": "Dedupe/Organizer Canonical Object Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "object_id", "schema_version", "type", "content_hash", "created_at",
+    "ingested_at", "status", "epistemic_status", "verification_status",
+    "confidence", "authority_class", "authoritative", "provenance_ids",
+    "payload", "extensions"
+  ],
+  "properties": {
+    "object_id": {"type": "string", "minLength": 1},
+    "schema_version": {"const": "1.0.0"},
+    "type": {"type": "string", "minLength": 1},
+    "subtype": {"type": ["string", "null"]},
+    "content_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "identity_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "observed_at": {"type": ["string", "null"], "format": "date-time"},
+    "ingested_at": {"type": "string", "format": "date-time"},
+    "modified_at_source": {"type": ["string", "null"], "format": "date-time"},
+    "source_id": {"type": ["string", "null"]},
+    "parent_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "related_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "status": {"enum": ["CANONICAL", "CANDIDATE", "SUPERSEDED", "QUARANTINED", "REJECTED", "DEFERRED"]},
+    "epistemic_status": {"enum": ["OBSERVED", "REPORTED", "DERIVED", "INFERENCE", "SPECULATION", "PREDICTION", "UNKNOWN"]},
+    "verification_status": {"enum": ["UNVERIFIED", "VERIFIED", "FAILED", "REVIEW", "BLOCKED", "UNKNOWN"]},
+    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "authority_class": {"enum": ["AUTHORITATIVE_RECORD", "DERIVED_RECORD", "PROJECTION"]},
+    "authoritative": {"type": "boolean"},
+    "provenance_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "tag_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "project_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "payload": {"type": "object"},
+    "extensions": {"type": "object"}
+  }
+}

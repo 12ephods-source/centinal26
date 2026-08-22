@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/provenance_event.schema.json",
+  "title": "Dedupe/Organizer Provenance Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provenance_event_id", "input_ids", "operation", "output_ids", "timestamp", "deterministic"],
+  "properties": {
+    "provenance_event_id": {"type": "string", "minLength": 1},
+    "input_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "operation": {"type": "string", "minLength": 1},
+    "tool_id": {"type": ["string", "null"]},
+    "tool_version": {"type": ["string", "null"]},
+    "rule_id": {"type": ["string", "null"]},
+    "parameters": {"type": "object"},
+    "output_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "operator": {"type": ["string", "null"]},
+    "deterministic": {"type": "boolean"}
+  }
+}

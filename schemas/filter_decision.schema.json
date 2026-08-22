@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://centinal26.local/schemas/filter_decision.schema.json",
+  "title": "Dedupe/Organizer Filter Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["filter_decision_id", "input_object_id", "rule_id", "rule_version", "decision", "reason", "review_status"],
+  "properties": {
+    "filter_decision_id": {"type": "string", "minLength": 1},
+    "input_object_id": {"type": "string", "minLength": 1},
+    "rule_id": {"type": "string", "minLength": 1},
+    "rule_version": {"type": "string", "minLength": 1},
+    "score": {"type": ["number", "null"]},
+    "threshold": {"type": ["number", "null"]},
+    "decision": {"enum": ["RETAIN", "REJECT_FROM_PROJECTION", "MERGE", "QUARANTINE", "DEFER", "PROMOTE"]},
+    "reason": {"type": "string", "minLength": 1},
+    "canonical_target_id": {"type": ["string", "null"]},
+    "review_status": {"enum": ["UNREVIEWED", "APPROVED", "REJECTED", "DEFERRED"]}
+  }
+}
