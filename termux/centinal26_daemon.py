@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Centinal26 bounded Android/Termux execution daemon.
 
 This worker is intentionally local-first and fail-closed. It consumes only structured
@@ -10,17 +9,16 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from logging.handlers import RotatingFileHandler
 import os
-from pathlib import Path
 import random
-import shlex
 import sqlite3
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 ROOT = Path(os.environ.get("CENTINAL26_HOME", str(Path.home() / ".centinal26")))
 STATE = ROOT / "state"
@@ -110,6 +108,7 @@ def run(argv: list[str], timeout: int = 120, cwd: str | None = None) -> dict:
         capture_output=True,
         timeout=timeout,
         env={**os.environ, "PYTHONUNBUFFERED": "1"},
+        check=False,
     )
     return {
         "argv": argv,
@@ -144,7 +143,6 @@ def local_script(payload: dict) -> dict:
 
 
 def github_cli(payload: dict) -> dict:
-    # Fixed high-level operations only; no arbitrary shell interpolation.
     op = payload.get("op")
     repo = payload.get("repo")
     if not repo or "/" not in repo:
@@ -154,7 +152,10 @@ def github_cli(payload: dict) -> dict:
         return run(["gh", "pr", "checks", number, "--repo", repo], timeout=120)
     if op == "issue_view":
         number = str(int(payload["number"]))
-        return run(["gh", "issue", "view", number, "--repo", repo, "--json", "number,title,state,labels,updatedAt"], timeout=120)
+        return run(
+            ["gh", "issue", "view", number, "--repo", repo, "--json", "number,title,state,labels,updatedAt"],
+            timeout=120,
+        )
     if op == "repo_sync":
         path = Path(payload.get("path", str(Path.home() / "centinal26"))).expanduser().resolve()
         return run(["git", "-C", str(path), "fetch", "--ff-only", "origin"], timeout=120)
@@ -162,12 +163,7 @@ def github_cli(payload: dict) -> dict:
 
 
 def provider_adapter(payload: dict) -> dict:
-    """Provider-neutral adapter through locally configured executable adapters.
-
-    Config file: ~/.centinal26/config/providers.json
-    Each provider maps to a fixed executable path and fixed capability names.
-    Secrets stay in provider-local environment/config and are never serialized here.
-    """
+    """Invoke a locally configured provider adapter through an explicit capability."""
     cfg_path = CONFIG / "providers.json"
     cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {"providers": {}}
     provider = payload.get("provider")
@@ -186,6 +182,7 @@ def provider_adapter(payload: dict) -> dict:
         text=True,
         capture_output=True,
         timeout=min(int(payload.get("timeout", 120)), 900),
+        check=False,
     )
     return {
         "provider": provider,
@@ -198,7 +195,12 @@ def provider_adapter(payload: dict) -> dict:
 
 def verify_returncode(_payload: dict, result: dict) -> dict:
     ok = result.get("returncode") == 0
-    return {"status": "PASS" if ok else "FAIL", "basis": "returncode", "returncode": result.get("returncode")}
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "basis": "returncode",
+        "returncode": result.get("returncode"),
+    }
+
 
 CAPS = {
     "local.script": Capability("local.script", local_script, verify_returncode),
@@ -238,7 +240,7 @@ def claim(con: sqlite3.Connection, worker: str) -> sqlite3.Row | None:
             return None
         con.execute("COMMIT")
         return con.execute("SELECT * FROM task WHERE id=?", (row["id"],)).fetchone()
-    except Exception:
+    except sqlite3.Error:
         con.execute("ROLLBACK")
         raise
 
@@ -250,9 +252,17 @@ def execute_one(con: sqlite3.Connection, row: sqlite3.Row, worker: str) -> None:
     if cap is None:
         err = "capability not registered"
         evidence(con, task_id, "execution", {"status": "FAIL", "error": err})
-        con.execute("UPDATE task SET state='FAILED',last_error=?,updated_at=? WHERE id=?", (err, int(time.time()), task_id))
+        con.execute(
+            "UPDATE task SET state='FAILED',last_error=?,updated_at=? WHERE id=?",
+            (err, int(time.time()), task_id),
+        )
         return
-    evidence(con, task_id, "execution_start", {"worker": worker, "capability": cap.name, "payload_sha256": digest_obj(payload)})
+    evidence(
+        con,
+        task_id,
+        "execution_start",
+        {"worker": worker, "capability": cap.name, "payload_sha256": digest_obj(payload)},
+    )
     try:
         result = cap.handler(payload)
         evidence(con, task_id, "execution_result", result)
@@ -263,17 +273,22 @@ def execute_one(con: sqlite3.Connection, row: sqlite3.Row, worker: str) -> None:
             "UPDATE task SET state=?,lease_owner=NULL,lease_until=NULL,last_error=NULL,updated_at=? WHERE id=?",
             (state, int(time.time()), task_id),
         )
-    except Exception as exc:
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
         attempts = int(row["attempt_count"]) + 1
         if attempts < 5:
-            delay = min(900, (2 ** attempts) * 5 + random.randint(0, 7))
+            delay = min(900, (2**attempts) * 5 + random.randint(0, 7))
             state = "RETRY_WAIT"
             next_at = int(time.time()) + delay
         else:
             state = "FAILED"
             next_at = 0
         msg = f"{type(exc).__name__}: {exc}"
-        evidence(con, task_id, "execution_error", {"error": msg, "attempt": attempts, "next_attempt_at": next_at})
+        evidence(
+            con,
+            task_id,
+            "execution_error",
+            {"error": msg, "attempt": attempts, "next_attempt_at": next_at},
+        )
         con.execute(
             "UPDATE task SET state=?,lease_owner=NULL,lease_until=NULL,next_attempt_at=?,last_error=?,updated_at=? WHERE id=?",
             (state, next_at, msg, int(time.time()), task_id),
@@ -289,7 +304,10 @@ def health(con: sqlite3.Connection, worker: str) -> None:
         "capabilities": sorted(CAPS),
         "ts": int(time.time()),
     }
-    con.execute("INSERT OR REPLACE INTO daemon_state(key,value) VALUES('health',?)", (json.dumps(payload, sort_keys=True),))
+    con.execute(
+        "INSERT OR REPLACE INTO daemon_state(key,value) VALUES('health',?)",
+        (json.dumps(payload, sort_keys=True),),
+    )
 
 
 def main() -> int:
