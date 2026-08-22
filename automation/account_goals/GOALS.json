@@ -1,6 +1,6 @@
 {
   "schema": "frost-account-goals/v1",
-  "updated_at": "2026-08-22T17:36:00Z",
+  "updated_at": "2026-08-22T17:39:00Z",
   "terminal_success_rule": "Every goal must reach the strongest legitimate verified terminal state supported by its evidence; external physical/provider/authorization dependencies remain BLOCKED_EXTERNAL without blocking independent goals.",
   "states": ["PROPOSED","IMPLEMENTED","TESTED","CI_VERIFIED","INDEPENDENTLY_VERIFIED","SOFTWARE_RELEASE_COMPLETE","DEVICE_TESTED","PERSISTENCE_VERIFIED","DEPLOYED_APP_COMPLETE","PRODUCTION_READY","BLOCKED_EXTERNAL","FAILED","REGRESSED","SUPERSEDED"],
   "goals": [
@@ -11,7 +11,7 @@
     {"id":"G05","name":"Frost Sentinel cybersecurity and DFIR","state":"IMPLEMENTED","success_criteria":["defensive observation","immutable evidence preservation","forensic timelines","independent corroboration"]},
     {"id":"G06","name":"Security recovery automation","state":"IMPLEMENTED","success_criteria":["trusted baseline comparison","OAuth/session/recovery diffing","tamper evidence","bounded automatic recovery"]},
     {"id":"G07","name":"Evidence and provenance infrastructure","state":"INDEPENDENTLY_VERIFIED","success_criteria":["immutable provenance edges","claim/evidence separation","hash/signature semantics correctly bounded"]},
-    {"id":"G08","name":"Universal canonical object store and semantic dedupe","state":"IMPLEMENTED","success_criteria":["typed immutable objects","semantic dedupe without automatic deletion","contradiction preservation","rebuildable projections"]},
+    {"id":"G08","name":"Universal canonical object store and semantic dedupe","state":"INDEPENDENTLY_VERIFIED","success_criteria":["typed immutable objects","semantic dedupe without automatic deletion","contradiction preservation","rebuildable projections"]},
     {"id":"G09","name":"Conversation and account intelligence","state":"IMPLEMENTED","success_criteria":["goal extraction","unfinished-work extraction","unique insight extraction","deduplicated routing into automation"]},
     {"id":"G10","name":"Reusable solution-pattern registry","state":"IMPLEMENTED","success_criteria":["verified recurring failures map to reusable repair patterns","future recurrence searches registry first","repair has regression evidence"]},
     {"id":"G11","name":"Immutable mistake-prevention registry","state":"IMPLEMENTED","success_criteria":["causal failure classes stored","mechanical guards where possible","bad-case and good-case regression tests"]},
