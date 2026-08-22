@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
-  "status": "FIRST_REFERENCE_PINNED_AND_LICENSE_VERIFIED_MORE_PINNING_REQUIRED",
+  "schema_version": 3,
+  "status": "REFERENCE_PINNED_BENCHMARK_IMPLEMENTED_UPSTREAM_EXECUTION_STILL_LICENSE_GATED",
   "observed_at": "2026-08-22",
   "purpose": "Defensive software repair research only",
   "resources": [
@@ -14,6 +14,16 @@
       "license_blob_sha": "06b92824fe7543439c5bcf0a3c6f5e26f7556bb0",
       "reuse_status": "REFERENCE_ONLY_UNTIL_BENCHMARK_IMPORT_IS_EXPLICITLY_SELECTED"
     },
+    {
+      "name": "AIxCC cAPI",
+      "repository": "aixcc-public/capi",
+      "role": "vulnerability-discovery and generated-patch validation interface",
+      "commit": "d44eaff26821a6d5bf16c91b4973e6caaa737c04",
+      "commit_verification": "GitHub reports a valid signature on the pinned main commit",
+      "license": null,
+      "license_status": "UNRESOLVED_REPOSITORY_METADATA_NULL_AND_NO_OBVIOUS_ROOT_LICENSE_FILE",
+      "reuse_status": "REFERENCE_ONLY_DO_NOT_EXECUTE_OR_VENDOR_UNTIL_LICENSE_IS_RESOLVED"
+    },
     {"name":"AIxCC Competition API","repository":"AIxCyberChallenge/competition-api","role":"challenge packaging, submission intake, test job pipeline","pin_status":"REQUIRED"},
     {"name":"Atlantis","repository":"Team-Atlanta/aixcc-afc-atlantis","role":"finalist CRS architecture study","pin_status":"REQUIRED"},
     {"name":"Buttercup","repository":"trailofbits/afc-buttercup","role":"orchestration/patcher/program-model study","pin_status":"REQUIRED"},
@@ -21,6 +31,12 @@
     {"name":"Lacrosse","repository":"siftech/afc-crs-lacrosse","role":"fuzzing/symbolic/multi-agent analyzer study","pin_status":"REQUIRED"},
     {"name":"CGC repositories","repository":"CyberGrandChallenge/*","role":"historical challenge corpus and testing infrastructure study","pin_status":"SELECT_AND_PIN_ONLY_IF_NEEDED"}
   ],
+  "internal_benchmark": {
+    "fixture_id": "known-ground-truth-empty-mean-v1",
+    "authority": "repository-owned known-ground-truth fixture only",
+    "lifecycle": "reproduce -> candidate repair -> regression -> independent verification",
+    "upstream_code_executed": false
+  },
   "constraints": [
     "Do not execute imported upstream code until exact source identity and license are independently recorded.",
     "Do not grant arbitrary shell, arbitrary remote targeting, credential harvesting, exploit deployment, or autonomous promotion authority.",
