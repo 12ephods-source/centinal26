@@ -1,0 +1,51 @@
+{
+  "schema": "frost.solution-pattern.v1",
+  "id": "physical-runtime-boundary/bridge-improvement-loop/v1",
+  "name": "Physical runtime boundary bridge with evidence-preserving improvement loop",
+  "trigger": "Host automation is complete or host-qualified, but authentic Android/Termux execution is still required for a physical gate, device-local action, or device-origin evidence.",
+  "standing_rule": "Do not stop at the host/device boundary and do not fabricate physical execution. Reuse this bridge pattern: host preflight -> same-script Termux handoff -> verified component reuse -> local ADB reconnect -> bounded improvement cycle -> device evidence capture -> independent controller verification.",
+  "sequence": [
+    "detect_runtime",
+    "run_all_safe_host_preflight_work",
+    "emit_handoff_receipt_without_claiming_device_execution",
+    "rerun_same_tool_inside_authorized_termux",
+    "reuse_existing_verified_device_evidence_and_workload_components",
+    "auto_reconnect_previously_paired_local_adb",
+    "fail_closed_on_first_time_android_pairing_authorization",
+    "observe",
+    "measure",
+    "hypothesize",
+    "criticize_and_compare_alternatives",
+    "retry_only_recoverable_conditions",
+    "verify",
+    "preserve_evidence",
+    "package_combined_device_evidence",
+    "require_independent_controller_verification_before_promotion"
+  ],
+  "improvement_cycle": {
+    "required": true,
+    "steps": [
+      "observe",
+      "measure",
+      "hypothesize",
+      "criticize",
+      "compare_alternatives",
+      "implement_smallest_safe_improvement",
+      "test",
+      "independently_verify",
+      "record_evidence",
+      "repeat_until_no_higher_value_safe_improvement_remains"
+    ],
+    "do_not": [
+      "self_modify_unreviewed_source_on_device",
+      "weaken_gates_to_obtain_pass",
+      "retry_external_authorization_as_if_transient",
+      "equate_host_pass_with_physical_pass"
+    ]
+  },
+  "authority_boundary": "First-time Android pairing, physical reboot, provider consent, credentials, and other owner-controlled or provider-controlled actions remain external authorization/physical boundaries. The bridge reduces them but does not bypass them.",
+  "reuse_policy": "For future similar blockers, search for and reuse this pattern and its registered ability before designing a new physical-boundary workflow.",
+  "implementation": "deploy/termux/FROST_PHYSICAL_BOUNDARY_BRIDGE_v1.0.sh",
+  "tests": "tests/test_physical_boundary_bridge.py",
+  "status": "PROPOSED_PENDING_EXACT_HEAD_QUALIFICATION"
+}
