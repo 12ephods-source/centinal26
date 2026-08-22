@@ -1,22 +1,31 @@
 {
-  "schema_version": 1,
-  "status": "DISCOVERY_VERIFIED_PINNING_REQUIRED_BEFORE_EXECUTABLE_REUSE",
+  "schema_version": 2,
+  "status": "FIRST_REFERENCE_PINNED_AND_LICENSE_VERIFIED_MORE_PINNING_REQUIRED",
   "observed_at": "2026-08-22",
   "purpose": "Defensive software repair research only",
   "resources": [
+    {
+      "name": "AIxCC Example CRS Architecture",
+      "repository": "AIxCyberChallenge/example-crs-architecture",
+      "role": "team-facing API, challenge-evaluation, scoring and architecture reference",
+      "commit": "ed886bb7ffa5af5bd4d61ce6743b9ef706f55192",
+      "commit_verification": "GitHub reports valid signature on pinned commit",
+      "license": "MIT",
+      "license_blob_sha": "06b92824fe7543439c5bcf0a3c6f5e26f7556bb0",
+      "reuse_status": "REFERENCE_ONLY_UNTIL_BENCHMARK_IMPORT_IS_EXPLICITLY_SELECTED"
+    },
     {"name":"AIxCC Competition API","repository":"AIxCyberChallenge/competition-api","role":"challenge packaging, submission intake, test job pipeline","pin_status":"REQUIRED"},
-    {"name":"AIxCC cAPI","repository":"aixcc-public/capi","role":"vulnerability-discovery and generated-patch validation interface","pin_status":"REQUIRED"},
-    {"name":"AIxCC CRS sandbox","repository":"aixcc-public/crs-sandbox","role":"sandbox reference","pin_status":"REQUIRED"},
     {"name":"Atlantis","repository":"Team-Atlanta/aixcc-afc-atlantis","role":"finalist CRS architecture study","pin_status":"REQUIRED"},
     {"name":"Buttercup","repository":"trailofbits/afc-buttercup","role":"orchestration/patcher/program-model study","pin_status":"REQUIRED"},
     {"name":"Theori AFC archive","repository":"theori-io/aixcc-afc-archive","role":"finalist CRS architecture/evaluation study","pin_status":"REQUIRED"},
     {"name":"Lacrosse","repository":"siftech/afc-crs-lacrosse","role":"fuzzing/symbolic/multi-agent analyzer study","pin_status":"REQUIRED"},
-    {"name":"BugBuster","repository":"42-b3yond-6ug/42-b3yond-6ug-crs","role":"finalist CRS architecture study","pin_status":"REQUIRED"}
+    {"name":"CGC repositories","repository":"CyberGrandChallenge/*","role":"historical challenge corpus and testing infrastructure study","pin_status":"SELECT_AND_PIN_ONLY_IF_NEEDED"}
   ],
   "constraints": [
     "Do not execute imported upstream code until exact source identity and license are independently recorded.",
     "Do not grant arbitrary shell, arbitrary remote targeting, credential harvesting, exploit deployment, or autonomous promotion authority.",
     "Analyzer output remains CANDIDATE until deterministic reproduction and independent verification succeed.",
-    "Reuse Centinal26 as the sole canonical authorization/evidence/control plane."
+    "Reuse Centinal26 as the sole canonical authorization/evidence/control plane.",
+    "A public GitHub repository without a verified reuse license is not treated as reusable source."
   ]
 }
