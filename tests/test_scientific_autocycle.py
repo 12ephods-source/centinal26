@@ -133,13 +133,11 @@ def test_unregistered_agent_is_unavailable(tmp_path: Path, monkeypatch):
 
 
 def test_stage_and_run_clipboard_v2(tmp_path: Path):
-    raw = "\n".join(
-        [
-            "# FROST-AUTORUN:2 shell=python",
-            '# FROST-CYCLE: {"goal":"emit pass","success":{"exit_code":0,"required_text":["CYCLE_PASS"]},"agent_providers":["deterministic"]}',
-            "print('CYCLE_PASS')",
-            "",
-        ]
+    raw = (
+        "# FROST-AUTORUN:2 shell=python\n"
+        '# FROST-CYCLE: {"goal":"emit pass","success":{"exit_code":0,'
+        '"required_text":["CYCLE_PASS"]},"agent_providers":["deterministic"]}\n'
+        "print('CYCLE_PASS')\n"
     )
     pending = mod.stage_clipboard(raw, tmp_path / "root")
     assert pending["status"] == "STAGED"
