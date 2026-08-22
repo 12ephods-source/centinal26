@@ -1,0 +1,60 @@
+{
+  "schema": "centinal26.scientific-reconciliation.v1",
+  "source_pr": 146,
+  "source_title": "Test latent geometry in token-level transformer minimal pairs",
+  "source_head_sha": "91aced4d19fefd0aee24ca9f27aa8b424fd76e1b",
+  "source_workflow_run_id": 32315833177,
+  "source_artifact_id": 9388128236,
+  "status": "FAIL_FROZEN_GATE",
+  "experiment_execution": "PASS",
+  "checker_execution": "PASS_EXPECTED_SCIENTIFIC_FAIL",
+  "frozen_split": {
+    "train_chain_lengths": [2, 3, 4],
+    "ood_chain_lengths": [6, 8],
+    "seeds": [211, 212, 213],
+    "steps": 400
+  },
+  "means_length8": {
+    "baseline_pair_accuracy": 0.17274305555555555,
+    "correct_geometry_pair_accuracy": 0.20030381944444445,
+    "wrong_geometry_pair_accuracy": 0.20703125,
+    "baseline_ood_accuracy": 0.5110677083333334,
+    "correct_geometry_ood_accuracy": 0.4943576388888889,
+    "wrong_geometry_ood_accuracy": 0.5054253472222222,
+    "baseline_distractor_invariance": 0.4958767361111111,
+    "correct_geometry_distractor_invariance": 0.4908854166666667
+  },
+  "frozen_checks": {
+    "correct_pair_gain_vs_baseline": false,
+    "correct_ood_gain_vs_baseline": false,
+    "correct_invariance_not_worse": true,
+    "correct_pair_exceeds_wrong": false,
+    "correct_ood_exceeds_wrong": false,
+    "seed_direction_consistency": false
+  },
+  "seed_directional_pass": {
+    "211": false,
+    "212": false,
+    "213": false
+  },
+  "interpretation": "Under the preregistered small causal Transformer setup, correct latent-geometry supervision did not improve length-8 pair or ordinary OOD accuracy by the frozen margins, did not outperform the wrong-geometry control, and showed no qualifying seed-level directional consistency. The experiment therefore falsifies this specific mechanism/configuration rather than supporting a general geometry-supervision advantage.",
+  "scope_exclusions": [
+    "No claim about proprietary Sophontic methods",
+    "No claim about frontier-model generalization",
+    "No claim about 60x efficiency",
+    "No claim about data-center obsolescence",
+    "No universal no-go for geometric inductive biases or other Transformer configurations"
+  ],
+  "provenance": {
+    "standard_workflows": {
+      "CI": "PASS",
+      "validate": "PASS",
+      "automation-gates": "PASS",
+      "federation-gates": "PASS",
+      "Mature Product Qualification": "PASS"
+    },
+    "dedicated_workflow": "geometric-transformer-minpairs",
+    "dedicated_workflow_conclusion": "FAIL_BY_PREREGISTERED_CHECKER",
+    "evidence_artifact_zip_sha256": "a9d5e838d0e8e803210c8aa8baaf54d05c90a70155feee2293a1d3bb87510d23"
+  }
+}
