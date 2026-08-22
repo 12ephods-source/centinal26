@@ -1,0 +1,34 @@
+name: Fix release description wording
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-release-description.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-release-description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove wazoo wording from latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_json="$(gh api "repos/${GH_REPO}/releases/latest")"
+          release_id="$(jq -r '.id' <<<"$release_json")"
+          body="$(jq -r '.body // ""' <<<"$release_json")"
+          cleaned="$(printf '%s' "$body" | sed -E 's/[Ww][Aa][Zz][Oo][Oo]/Centinal26/g')"
+          if [[ "$body" == "$cleaned" ]]; then
+            echo "No wazoo wording present; no release mutation required."
+            exit 0
+          fi
+          jq -n --arg body "$cleaned" '{body:$body}' > /tmp/release.json
+          gh api --method PATCH "repos/${GH_REPO}/releases/${release_id}" --input /tmp/release.json
+          echo "Updated latest release description."
