@@ -25,8 +25,10 @@
   },
   "project_mirror": {
     "provider": "google_drive",
-    "folder_name": "Automation",
-    "folder_id": "1lt_61Stv0ZufxuGmNbzqsLOoONX4asm7",
+    "project_root_name": "Automation",
+    "project_root_id": "1lt_61Stv0ZufxuGmNbzqsLOoONX4asm7",
+    "folder_name": "00_CURRENT_CANONICAL",
+    "folder_id": "1n64M4FmDouWzP3EsNzCGrru5oto3LZ5_",
     "file_id": "15Szy9HRHoh-ykkDqsDaEfI4LNM56ULKU",
     "file_name": "g02-independent-verification.zip",
     "roundtrip_size_bytes": 576,
