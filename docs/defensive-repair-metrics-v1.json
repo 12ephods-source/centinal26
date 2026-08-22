@@ -1,0 +1,21 @@
+{
+  "schema": "centinal26.defensive-repair.metrics.v1",
+  "purpose": "Measure whether bounded automated repair reduces human labor without weakening verification.",
+  "metrics": {
+    "fixtures_total": {"type": "integer", "minimum": 0},
+    "reproduced_total": {"type": "integer", "minimum": 0},
+    "candidate_repairs_total": {"type": "integer", "minimum": 0},
+    "independently_verified_total": {"type": "integer", "minimum": 0},
+    "verification_failures_total": {"type": "integer", "minimum": 0},
+    "regression_failures_total": {"type": "integer", "minimum": 0},
+    "false_positive_total": {"type": "integer", "minimum": 0},
+    "human_interventions_total": {"type": "integer", "minimum": 0},
+    "runtime_seconds": {"type": "number", "minimum": 0}
+  },
+  "derived": {
+    "repair_success_rate": "independently_verified_total / candidate_repairs_total when denominator > 0",
+    "reproduction_rate": "reproduced_total / fixtures_total when denominator > 0",
+    "human_intervention_rate": "human_interventions_total / fixtures_total when denominator > 0"
+  },
+  "promotion_rule": "No metric may override failed authorization, provenance, regression, or independent-verification gates."
+}
