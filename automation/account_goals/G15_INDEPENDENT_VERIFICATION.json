@@ -1,0 +1,69 @@
+{
+  "schema": "frost-account-goal-verification/v1",
+  "goal_id": "G15",
+  "goal_name": "Test-a-Theory product",
+  "prior_state": "CI_VERIFIED",
+  "verified_state": "INDEPENDENTLY_VERIFIED",
+  "verified_at": "2026-08-22T20:23:30Z",
+  "source": {
+    "repository": "12ephods-source/centinal26",
+    "mvp_pr": 379,
+    "mvp_merge_commit": "3331e36ebd0ad6ea505bc01d6b5e4b1de5b89bda",
+    "ci_promotion_pr": 394,
+    "independent_verification_pr": 431,
+    "independent_verification_head": "68db5f9a8ea714cf6961ee31628380bccbf0cbec",
+    "independent_verification_merge_commit": "0999230c7032d751015334e0a79929698295aa08",
+    "verifier_path": "scripts/verify_g15_test_a_theory.py",
+    "workflow_path": ".github/workflows/test-a-theory-independent-verifier.yml",
+    "workflow_run_id": 32596492622,
+    "artifact_id": 9481683699,
+    "artifact_name": "g15-independent-verification",
+    "artifact_sha256": "9a5f0602ce4261710606b671f15e9553b25595fdaefbe41ef5e801f110335597"
+  },
+  "verdict": "VERIFIED",
+  "success_criteria": {
+    "finished_mvp_accepts_explicit_model_inputs": "PASS",
+    "builds_consistency_falsification_tests": "PASS",
+    "outputs_reproducibility_package": "PASS",
+    "validated_on_held_out_examples": "PASS"
+  },
+  "independent_criteria": {
+    "explicit_model_input": "PASS",
+    "dimensional_consistency_gate": "PASS",
+    "numerical_falsification_gate": "PASS",
+    "empty_gate_fail_closed": "PASS",
+    "invalid_input_fail_closed": "PASS",
+    "reproducibility_package_hash_readback": "PASS",
+    "byte_identical_deterministic_replay": "PASS",
+    "input_mutation_evidence_sensitivity": "PASS",
+    "verifier_owned_unseen_cases": "PASS",
+    "scientific_truth_boundary_preserved": "PASS"
+  },
+  "repository_qualification": {
+    "Test-a-Theory Independent Verifier": "PASS",
+    "Project Goal Reconciler": "PASS",
+    "Mature Product Qualification": "PASS",
+    "CI": "PASS",
+    "validate": "PASS",
+    "Project Federation": "PASS",
+    "Governance Enforcement": "PASS",
+    "Release Engineering Gate": "PASS",
+    "federation-gates": "PASS",
+    "automation-gates": "PASS"
+  },
+  "independence": {
+    "method": "black-box public CLI subprocess execution",
+    "implementation_imported_by_verifier": false,
+    "cases_owned_by_verifier": true,
+    "cases_overlap_repository_heldout_ids": false,
+    "artifact_downloaded_and_read_back": true,
+    "artifact_zip_integrity": "PASS",
+    "artifact_sha256_matches_github_digest": true
+  },
+  "limits": [
+    "software verification does not establish scientific truth",
+    "verifier-owned held-out cases are synthetic host cases, not empirical evidence",
+    "no particular physical theory or dataset is scientifically validated",
+    "deployment, adoption, and revenue are not established"
+  ]
+}
