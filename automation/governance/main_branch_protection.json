@@ -1,0 +1,61 @@
+{
+  "schema": "automation.main_branch_protection_policy/v1",
+  "repository": "12ephods-source/centinal26",
+  "branch": "main",
+  "tracker_issue": 271,
+  "required_pull_request": true,
+  "required_approving_review_count": 0,
+  "dismiss_stale_reviews": true,
+  "require_conversation_resolution": true,
+  "enforce_admins": true,
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "baseline",
+      "callable-adapter",
+      "test (3.11)",
+      "test (3.12)",
+      "test (3.13)",
+      "vertical-slice",
+      "host-federation-gate",
+      "host-qualification",
+      "release-engineering",
+      "governance-policy"
+    ]
+  },
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_linear_history": false,
+  "dynamic_release_convergence": {
+    "validator": "scripts/validate_release_convergence.py",
+    "workflow": ".github/workflows/release-convergence.yml",
+    "enforced_by_context": "governance-policy",
+    "paths": [
+      "automation/PROJECT_STATE.json",
+      "releases/CURRENT_RELEASE_STATE.json",
+      "releases/RELEASE_CONTRACT.json",
+      "releases/AUTHORITY_MATRIX.json",
+      "scripts/validate_release_convergence.py",
+      ".github/workflows/release-convergence.yml"
+    ]
+  },
+  "autonomous_reconciliation": {
+    "controller": "scripts/reconcile_main_branch_protection.py",
+    "workflow": ".github/workflows/governance-enforcement.yml",
+    "admin_token_secret": "FROST_GOVERNANCE_ADMIN_TOKEN",
+    "server_readback_required": true,
+    "workflow_substitution_allowed": false,
+    "close_tracker_only_after_server_readback": true
+  },
+  "emergency_override": {
+    "ordinary_admin_bypass": false,
+    "tracker_issue_required": true,
+    "mechanism": "explicit audited repository configuration change"
+  },
+  "evidence_boundary": {
+    "branch_protection_is_repository_governance_evidence": true,
+    "branch_protection_is_physical_device_evidence": false,
+    "branch_protection_is_deployment_authorization": false,
+    "branch_protection_is_ga_evidence_by_itself": false
+  }
+}
