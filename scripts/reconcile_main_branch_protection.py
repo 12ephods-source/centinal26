@@ -181,7 +181,7 @@ def fetch_protection(policy: dict[str, Any], token: str) -> dict[str, Any] | Non
     if status != 200:
         raise RuntimeError(f"protection readback failed: HTTP {status}: {payload}")
     if not isinstance(payload, dict):
-        raise RuntimeError("protection readback was not a JSON object")
+        raise TypeError("protection readback was not a JSON object")
     return payload
 
 
