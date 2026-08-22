@@ -133,8 +133,6 @@ def lattice_vectors(size: int) -> dict[str, tuple[np.ndarray, np.ndarray]]:
             raise ValueError("lattice failed to resolve compact smearing")
         q = q_raw / q_norm
         p = float(spec["p_scale"]) * p_raw / p_norm
-        # q_i=sqrt(dx) phi_i and p_i=sqrt(dx) pi_i; therefore an
-        # integral smearing has modal coefficients sqrt(dx) U^T f.
         vectors[str(spec["name"])] = (
             math.sqrt(dx) * (modes.T @ q),
             math.sqrt(dx) * (modes.T @ p),
@@ -154,18 +152,23 @@ def lattice_omegas(size: int) -> np.ndarray:
     )
 
 
-def modular_evolve(
-    vector: tuple[np.ndarray, np.ndarray], omegas: np.ndarray, s: float
+def evolve_for_time(
+    vector: tuple[np.ndarray, np.ndarray], omegas: np.ndarray, t: float
 ) -> tuple[np.ndarray, np.ndarray]:
     f, g = vector
-    t = -BETA * s
     cosine = np.cos(omegas * t)
     sine = np.sin(omegas * t)
-    # sigma_s = alpha_{-beta s} for rho_beta proportional to exp(-beta H).
     return (
         f * cosine - omegas * g * sine,
         f * sine / omegas + g * cosine,
     )
+
+
+def modular_evolve(
+    vector: tuple[np.ndarray, np.ndarray], omegas: np.ndarray, s: float
+) -> tuple[np.ndarray, np.ndarray]:
+    # sigma_s = alpha_{-beta s} for rho_beta proportional to exp(-beta H).
+    return evolve_for_time(vector, omegas, -BETA * s)
 
 
 def covariance(
@@ -294,6 +297,19 @@ def locality_checks() -> dict[str, object]:
     }
 
 
+def wrong_modular_direction_gap() -> float:
+    vectors = continuum_vectors(128)
+    omegas = continuum_omegas(128)
+    left = vectors["A_left"]
+    right = vectors["B_middle"]
+    s = 0.20
+    correct = weyl_two_point(left, modular_evolve(right, omegas, s), omegas)
+    wrong = weyl_two_point(
+        left, evolve_for_time(right, omegas, +BETA * s), omegas
+    )
+    return float(abs(correct - wrong))
+
+
 def evaluate() -> dict[str, object]:
     continuum_results: dict[int, dict[str, object]] = {}
     for max_mode in CONTINUUM_MODES:
@@ -326,6 +342,7 @@ def evaluate() -> dict[str, object]:
     fit_errors = np.array(errors[1:])
     observed_order = float(np.polyfit(np.log(fit_dx), np.log(fit_errors), 1)[0])
     local = locality_checks()
+    negative_gap = wrong_modular_direction_gap()
 
     checks = {
         "continuum_reference_refined": reference_refinement <= 1.0e-8,
@@ -338,15 +355,16 @@ def evaluate() -> dict[str, object]:
             "nested_region_membership_consistent"
         ]
         is True,
+        "wrong_modular_direction_is_detected": negative_gap >= 1.0e-4,
     }
     passed = all(checks.values())
     return {
         "schema": "ds2.local-net-modular-diagnostic.v1",
         "execution_pass": passed,
         "scientific_pass": False,
-        "status": "PASS_DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE"
+        "status": "PASS_FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE"
         if passed
-        else "FAIL_DENSE_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
+        else "FAIL_FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE",
         "checks": checks,
         "continuum_reference": {
             "mode_cutoffs": list(CONTINUUM_MODES),
@@ -358,14 +376,21 @@ def evaluate() -> dict[str, object]:
             "errors": errors,
             "observed_order": observed_order,
         },
+        "negative_control": {
+            "deliberate_error": "use alpha_{+beta*s} instead of alpha_{-beta*s}",
+            "correct_vs_wrong_two_point_gap": negative_gap,
+            "detected": negative_gap >= 1.0e-4,
+        },
         "locality": local,
         "interpretation": {
             "established_if_pass": [
-                "controlled finite-to-continuum convergence on a frozen finite family of compactly supported phase-space smearings",
+                "controlled finite-to-continuum convergence on one frozen finite family of compactly supported phase-space smearings",
                 "convergence of thermal modular-flow Weyl two-point functions on the frozen modular-parameter grid",
                 "consistent nested support bookkeeping for the frozen A subset B subset C interval family",
+                "the declared negative control rejects reversal of the thermal modular-flow direction on the frozen probe",
             ],
             "not_established": [
+                "density of the finite smearing family in the local one-particle or Weyl test space",
                 "strong or weak operator convergence of the full local von Neumann net",
                 "strong resolvent convergence of modular generators",
                 "convergence of Tomita operators on a common core",
@@ -374,7 +399,7 @@ def evaluate() -> dict[str, object]:
                 "interacting de Sitter convergence",
                 "Type-II crossed-product gravity, Hollands-Wald energy, or Einstein dynamics",
             ],
-            "promotion_ceiling": "DENSE_TEST_FAMILY_NECESSARY_SUBGATE_ONLY",
+            "promotion_ceiling": "FROZEN_FINITE_TEST_FAMILY_NECESSARY_SUBGATE_ONLY",
             "next_gate": "COMMON_GNS_OR_STANDARD_SUBSPACE_OPERATOR_TOPOLOGY_CONVERGENCE",
         },
     }
