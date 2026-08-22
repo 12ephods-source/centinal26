@@ -6,6 +6,7 @@ import json
 import re
 import tarfile
 from datetime import datetime
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +36,7 @@ def _read_text(path: Path) -> str:
 
 
 def _parse_utc(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)
 
 
 def _manifest_entries(run_dir: Path) -> tuple[list[tuple[str, str]], list[str]]:
@@ -255,7 +256,7 @@ def verify_base(base: Path, require_runs: int = 1) -> dict[str, Any]:
         errors.append(f"insufficient_runs:{len(lines)}<{require_runs}")
 
     timeline.sort(key=lambda row: (row["acquisition_started_utc"], row["run_id"]))
-    for earlier, later in zip(timeline, timeline[1:]):
+    for earlier, later in pairwise(timeline):
         if earlier["acquisition_started_utc"] > later["acquisition_started_utc"]:
             errors.append("timeline_ordering_failure")
             break
