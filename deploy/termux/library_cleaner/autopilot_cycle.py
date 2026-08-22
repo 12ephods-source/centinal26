@@ -8,6 +8,7 @@ records each observe/measure/criticize/improve/verify cycle as JSONL evidence.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import py_compile
@@ -22,22 +23,19 @@ RESULT = APP / "qualification-result.json"
 LOG = APP / "autopilot-cycle.jsonl"
 SERVICE = Path("/data/data/com.termux/files/usr/var/service/frost-library-cleaner")
 
-HIGH_RISK_RULES = {
+PYTHON_SCAN_NAMES = (
+    "frost_library_cleanerd.py",
+    "package_evidence.py",
+    "autopilot_cycle.py",
+)
+SHELL_SCAN_NAMES = ("qualify_and_arm.sh", "disarm.sh")
+SHELL_HIGH_RISK_RULES = {
     "destructive_root_delete": re.compile(r"rm\s+-rf\s+/(?:\s|$)"),
     "filesystem_format": re.compile(r"\bmkfs(?:\.|\s)"),
     "raw_block_write": re.compile(r"\bdd\s+[^\n]*\bof=/dev/"),
     "remote_pipe_shell": re.compile(r"(?:curl|wget)[^\n|]*\|\s*(?:ba)?sh\b"),
     "reverse_shell": re.compile(r"/dev/tcp/|\bnc\s+[^\n]*\s-e\s"),
-    "shell_true": re.compile(r"shell\s*=\s*True"),
 }
-
-SCAN_NAMES = (
-    "frost_library_cleanerd.py",
-    "package_evidence.py",
-    "qualify_and_arm.sh",
-    "disarm.sh",
-    "autopilot_cycle.py",
-)
 
 
 def run(command: list[str], timeout: int = 90) -> subprocess.CompletedProcess[str]:
@@ -74,31 +72,91 @@ def append_log(record: dict) -> None:
         stream.write(json.dumps(payload, sort_keys=True) + "\n")
 
 
-def scan_path(path: Path) -> list[dict[str, str]]:
+def callable_name(node: ast.AST) -> str:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        parts: list[str] = []
+        current: ast.AST = node
+        while isinstance(current, ast.Attribute):
+            parts.append(current.attr)
+            current = current.value
+        if isinstance(current, ast.Name):
+            parts.append(current.id)
+        return ".".join(reversed(parts))
+    return ""
+
+
+def scan_python(path: Path) -> list[dict[str, str]]:
+    if not path.is_file():
+        return []
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+    except SyntaxError as exc:
+        return [{"file": str(path), "rule": "PYTHON_SYNTAX", "detail": str(exc)}]
+
+    findings: list[dict[str, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = callable_name(node.func)
+        if name in {"eval", "exec", "os.system"}:
+            findings.append({"file": str(path), "rule": "DYNAMIC_OR_SHELL_EXEC", "detail": name})
+        if name.endswith("subprocess.run") or name == "subprocess.run":
+            for keyword in node.keywords:
+                if (
+                    keyword.arg == "shell"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value is True
+                ):
+                    findings.append({"file": str(path), "rule": "SUBPROCESS_SHELL_TRUE", "detail": name})
+            if node.args and isinstance(node.args[0], (ast.List, ast.Tuple)):
+                values = [
+                    element.value
+                    for element in node.args[0].elts
+                    if isinstance(element, ast.Constant) and isinstance(element.value, str)
+                ]
+                if values and values[0] in {"rm", "mkfs", "dd", "nc", "ncat", "socat"}:
+                    findings.append(
+                        {
+                            "file": str(path),
+                            "rule": "HIGH_RISK_SUBPROCESS",
+                            "detail": " ".join(values[:4]),
+                        }
+                    )
+    return findings
+
+
+def scan_shell(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
     text = path.read_text(encoding="utf-8", errors="replace")
-    findings: list[dict[str, str]] = []
-    for rule, pattern in HIGH_RISK_RULES.items():
-        if pattern.search(text):
-            findings.append({"file": str(path), "rule": rule})
-    return findings
+    return [
+        {"file": str(path), "rule": rule}
+        for rule, pattern in SHELL_HIGH_RISK_RULES.items()
+        if pattern.search(text)
+    ]
 
 
 def static_scan() -> dict:
     findings: list[dict[str, str]] = []
     scanned: list[dict[str, str]] = []
-    for name in SCAN_NAMES:
+    for name in PYTHON_SCAN_NAMES:
         path = APP / name
         if path.is_file():
             scanned.append({"file": str(path), "sha256": sha256(path)})
-            findings.extend(scan_path(path))
+            findings.extend(scan_python(path))
+    for name in SHELL_SCAN_NAMES:
+        path = APP / name
+        if path.is_file():
+            scanned.append({"file": str(path), "sha256": sha256(path)})
+            findings.extend(scan_shell(path))
     return {"scanned": scanned, "findings": findings, "pass": not findings}
 
 
 def syntax_check() -> dict:
     results: list[dict[str, object]] = []
-    for name in ("frost_library_cleanerd.py", "package_evidence.py", "autopilot_cycle.py"):
+    for name in PYTHON_SCAN_NAMES:
         path = APP / name
         if not path.is_file():
             results.append({"file": name, "pass": False, "error": "MISSING"})
@@ -112,7 +170,10 @@ def syntax_check() -> dict:
 
 
 def adb_connected() -> bool:
-    result = run(["adb", "get-state"], timeout=8)
+    try:
+        result = run(["adb", "get-state"], timeout=8)
+    except OSError:
+        return False
     return result.returncode == 0 and result.stdout.strip() == "device"
 
 
@@ -133,7 +194,10 @@ def disarm(reason: str) -> dict:
     config["autopilot_disarmed_at"] = time.time()
     save_config(config)
     if SERVICE.exists():
-        run(["sv", "down", str(SERVICE)], timeout=10)
+        try:
+            run(["sv", "down", str(SERVICE)], timeout=10)
+        except OSError:
+            pass
     return {"action": "DISARM", "reason": reason}
 
 
@@ -171,13 +235,14 @@ def qualify_if_possible() -> dict:
 
 def fingerprint() -> str:
     config = load_config()
+    names = PYTHON_SCAN_NAMES + SHELL_SCAN_NAMES
     payload = {
         "auto_delete": config.get("auto_delete", False),
         "qualification_clean": qualification_clean(),
         "adb_connected": adb_connected(),
         "files": {
             name: sha256(APP / name) if (APP / name).is_file() else None
-            for name in SCAN_NAMES
+            for name in names
         },
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
@@ -207,6 +272,7 @@ def one_cycle(index: int) -> dict:
         "timestamp": time.time(),
         "observe": {"fingerprint_before": before, "adb_connected": adb_connected()},
         "measure": {"static_scan": scan, "syntax": syntax},
+        "hypothesis": "safe local repair and qualification may reduce blockers without widening delete authority",
         "criticize": {
             "preferred_strategy": "visible_authenticated_ui_with_archive_before_delete",
             "rejected_strategy": "undocumented_private_provider_endpoint",
