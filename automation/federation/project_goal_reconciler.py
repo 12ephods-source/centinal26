@@ -3,9 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import urllib.request
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
 
 EXTERNAL_MARKERS = (
@@ -30,6 +29,7 @@ MERGE_BLOCKING_MARKERS = (
     "should not be merged",
     "do not merge",
 )
+
 
 @dataclass(frozen=True)
 class PRDecision:
