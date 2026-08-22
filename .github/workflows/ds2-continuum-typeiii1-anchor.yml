@@ -1,0 +1,44 @@
+name: dS2 Continuum Type III1 Source Anchor
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/ds2-continuum-typeiii1-anchor/**'
+      - '.github/workflows/ds2-continuum-typeiii1-anchor.yml'
+
+jobs:
+  source-anchor:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Check source anchor
+        run: python candidates/ds2-continuum-typeiii1-anchor/check_anchor.py | tee ds2_typeiii1_anchor.json
+      - name: Focused tests
+        run: python -m pytest -q candidates/ds2-continuum-typeiii1-anchor/test_anchor.py
+      - name: Capture provenance
+        shell: bash
+        run: |
+          python --version > ds2_typeiii1_environment.txt
+          git --version >> ds2_typeiii1_environment.txt
+          find candidates/ds2-continuum-typeiii1-anchor -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > ds2_typeiii1_sha256.txt
+          sha256sum ds2_typeiii1_anchor.json ds2_typeiii1_environment.txt >> ds2_typeiii1_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds2-continuum-typeiii1-anchor-${{ matrix.python-version }}
+          path: |
+            ds2_typeiii1_anchor.json
+            ds2_typeiii1_environment.txt
+            ds2_typeiii1_sha256.txt
