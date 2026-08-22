@@ -1,0 +1,37 @@
+name: Persistent Autopilot Independent Verifier
+
+on:
+  pull_request:
+    paths:
+      - 'deploy/termux/FROST_ANDROID_WORKER_SELF_RECOVERY_v1.0.sh'
+      - 'deploy/termux/library_cleaner/install_autopilot.sh'
+      - 'scripts/verify_g02_persistent_autopilot.py'
+      - 'tests/test_android_worker_self_recovery.py'
+      - 'automation/account_goals/GOALS.json'
+      - '.github/workflows/persistent-autopilot-independent-verifier.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/termux/FROST_ANDROID_WORKER_SELF_RECOVERY_v1.0.sh'
+      - 'deploy/termux/library_cleaner/install_autopilot.sh'
+      - 'scripts/verify_g02_persistent_autopilot.py'
+      - 'tests/test_android_worker_self_recovery.py'
+      - 'automation/account_goals/GOALS.json'
+      - '.github/workflows/persistent-autopilot-independent-verifier.yml'
+
+jobs:
+  independent-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run black-box G02 verifier
+        run: python scripts/verify_g02_persistent_autopilot.py | tee G02_INDEPENDENT_VERIFICATION.json
+      - name: Upload independent verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: g02-independent-verification
+          path: G02_INDEPENDENT_VERIFICATION.json
+          if-no-files-found: error

@@ -76,11 +76,13 @@ recover_once(){
     write_status "RECOVERED" "restarted existing authenticated worker"
     return 0
   fi
+  local rc
   if install_or_repair_worker; then
     write_status "RECOVERED" "installed/repaired worker from trusted canonical bootstrap"
     return 0
+  else
+    rc=$?
   fi
-  rc=$?
   case "$rc" in
     20) write_status "AUTH_REQUIRED" "no reusable local Base44 worker credential source found" ;;
     31) write_status "SOURCE_UNTRUSTED" "canonical bootstrap identity could not be verified" ;;
