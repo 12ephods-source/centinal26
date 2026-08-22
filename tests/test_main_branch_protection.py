@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
-
-from scripts.reconcile_main_branch_protection import (
-    audit_observed,
-    protection_payload,
-    validate_policy,
-)
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY_PATH = ROOT / "automation/governance/main_branch_protection.json"
+CONTROLLER_PATH = ROOT / "scripts/reconcile_main_branch_protection.py"
+
+spec = importlib.util.spec_from_file_location("reconcile_main_branch_protection", CONTROLLER_PATH)
+assert spec is not None and spec.loader is not None
+controller = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = controller
+spec.loader.exec_module(controller)
+
+audit_observed = controller.audit_observed
+protection_payload = controller.protection_payload
+validate_policy = controller.validate_policy
 
 
 def _policy() -> dict:
