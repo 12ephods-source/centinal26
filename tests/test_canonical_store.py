@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from canonical_store import CanonicalStore, CanonicalStoreError  # noqa: E402
+from canonical_store import CanonicalStore, CanonicalStoreError
 
 FIXTURE = ROOT / "examples" / "canonical_bundle.valid.json"
 
