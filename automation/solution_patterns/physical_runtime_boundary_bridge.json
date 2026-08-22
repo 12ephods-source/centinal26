@@ -43,9 +43,24 @@
       "equate_host_pass_with_physical_pass"
     ]
   },
+  "qualification": {
+    "exact_head": "f30385aadd902c1115f7cf02b977e5e21dd9a2c2",
+    "production_merge": "715a6cb99c1436a5bbbb59f2bd5842528d4c40bb",
+    "ci": "PASS",
+    "automation_validation": "PASS",
+    "validate": "PASS",
+    "automation_gates": "PASS",
+    "federation_gates": "PASS",
+    "mature_product_qualification": "PASS",
+    "governance_enforcement": "PASS",
+    "release_engineering_gate": "PASS",
+    "host_preflight_execution": "PASS",
+    "physical_device_execution": "PENDING_REAL_ANDROID_TERMUX",
+    "independent_controller_verification": "PENDING_DEVICE_EVIDENCE"
+  },
   "authority_boundary": "First-time Android pairing, physical reboot, provider consent, credentials, and other owner-controlled or provider-controlled actions remain external authorization/physical boundaries. The bridge reduces them but does not bypass them.",
-  "reuse_policy": "For future similar blockers, search for and reuse this pattern and its registered ability before designing a new physical-boundary workflow.",
+  "reuse_policy": "For future similar blockers, search for and reuse this pattern and its bridge implementation before designing a new physical-boundary workflow.",
   "implementation": "deploy/termux/FROST_PHYSICAL_BOUNDARY_BRIDGE_v1.0.sh",
   "tests": "tests/test_physical_boundary_bridge.py",
-  "status": "PROPOSED_PENDING_EXACT_HEAD_QUALIFICATION"
+  "status": "VERIFIED_HOST_PATTERN_DEVICE_EXECUTION_PENDING"
 }
