@@ -113,10 +113,10 @@ def _failure(gate: str, detail: str) -> dict[str, Any]:
 class OpenQuestHandler(BaseHTTPRequestHandler):
     server_version = "OpenQuestHTTP/1"
 
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         self._respond(*dispatch("GET", self.path))
 
-    def do_POST(self) -> None:  # noqa: N802
+    def do_POST(self) -> None:
         raw_length = self.headers.get("Content-Length", "0")
         try:
             length = int(raw_length)
