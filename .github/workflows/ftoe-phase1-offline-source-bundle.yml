@@ -12,18 +12,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
       - name: Assert literal PR head
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
-      - name: Assemble exact merged Phase-I source lineage
+      - name: Assemble exact Phase-I source lineage
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p offline_sources
+
+          # Current canonical/merged lineage.
           cp candidates/clock-regulator-harness/clock_regulator_scan.py offline_sources/
-          cp candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py offline_sources/
-          cp candidates/ds-diamond-relational-harness/ds_diamond_relational_scan.py offline_sources/
-          cp candidates/ds-regional-modular-overlap/regional_modular_overlap_scan.py offline_sources/
           cp candidates/finite-type-i-cocycle-harness/cocycle_scan.py offline_sources/
           cp candidates/two-mode-cocycle-stress/two_mode_scan.py offline_sources/
           cp candidates/multi-mode-cocycle-regulator/multi_mode_scan.py offline_sources/
@@ -31,17 +31,28 @@ jobs:
           cp candidates/ds2-continuum-typeiii1-anchor/check_anchor.py offline_sources/
           cp candidates/ds2-continuum-typeiii1-anchor/continuum_typeiii1_anchor.json offline_sources/
           cp candidates/ds2-two-axis-weyl-bridge/two_axis_weyl_bridge.py offline_sources/
+
+          # Historical exact heads preserved by the merged reconciliation PR #327.
+          git fetch --no-tags --depth=1 origin da6edc94e3e47dd1c4565e346737de5b964a6c0e
+          git show da6edc94e3e47dd1c4565e346737de5b964a6c0e:candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py > offline_sources/kms_modular_cocycle_scan.py
+
+          git fetch --no-tags --depth=1 origin c8179937afe6fcee9c29fd64537a13b2be105a51
+          git show c8179937afe6fcee9c29fd64537a13b2be105a51:candidates/ds-diamond-relational-harness/ds_diamond_relational_scan.py > offline_sources/ds_diamond_relational_scan.py
+
+          git fetch --no-tags --depth=1 origin 57b529e87f3656650f5594be7b2a3363568d3bbe
+          git show 57b529e87f3656650f5594be7b2a3363568d3bbe:candidates/ds-regional-modular-overlap/regional_modular_overlap_scan.py > offline_sources/regional_modular_overlap_scan.py
+
           cat > offline_sources/SOURCE_LINEAGE.txt <<'EOF'
-          clock-regulator-harness: PR #83
-          kms-modular-cocycle-harness: PR #87
-          ds-diamond-relational-harness: PR #102
-          ds-regional-modular-overlap: PR #104
-          finite-type-i-cocycle-harness: PR #172
-          two-mode-cocycle-stress: PR #173
-          multi-mode-cocycle-regulator: PR #240
-          ds-continuum-powers-control: PR #387
-          ds2-continuum-typeiii1-anchor: PR #389
-          ds2-two-axis-weyl-bridge: PR #393
+          clock-regulator-harness: PR #83, merged lineage
+          kms-modular-cocycle-harness: PR #87 exact head da6edc94e3e47dd1c4565e346737de5b964a6c0e
+          ds-diamond-relational-harness: PR #102 exact head c8179937afe6fcee9c29fd64537a13b2be105a51
+          ds-regional-modular-overlap: PR #104 exact head 57b529e87f3656650f5594be7b2a3363568d3bbe
+          finite-type-i-cocycle-harness: PR #172, merged lineage
+          two-mode-cocycle-stress: PR #173, merged lineage
+          multi-mode-cocycle-regulator: PR #240, merged lineage
+          ds-continuum-powers-control: PR #387, merged lineage
+          ds2-continuum-typeiii1-anchor: PR #389, merged lineage
+          ds2-two-axis-weyl-bridge: PR #393, merged lineage
           EOF
           sha256sum offline_sources/* | sort > offline_sources/SHA256SUMS.txt
           printf 'bundle_head_sha=%s\n' "${{ github.event.pull_request.head.sha }}" > offline_sources/BUNDLE_PROVENANCE.txt
