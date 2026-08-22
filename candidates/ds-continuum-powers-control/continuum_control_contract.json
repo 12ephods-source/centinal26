@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "classification": "EXPERIMENTAL_CONTROL",
+  "dependency": "UNRESOLVED_MISSING_INDUCTIVE_OR_INFINITE_PRODUCT_LIMIT_DATA",
+  "purpose": "Close the continuum-construction tooling gap with a theorem-calibrated Powers/ITPFI control without identifying it with physical de Sitter.",
+  "construction": {
+    "local_algebras": "A_n = tensor_{j=1}^n M_2(C)",
+    "embedding": "i_n(A) = A tensor I_2",
+    "single_site_state": "rho_lambda = diag(1, lambda)/(1+lambda), 0<lambda<1",
+    "finite_states": "phi_n = tensor_{j=1}^n phi_lambda",
+    "compatibility": "phi_{n+1} o i_n = phi_n",
+    "limit": "quasi-local inductive-limit C*-algebra followed by the GNS representation of the infinite product state and von Neumann closure",
+    "modular_core": "algebraic union of finite cylinder algebras; local matrix units are entire analytic",
+    "type_invariant": "Araki-Woods asymptotic ratio set"
+  },
+  "source_anchor": {
+    "citation": "H. Araki and E. J. Woods, A Classification of Factors, Publ. RIMS Kyoto Univ. 4 (1968) 51-130, DOI 10.2977/prims/1195195263",
+    "fact": "For tensor products of type-I factors, asymptotic ratio set {0, x^n; n in Z}, 0<x<1, is case (iv), type III; Powers examples belong to this case."
+  },
+  "frozen_control": {
+    "lambda": 0.25,
+    "expected_class": "Type III_lambda control",
+    "not_target_class": "Type III_1"
+  },
+  "success_status": "PASS_CONTINUUM_CONSTRUCTION_CONTROL_ONLY",
+  "scientific_pass": false,
+  "physical_ds_status": "BLOCKED_MISSING_DERIVED_TYPE_III1_CONTINUUM_IDENTIFICATION",
+  "forbidden_inferences": [
+    "do not identify the control factor with the physical de Sitter static-patch algebra",
+    "do not infer convergence of the existing finite m=2,3,4 regulator to the control",
+    "do not promote Type III_lambda control to Type III_1",
+    "do not infer gravity or crossed-product Type-II classification from this control"
+  ]
+}
