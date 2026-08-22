@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0.0",
+  "ledger_id": "dedupe-organizer-epistemic-ledger-v1",
+  "generated_from": [
+    "PROJECT_GEMS_2026-08-22",
+    "EPISTEMIC_REVIEW_CYCLE_001_2026-08-22",
+    "Guardian-Hermes release and validation records"
+  ],
+  "claims": [
+    {
+      "claim_id": "DO-001",
+      "statement": "Guardian-Hermes 0.4.0 passed the source, migration, CLI, installer, provenance, task-recovery, and rollback checks performed in its build environment.",
+      "scope": "Guardian-Hermes 0.4.0 build environment only",
+      "claim_kind": "SOFTWARE_BEHAVIOR",
+      "current_epistemic_status": "STRONGLY_SUPPORTED",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "PASS",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "PASS",
+        "independent_verification_status": "PASS",
+        "device_validation_status": "BLOCKED",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [
+        {"evidence_id": "GH040-VALIDATION", "class": "DIRECT_SOURCE", "independence_group": "release-validation", "integrity": "PASS"},
+        {"evidence_id": "GH040-TESTS", "class": "REPRODUCED", "independence_group": "test-suite", "integrity": "PASS"}
+      ],
+      "counterevidence": [],
+      "unresolved_contradictions": [],
+      "alternatives": [],
+      "notes": ["Does not imply Android/Termux physical validation."]
+    },
+    {
+      "claim_id": "DO-002",
+      "statement": "Guardian-Hermes 0.4.0 was physically validated on the target Android/Termux phone.",
+      "scope": "Guardian-Hermes 0.4.0 target phone",
+      "claim_kind": "DEVICE_BEHAVIOR",
+      "current_epistemic_status": "UNKNOWN",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "UNKNOWN",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "PASS",
+        "independent_verification_status": "UNKNOWN",
+        "device_validation_status": "BLOCKED",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "GH040-LIMITATION-PHYSICAL-PENDING", "class": "DIRECT_SOURCE", "independence_group": "release-validation", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["Host validation only"],
+      "notes": ["Physical Android validation was explicitly pending in the source report."]
+    },
+    {
+      "claim_id": "DO-003",
+      "statement": "Provenance or cryptographic integrity establishes the semantic truth of a claim.",
+      "scope": "General project epistemology",
+      "claim_kind": "GENERAL",
+      "current_epistemic_status": "REJECTED",
+      "dimensions": {
+        "provenance_status": "NOT_APPLICABLE",
+        "integrity_status": "NOT_APPLICABLE",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "NOT_APPLICABLE",
+        "independent_verification_status": "NOT_APPLICABLE",
+        "device_validation_status": "NOT_APPLICABLE",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "PROJECT-GEM-006", "class": "DIRECT_SOURCE", "independence_group": "project-invariants", "integrity": "PASS", "decisive_against_promotion": true},
+        {"evidence_id": "GH-ARCH-ATTESTATION-LIMIT", "class": "DIRECT_SOURCE", "independence_group": "guardian-architecture", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["Provenance establishes lineage; integrity establishes record stability."],
+      "notes": []
+    },
+    {
+      "claim_id": "DO-004",
+      "statement": "A Sentinel finding by itself establishes malicious causation or human attribution.",
+      "scope": "Guardian-Hermes Sentinel findings",
+      "claim_kind": "GENERAL",
+      "current_epistemic_status": "REJECTED",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "PASS",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "NOT_APPLICABLE",
+        "independent_verification_status": "NOT_APPLICABLE",
+        "device_validation_status": "NOT_APPLICABLE",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "FAIL"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "GH040-SENTINEL-BOUNDARY", "class": "DIRECT_SOURCE", "independence_group": "guardian-release", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["Expected change", "benign change", "collector error", "suspicious/unknown requiring corroboration"],
+      "notes": []
+    },
+    {
+      "claim_id": "DO-005",
+      "statement": "Guardian-Hermes 0.4.0 automatically deletes duplicate files.",
+      "scope": "Guardian-Hermes 0.4.0",
+      "claim_kind": "SOURCE_SEMANTICS",
+      "current_epistemic_status": "REJECTED",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "PASS",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "PASS",
+        "independent_verification_status": "PASS",
+        "device_validation_status": "NOT_APPLICABLE",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "GH040-NO-AUTO-DELETE", "class": "DIRECT_SOURCE", "independence_group": "release-notes", "integrity": "PASS", "decisive_against_promotion": true},
+        {"evidence_id": "GH040-VALIDATION-NO-DESTRUCTIVE", "class": "REPRODUCED", "independence_group": "test-suite", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["Explicit SHA-256-verified quarantine/restore exists under separate user action."],
+      "notes": []
+    },
+    {
+      "claim_id": "DO-006",
+      "statement": "Local HMAC attestations provide public-key non-repudiation.",
+      "scope": "Guardian-Hermes 0.4.0",
+      "claim_kind": "SOURCE_SEMANTICS",
+      "current_epistemic_status": "REJECTED",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "PASS",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "NOT_APPLICABLE",
+        "independent_verification_status": "NOT_APPLICABLE",
+        "device_validation_status": "NOT_APPLICABLE",
+        "empirical_status": "NOT_APPLICABLE",
+        "scientific_status": "NOT_APPLICABLE",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "GH040-HMAC-LIMIT", "class": "DIRECT_SOURCE", "independence_group": "readme", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["Local integrity authentication for holders of the secret."],
+      "notes": []
+    },
+    {
+      "claim_id": "DO-007",
+      "statement": "A passing CI or software gate establishes scientific truth.",
+      "scope": "Scientific automation",
+      "claim_kind": "SCIENTIFIC",
+      "current_epistemic_status": "REJECTED",
+      "dimensions": {
+        "provenance_status": "PASS",
+        "integrity_status": "PASS",
+        "source_semantics_status": "PASS",
+        "reproduction_status": "PASS",
+        "independent_verification_status": "UNKNOWN",
+        "device_validation_status": "NOT_APPLICABLE",
+        "empirical_status": "UNKNOWN",
+        "scientific_status": "FAIL",
+        "historical_verification_status": "NOT_APPLICABLE",
+        "attribution_status": "NOT_APPLICABLE"
+      },
+      "support": [],
+      "counterevidence": [
+        {"evidence_id": "PROJECT-GEM-007", "class": "DIRECT_SOURCE", "independence_group": "project-invariants", "integrity": "PASS", "decisive_against_promotion": true},
+        {"evidence_id": "PHYSICS-CLOSURE-CONTROLLER", "class": "DIRECT_SOURCE", "independence_group": "scientific-controller", "integrity": "PASS", "decisive_against_promotion": true}
+      ],
+      "unresolved_contradictions": [],
+      "alternatives": ["CI establishes only the tested software/gate condition."],
+      "notes": []
+    }
+  ]
+}
