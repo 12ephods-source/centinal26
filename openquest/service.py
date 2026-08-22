@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from openquest.builder import build_level_one_character, list_options
+from openquest.store import list_characters, load_character, save_character
 from openquest.validator import export_character
 
 API_SCHEMA = "openquest.http.v1"
@@ -28,11 +29,24 @@ def dispatch(method: str, target: str, body: bytes = b"") -> tuple[int, dict[str
             options = list_options(ruleset)
         except ValueError as exc:
             return HTTPStatus.BAD_REQUEST, _failure("OPTION_GATE", str(exc))
+        return HTTPStatus.OK, {"schema": API_SCHEMA, "status": "PASS", "options": asdict(options)}
+
+    if method == "GET" and parsed.path == "/v1/characters":
         return HTTPStatus.OK, {
             "schema": API_SCHEMA,
             "status": "PASS",
-            "options": asdict(options),
+            "characters": list_characters(),
         }
+
+    if method == "GET" and parsed.path.startswith("/v1/characters/"):
+        identifier = parsed.path.rsplit("/", 1)[-1]
+        try:
+            record = load_character(identifier)
+        except FileNotFoundError:
+            return HTTPStatus.NOT_FOUND, _failure("STORE_GATE", "Character not found")
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            return HTTPStatus.UNPROCESSABLE_ENTITY, _failure("STORE_GATE", str(exc))
+        return HTTPStatus.OK, {"schema": API_SCHEMA, "status": "PASS", "record": record}
 
     if method == "POST" and parsed.path == "/v1/characters":
         if len(body) > MAX_BODY_BYTES:
@@ -95,11 +109,14 @@ def dispatch(method: str, target: str, body: bytes = b"") -> tuple[int, dict[str
             }
 
         character_payload = json.loads(export_character(result.character, list(result.gates)))
-        return HTTPStatus.CREATED, {
+        response: dict[str, Any] = {
             "schema": API_SCHEMA,
             "status": "PASS",
             "result": character_payload,
         }
+        if bool(request.get("save", False)):
+            response["saved"] = save_character(character_payload)
+        return HTTPStatus.CREATED, response
 
     return HTTPStatus.NOT_FOUND, _failure("ROUTE_GATE", "Unknown route")
 
@@ -126,10 +143,7 @@ class OpenQuestHandler(BaseHTTPRequestHandler):
         try:
             length = int(raw_length)
         except ValueError:
-            self._respond(
-                HTTPStatus.BAD_REQUEST,
-                _failure("REQUEST_GATE", "Invalid Content-Length"),
-            )
+            self._respond(HTTPStatus.BAD_REQUEST, _failure("REQUEST_GATE", "Invalid Content-Length"))
             return
         if length < 0 or length > MAX_BODY_BYTES:
             self._respond(
