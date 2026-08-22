@@ -1,0 +1,35 @@
+name: Epistemic Integrity Gate
+
+on:
+  pull_request:
+    paths:
+      - 'automation/EPISTEMIC_CLAIM_LEDGER_v1.json'
+      - 'config/epistemic_policy.json'
+      - 'scripts/epistemic_gate.py'
+      - 'tests/test_epistemic_gate.py'
+      - 'docs/EPISTEMIC_INTEGRITY_PROTOCOL_v1.md'
+      - '.github/workflows/epistemic-integrity.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 11 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  epistemic-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run epistemic unit tests
+        run: python -m pytest -q tests/test_epistemic_gate.py
+      - name: Enforce claim promotion ceilings
+        run: python scripts/epistemic_gate.py automation/EPISTEMIC_CLAIM_LEDGER_v1.json --output epistemic-gate-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: epistemic-gate-report
+          path: epistemic-gate-report.json
