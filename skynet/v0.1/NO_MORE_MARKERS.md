@@ -1,1 +1,0 @@
-This is the last marker. Subsequent changes must be functional code or cleanup only.
