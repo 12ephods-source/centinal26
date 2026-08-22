@@ -5,7 +5,6 @@ from pathlib import Path
 
 from centinal26.test_a_theory import evaluate_model
 
-
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "validation" / "test_a_theory" / "heldout_cases.json"
 
