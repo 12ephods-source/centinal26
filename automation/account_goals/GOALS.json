@@ -1,6 +1,6 @@
 {
   "schema": "frost-account-goals/v1",
-  "updated_at": "2026-08-22T17:28:00Z",
+  "updated_at": "2026-08-22T17:33:00Z",
   "terminal_success_rule": "Every goal must reach the strongest legitimate verified terminal state supported by its evidence; external physical/provider/authorization dependencies remain BLOCKED_EXTERNAL without blocking independent goals.",
   "states": ["PROPOSED","IMPLEMENTED","TESTED","CI_VERIFIED","INDEPENDENTLY_VERIFIED","SOFTWARE_RELEASE_COMPLETE","DEVICE_TESTED","PERSISTENCE_VERIFIED","DEPLOYED_APP_COMPLETE","PRODUCTION_READY","BLOCKED_EXTERNAL","FAILED","REGRESSED","SUPERSEDED"],
   "goals": [
@@ -18,7 +18,7 @@
     {"id":"G12","name":"Scientific Autocycle","state":"IMPLEMENTED","success_criteria":["hypothesis to falsification loop","negative result preservation","independent numerical/scientific verification boundaries"]},
     {"id":"G13","name":"FToE and associated physics validation","state":"IMPLEMENTED","success_criteria":["versioned theory lineage","reproducible numerical tests","unresolved contradictions explicitly gated","empirical claims not promoted from software PASS"]},
     {"id":"G14","name":"Theory consistency and dependency engine","state":"IMPLEMENTED","success_criteria":["claim/equation dependency graph","contradiction detection","assumption propagation","reproducible parameter tests"]},
-    {"id":"G15","name":"Test-a-Theory product","state":"PROPOSED","success_criteria":["finished MVP accepts explicit model inputs","builds consistency/falsification tests","outputs reproducibility package","validated on held-out examples"]},
+    {"id":"G15","name":"Test-a-Theory product","state":"IMPLEMENTED","success_criteria":["finished MVP accepts explicit model inputs","builds consistency/falsification tests","outputs reproducibility package","validated on held-out examples"]},
     {"id":"G16","name":"OpenQuestRPG","state":"IMPLEMENTED","success_criteria":["licensed canonical rules baseline","character creator","rules validator","portable finished slice"]},
     {"id":"G17","name":"License/provenance-aware knowledge ingestion","state":"IMPLEMENTED","success_criteria":["source license and provenance gate","admission decisions recorded","unverifiable/unlicensed sources excluded from canonical state"]},
     {"id":"G18","name":"Creative canon engine","state":"PROPOSED","success_criteria":["typed canon objects","branchable variants","automatic contradiction detection","provenance-preserving edits"]},
