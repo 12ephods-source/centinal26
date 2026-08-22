@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -13,6 +14,7 @@ from openquest.validator import export_character
 
 API_SCHEMA = "openquest.http.v1"
 MAX_BODY_BYTES = 64 * 1024
+WEB_ROOT = Path(__file__).with_name("web")
 
 
 def dispatch(method: str, target: str, body: bytes = b"") -> tuple[int, dict[str, Any]]:
@@ -114,6 +116,9 @@ class OpenQuestHandler(BaseHTTPRequestHandler):
     server_version = "OpenQuestHTTP/1"
 
     def do_GET(self) -> None:
+        if urlparse(self.path).path in {"/", "/index.html"}:
+            self._respond_file(WEB_ROOT / "index.html", "text/html; charset=utf-8")
+            return
         self._respond(*dispatch("GET", self.path))
 
     def do_POST(self) -> None:
@@ -142,6 +147,19 @@ class OpenQuestHandler(BaseHTTPRequestHandler):
         data = (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
         self.send_response(int(status))
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _respond_file(self, path: Path, content_type: str) -> None:
+        try:
+            data = path.read_bytes()
+        except OSError:
+            self._respond(HTTPStatus.NOT_FOUND, _failure("UI_GATE", "Frontend asset unavailable"))
+            return
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
