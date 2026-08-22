@@ -1,0 +1,86 @@
+name: Frost Sentinel Independent Verifier
+
+on:
+  pull_request:
+    paths:
+      - 'tools/dfir/FROST_ANDROID_EVIDENCE_GUARDIAN_v3.1.sh'
+      - 'docs/validation/FROST_SENTINEL_VALIDATION_POLICY_v2.md'
+      - 'docs/validation/FROST_SENTINEL_INDEPENDENT_VERIFICATION_v1.md'
+      - 'scripts/frost_sentinel_evidence_verify.py'
+      - 'tests/test_frost_claim_scoped_validation.py'
+      - 'tests/test_frost_sentinel_independent_verify.py'
+      - '.github/workflows/frost-sentinel-independent-verifier.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/dfir/FROST_ANDROID_EVIDENCE_GUARDIAN_v3.1.sh'
+      - 'docs/validation/FROST_SENTINEL_VALIDATION_POLICY_v2.md'
+      - 'docs/validation/FROST_SENTINEL_INDEPENDENT_VERIFICATION_v1.md'
+      - 'scripts/frost_sentinel_evidence_verify.py'
+      - 'tests/test_frost_claim_scoped_validation.py'
+      - 'tests/test_frost_sentinel_independent_verify.py'
+      - '.github/workflows/frost-sentinel-independent-verifier.yml'
+
+jobs:
+  independent-verifier:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Run Sentinel verification regressions
+        run: python -m pytest -q tests/test_frost_claim_scoped_validation.py tests/test_frost_sentinel_independent_verify.py
+      - name: Build independent host verification artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE="$RUNNER_TEMP/frost-sentinel-evidence"
+          HOME_DIR="$RUNNER_TEMP/frost-sentinel-home"
+          mkdir -p "$HOME_DIR"
+          HOME="$HOME_DIR" \
+          FROST_EVIDENCE_HOME="$EVIDENCE" \
+          CASE_ID="CI-SENTINEL-QUALIFICATION" \
+          OPERATOR="GITHUB_ACTIONS" \
+            bash tools/dfir/FROST_ANDROID_EVIDENCE_GUARDIAN_v3.1.sh collect
+          python scripts/frost_sentinel_evidence_verify.py \
+            --base "$EVIDENCE" \
+            --require-runs 1 \
+            --output frost_sentinel_independent_verification.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('frost_sentinel_independent_verification.json')
+          data = json.loads(p.read_text())
+          assert data['pass'] is True
+          assert data['independent_integrity_corroboration'] is True
+          assert data['device_origin_independently_corroborated'] is False
+          assert data['forensic_attribution_established'] is False
+          PY
+      - name: Capture exact-head provenance
+        shell: bash
+        run: |
+          python --version > frost_sentinel_verifier_environment.txt
+          git rev-parse HEAD >> frost_sentinel_verifier_environment.txt
+          sha256sum \
+            tools/dfir/FROST_ANDROID_EVIDENCE_GUARDIAN_v3.1.sh \
+            scripts/frost_sentinel_evidence_verify.py \
+            tests/test_frost_claim_scoped_validation.py \
+            tests/test_frost_sentinel_independent_verify.py \
+            frost_sentinel_independent_verification.json \
+            frost_sentinel_verifier_environment.txt \
+            > frost_sentinel_independent_verifier_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frost-sentinel-independent-verifier-${{ matrix.python-version }}
+          path: |
+            frost_sentinel_independent_verification.json
+            frost_sentinel_verifier_environment.txt
+            frost_sentinel_independent_verifier_sha256.txt
