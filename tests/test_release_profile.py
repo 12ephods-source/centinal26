@@ -1,11 +1,13 @@
 import importlib.util
 import pathlib
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location(
     "release_profile", ROOT / "automation/persistent/release_profile.py"
 )
 rp = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = rp
 spec.loader.exec_module(rp)
 
 software_only = {key: True for key in rp.SOFTWARE_REQUIRED}
