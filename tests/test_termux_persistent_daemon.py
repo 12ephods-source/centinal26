@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import ast
 import json
 from pathlib import Path
@@ -16,9 +17,9 @@ def test_python_sources_parse():
 
 
 def test_manifest_preserves_physical_truth_boundary():
-    m = json.loads(MANIFEST.read_text())
-    assert m["controller_relationship"] == "capability_of_existing_autopilot_not_competing_controller"
-    rules = m["promotion_rules"]
+    manifest = json.loads(MANIFEST.read_text())
+    assert manifest["controller_relationship"] == "capability_of_existing_autopilot_not_competing_controller"
+    rules = manifest["promotion_rules"]
     assert rules["github_ci_is_not_device_execution"] is True
     assert rules["host_or_simulation_is_not_device_execution"] is True
     assert rules["llm_statement_is_not_device_execution"] is True
@@ -38,9 +39,9 @@ def test_no_arbitrary_shell_execution_path():
     tree = ast.parse(DAEMON.read_text())
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in {"run", "Popen"}:
-            for kw in node.keywords:
-                if kw.arg == "shell" and isinstance(kw.value, ast.Constant):
-                    assert kw.value.value is not True
+            for keyword in node.keywords:
+                if keyword.arg == "shell" and isinstance(keyword.value, ast.Constant):
+                    assert keyword.value.value is not True
     assert "eval(" not in DAEMON.read_text()
     assert "exec(" not in DAEMON.read_text()
 
