@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import pathlib
@@ -8,7 +9,7 @@ import time
 import uuid
 from dataclasses import dataclass
 
-SCHEMA = 3
+SCHEMA = 4
 QUALIFIED = (
     "repo_sync",
     "repo_clean",
@@ -20,7 +21,19 @@ QUALIFIED = (
     "device_audit_ok",
     "state_integrity_ok",
     "recovery_ok",
+    "security_policy_ok",
 )
+
+
+def _load_security():
+    path = pathlib.Path(__file__).with_name("security.py")
+    spec = importlib.util.spec_from_file_location("persistent_security", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+SECURITY = _load_security()
 
 
 def now():
@@ -70,6 +83,7 @@ class Kernel:
                 "checks": {key: False for key in QUALIFIED},
                 "metrics": {"cycles": 0, "recoveries": 0, "demotions": 0},
                 "last_event_hash": None,
+                "security": {"allowed": False, "reasons": ["not_evaluated"]},
             }
         obj = json.loads(self.state.read_text())
         if obj.get("schema") != SCHEMA:
@@ -98,9 +112,19 @@ class Kernel:
             os.fsync(handle.fileno())
         return body["event_hash"]
 
-    def commit(self, release, checks, detail="", worker="kernel", inputs=None):
+    def commit(
+        self,
+        release,
+        checks,
+        detail="",
+        worker="kernel",
+        inputs=None,
+        security_context=None,
+    ):
         old = self.load()
+        security = SECURITY.SecurityPolicy().evaluate(security_context or {})
         normalized = {key: bool(checks.get(key, False)) for key in QUALIFIED}
+        normalized["security_policy_ok"] = security.allowed
         goal = all(normalized.values())
         old_goal = old.get("status") == "PROJECT_GOAL_REACHED"
         metrics = dict(old.get("metrics", {}))
@@ -112,6 +136,12 @@ class Kernel:
         status = "PROJECT_GOAL_REACHED" if goal else (
             "DEMOTED" if old_goal else "UNQUALIFIED"
         )
+        security_record = {
+            "allowed": security.allowed,
+            "checks": security.checks,
+            "reasons": list(security.reasons),
+            "context_hash": security.context_hash,
+        }
         event_hash = self.append_event(
             {
                 "type": "qualification",
@@ -119,6 +149,7 @@ class Kernel:
                 "worker": worker,
                 "inputs": inputs or {},
                 "checks": normalized,
+                "security": security_record,
                 "status": status,
                 "detail": detail,
             }
@@ -131,6 +162,7 @@ class Kernel:
             "generation": int(old.get("generation", 0)) + 1,
             "updated_at_utc": now(),
             "checks": normalized,
+            "security": security_record,
             "metrics": metrics,
             "last_event_hash": event_hash,
         }
@@ -178,13 +210,15 @@ class Kernel:
             problems.append("goal_logic")
         if obj.get("goal_reached") != self.marker.exists():
             problems.append("goal_marker")
+        if obj.get("checks", {}).get("security_policy_ok") != obj.get("security", {}).get("allowed"):
+            problems.append("security_logic")
         return problems
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--state", default=os.path.expanduser("~/.frost_persistent_v3")
+        "--state", default=os.path.expanduser("~/.frost_persistent_v4")
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
     commit_parser = sub.add_parser("commit")
@@ -193,6 +227,7 @@ def main():
     commit_parser.add_argument("--detail", default="")
     commit_parser.add_argument("--worker", default="kernel")
     commit_parser.add_argument("--inputs-json", default="{}")
+    commit_parser.add_argument("--security-context-json", default="{}")
     sub.add_parser("verify")
     sub.add_parser("status")
     args = parser.parse_args()
@@ -206,6 +241,7 @@ def main():
                     args.detail,
                     args.worker,
                     json.loads(args.inputs_json),
+                    json.loads(args.security_context_json),
                 ),
                 sort_keys=True,
             )
