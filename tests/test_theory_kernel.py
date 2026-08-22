@@ -8,7 +8,7 @@ from centinal26.physics.local_eft4d import (
     make_scalar_candidate,
 )
 from centinal26.physics.theory_kernel import CandidateStatus, PropositionEvidence, TestStatus
-from centinal26.physics.theory_testing import PhysicsTheoryTestingEngine, SCOPE
+from centinal26.physics.theory_testing import SCOPE, PhysicsTheoryTestingEngine
 
 
 def kinetic(sign: int = -1) -> ScalarTerm:
