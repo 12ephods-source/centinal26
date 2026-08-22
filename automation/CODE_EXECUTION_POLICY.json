@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "name": "centinal26-code-execution-policy",
+  "trigger": ["program_created_by_chatgpt", "program_edited_by_chatgpt", "program_pasted_for_execution"],
+  "owner_class": "USER_EVIDENCE",
+  "default_execution_plane": "android_termux_device",
+  "tool": "~/.centinal26/bin/code-gate",
+  "sequence": [
+    "capture_source_and_hash",
+    "classify_language",
+    "safety_qualification",
+    "syntax_and_static_tests",
+    "project_tests_if_present",
+    "bounded_deterministic_improvement",
+    "retest_until_pass_or_plateau",
+    "execute_qualified_program",
+    "verify_result",
+    "record_evidence_and_report",
+    "update_canonical_state"
+  ],
+  "optimization_domains": ["system_automation", "security", "physics", "faithful_user_request_completion"],
+  "improvement_policy": {
+    "max_passes": 5,
+    "stop_on_full_pass": true,
+    "stop_on_plateau": true,
+    "never_claim_unbounded_maximality": true,
+    "continue_independent_work_on_blocker": true
+  },
+  "execution_policy": {
+    "explicit_termux_shell_or_daemon_invocation": true,
+    "clipboard_autoexecution": false,
+    "integrity_hash_required": true,
+    "run_after_qualification": true,
+    "minimum_stoppage": true,
+    "bounded_timeout_seconds": 900
+  },
+  "evidence": {
+    "automatic": true,
+    "required": ["task_id", "source_sha256", "qualified_sha256", "tests", "execution", "verification", "origin_class", "owner_class"]
+  }
+}
