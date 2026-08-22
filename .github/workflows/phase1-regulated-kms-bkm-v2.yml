@@ -36,12 +36,18 @@ jobs:
         run: >-
           ruff check
           candidates/phase1-regulated-kms-bkm-v2/harness.py
+          candidates/phase1-regulated-kms-bkm-v2/independent_bkm_oracle.py
           candidates/phase1-regulated-kms-bkm-v2/test_harness.py
+          candidates/phase1-regulated-kms-bkm-v2/test_independent_bkm_oracle.py
       - name: Run strict falsification gates
         run: >-
           python candidates/phase1-regulated-kms-bkm-v2/harness.py
           --strict
           --output phase1-regulated-kms-bkm-${{ matrix.python-version }}.json
+      - name: Run independent BKM oracle
+        run: >-
+          python candidates/phase1-regulated-kms-bkm-v2/independent_bkm_oracle.py
+          > phase1-independent-bkm-oracle-${{ matrix.python-version }}.json
       - name: Run regression tests
         run: >-
           python -m unittest discover
@@ -51,5 +57,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: phase1-regulated-kms-bkm-${{ matrix.python-version }}
-          path: phase1-regulated-kms-bkm-${{ matrix.python-version }}.json
+          path: |
+            phase1-regulated-kms-bkm-${{ matrix.python-version }}.json
+            phase1-independent-bkm-oracle-${{ matrix.python-version }}.json
           if-no-files-found: error
