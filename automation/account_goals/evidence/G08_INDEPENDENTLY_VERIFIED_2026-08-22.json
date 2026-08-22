@@ -1,0 +1,48 @@
+{
+  "schema": "frost-account-goal-evidence/v1",
+  "goal_id": "G08",
+  "goal_name": "Universal canonical object store and semantic dedupe",
+  "previous_state": "IMPLEMENTED",
+  "promoted_state": "INDEPENDENTLY_VERIFIED",
+  "evidence_scope": "software semantics only",
+  "criteria": {
+    "typed immutable objects": {
+      "status": "PASS",
+      "implementation_merge": "92267b46e2a973786b7fc40202638715e2acb5ee",
+      "source": "append-only canonical SQLite store plus canonical kernel"
+    },
+    "semantic dedupe without automatic deletion": {
+      "status": "PASS",
+      "implementation_merge": "e50b4e156d140d3a3edee802a45ee590d675ee3f",
+      "rule": "explicit structured subject_ids + predicate + object_value equality",
+      "mutation_authority": "NONE"
+    },
+    "contradiction preservation": {
+      "status": "PASS",
+      "implementation_merge": "e50b4e156d140d3a3edee802a45ee590d675ee3f",
+      "rule": "EXCLUSIVE_VALUE disagreement remains UNRESOLVED with winner_id=null"
+    },
+    "rebuildable projections": {
+      "status": "PASS",
+      "implementation_merge": "92267b46e2a973786b7fc40202638715e2acb5ee",
+      "authority": "non-authoritative projection constrained to authoritative=0"
+    }
+  },
+  "independent_verification": {
+    "verifier_merge": "5333d687184c653715b6c2bef03f249e04d6776e",
+    "qualified_head": "4c86d40a9c35f4195606dc22693e8be85490a606",
+    "workflow": "Dedupe G08 Independent Verifier",
+    "artifact_name": "g08-independent-verification",
+    "artifact_digest": "sha256:eb6bde0d98b5b3362a5255bdf57a2e5e52fa48888167997e6287e312b8e5b318",
+    "artifact_verdict": "VERIFIED",
+    "black_box": true,
+    "implementation_modules_imported_by_verifier": false
+  },
+  "limits": [
+    "does not establish semantic truth of stored claims",
+    "does not establish forensic attribution",
+    "does not establish scientific validity",
+    "does not establish physical Android execution",
+    "does not authorize deletion, quarantine, remediation, or winner selection"
+  ]
+}
