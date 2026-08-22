@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Finite-Type-I Connes cocycle consistency harness.
 
@@ -129,7 +128,9 @@ class SpectralState:
         rho = self.density()
         naive = np.linalg.eigvalsh(0.5 * (rho + rho.conj().T))
         min_log = float(np.min(self.log_weights))
-        min_weight = float(math.exp(min_log)) if min_log > math.log(sys.float_info.min) else 0.0
+        min_weight = (
+            float(math.exp(min_log)) if min_log > math.log(sys.float_info.min) else 0.0
+        )
         return {
             "label": self.label,
             "dimension": self.dimension,
@@ -212,7 +213,9 @@ def state_transport_residual(
 
 
 def generator_residual(phi: SpectralState, psi: SpectralState, h: float = 1e-6) -> float:
-    numerical = (connes_cocycle(phi, psi, h) - connes_cocycle(phi, psi, -h)) / (2.0 * h)
+    numerical = (
+        connes_cocycle(phi, psi, h) - connes_cocycle(phi, psi, -h)
+    ) / (2.0 * h)
     analytic = 1j * (phi.log_matrix() - psi.log_matrix())
     return relative_fro_residual(numerical, analytic)
 
