@@ -1,0 +1,47 @@
+name: FToE Protected-I SO6 EW Embedding Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_so6_second_doublet_ew_embedding_v15.json'
+      - 'scripts/ftoe_so10_protected_i_so6_ew_embedding_gate.py'
+      - 'tests/test_ftoe_so10_protected_i_so6_ew_embedding_gate.py'
+      - '.github/workflows/ftoe-protected-i-so6-ew-embedding.yml'
+
+jobs:
+  ew-embedding-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout literal pull-request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert exact head
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Record environment
+        run: |
+          mkdir -p evidence/ftoe-protected-i-so6-ew-v15
+          python --version | tee evidence/ftoe-protected-i-so6-ew-v15/python.txt
+          git --version | tee evidence/ftoe-protected-i-so6-ew-v15/git.txt
+          git rev-parse HEAD | tee evidence/ftoe-protected-i-so6-ew-v15/head_sha.txt
+      - name: Run deterministic gate
+        run: |
+          python scripts/ftoe_so10_protected_i_so6_ew_embedding_gate.py | tee evidence/ftoe-protected-i-so6-ew-v15/result.json
+      - name: Run focused tests
+        run: |
+          python -m pytest -q tests/test_ftoe_so10_protected_i_so6_ew_embedding_gate.py | tee evidence/ftoe-protected-i-so6-ew-v15/pytest.txt
+      - name: Hash evidence
+        run: |
+          (cd evidence/ftoe-protected-i-so6-ew-v15 && sha256sum * > SHA256SUMS.txt)
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-so6-ew-embedding-evidence
+          path: evidence/ftoe-protected-i-so6-ew-v15
+          if-no-files-found: error
