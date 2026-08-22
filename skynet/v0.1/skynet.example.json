@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "allowed_tasks": ["health", "project_update", "snapshot", "verify"],
+  "policy": {
+    "arbitrary_shell": false,
+    "self_modification": false,
+    "network_attack": false,
+    "credential_export": false,
+    "evidence_mutation": false
+  }
+}
