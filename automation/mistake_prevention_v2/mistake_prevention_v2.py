@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+
 def b(v): return v is True
 
 def eval_guard(t,c):
