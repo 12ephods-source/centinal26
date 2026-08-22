@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import unittest
 
 import toe_engine
@@ -42,8 +41,12 @@ class CandidateToEEngineTests(unittest.TestCase):
                 self.assertFalse(index[sector][component_id].get("hard_fail", False))
 
     def test_generation_is_deterministic(self):
-        first = [candidate["candidate_id"] for candidate in toe_engine.enumerate_candidates()]
-        second = [candidate["candidate_id"] for candidate in toe_engine.enumerate_candidates()]
+        first = [
+            candidate["candidate_id"] for candidate in toe_engine.enumerate_candidates()
+        ]
+        second = [
+            candidate["candidate_id"] for candidate in toe_engine.enumerate_candidates()
+        ]
         self.assertEqual(first, second)
 
 
