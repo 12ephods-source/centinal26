@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -29,6 +30,7 @@ def eval_guard(t,c):
     elif t=='external_mutation_auth' and b(c.get('external_mutation')) and not (b(c.get('explicit_action_verb')) and b(c.get('explicit_target')) and b(c.get('current_authorization'))): r.append('external mutation lacks explicit authorization')
     elif t=='reproducible_build' and b(c.get('reproducible_claim')) and (b(c.get('wall_clock_in_identity')) or not b(c.get('stable_input_derived_identity'))): r.append('nondeterministic build identity')
     return {'result':'BLOCK' if r else 'PASS','reasons':r}
+
 
 if __name__ == '__main__':
     import argparse
