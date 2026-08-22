@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "gate": "SO6_PORTAL_SCALE_RELEVANCE_V19",
+  "parent_head": "dea80dc007e3099fa01ac83ac454e52a45120433",
+  "predecessor_disposition": "KILLED_FOR_PROTECTED_I_ADMISSION",
+  "question": "Does existence of the electroweak two-doublet mixed quartic lambda3*(H^dagger H)*(I^dagger I), by itself, establish violation of the previously frozen GUT-scale protected-I naturalness bound?",
+  "frozen_inputs": {
+    "mu_I_GeV": 9540.0,
+    "v_SM_GeV": 246.22,
+    "portal_convention": "delta_mu_I_sq = lambda3 * v_SM^2 / 2",
+    "reference_lambda3": 1.0,
+    "perturbative_reference_lambda3": 12.566370614359172
+  },
+  "frozen_checks": {
+    "source_field_is_electroweak_doublet_not_GUT_order_parameter": true,
+    "lambda3_one_shift_fraction_lt_1e_minus_2": true,
+    "lambda3_4pi_shift_fraction_lt_1e_minus_2": true,
+    "lambda3_required_for_muI_shift_gt_100": true,
+    "presence_alone_does_not_prove_GUT_scale_naturalness_failure": true,
+    "predecessor_preserved": true,
+    "candidate_not_rehabilitated_without_composite_scale_radiative_analysis": true
+  },
+  "expected_transition": "PREDECESSOR_KILL_PREMISE_INSUFFICIENT_AS_STATED__CANDIDATE_RETURNS_TO_REVIEW_PENDING_SCALE_AND_RADIATIVE_ANALYSIS",
+  "scope_boundary": [
+    "Does not alter the predecessor scientific FAIL record.",
+    "Does not set or fit lambda3.",
+    "Does not establish radiative stability of the composite model.",
+    "Does not establish absence of GUT-scale portals to 210_H, 45_H, 126_H, or 10_C,H.",
+    "Does not establish SO(10) embedding, mu_I derivation, precision viability, or publication readiness."
+  ],
+  "sources": [
+    "arXiv:1610.02687 / EPJC 77 (2017) 513: SO(6)->SO(4)xSO(2) composite 2HDM low-energy scalar potential",
+    "parent FToE ledger: GUT-scale naturalness bound applies to norm portals involving heavy symmetry-breaking scales"
+  ]
+}
