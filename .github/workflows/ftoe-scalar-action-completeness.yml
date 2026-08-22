@@ -1,0 +1,58 @@
+name: FToE Scalar Action Completeness Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/FTOE_COMPLETE_SCALAR_ACTION_COVERAGE_2026-08-22.json'
+      - 'physics/ftoe/THEORY_CLOSURE_LEDGER_v1.json'
+      - 'scripts/ftoe_scalar_action_completeness.py'
+      - 'tests/test_ftoe_scalar_action_completeness.py'
+      - '.github/workflows/ftoe-scalar-action-completeness.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'physics/ftoe/FTOE_COMPLETE_SCALAR_ACTION_COVERAGE_2026-08-22.json'
+      - 'physics/ftoe/THEORY_CLOSURE_LEDGER_v1.json'
+      - 'scripts/ftoe_scalar_action_completeness.py'
+      - 'tests/test_ftoe_scalar_action_completeness.py'
+      - '.github/workflows/ftoe-scalar-action-completeness.yml'
+
+jobs:
+  completeness:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Evaluate scalar-action completeness
+        run: python scripts/ftoe_scalar_action_completeness.py --output ftoe_scalar_action_completeness.json
+      - name: Run fail-closed regression tests
+        run: python -m pytest -q tests/test_ftoe_scalar_action_completeness.py
+      - name: Capture provenance
+        shell: bash
+        run: |
+          python --version > ftoe_scalar_action_environment.txt
+          git rev-parse HEAD >> ftoe_scalar_action_environment.txt
+          sha256sum \
+            physics/ftoe/FTOE_COMPLETE_SCALAR_ACTION_COVERAGE_2026-08-22.json \
+            physics/ftoe/THEORY_CLOSURE_LEDGER_v1.json \
+            scripts/ftoe_scalar_action_completeness.py \
+            tests/test_ftoe_scalar_action_completeness.py \
+            ftoe_scalar_action_completeness.json \
+            ftoe_scalar_action_environment.txt \
+            > ftoe_scalar_action_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-scalar-action-completeness-${{ matrix.python-version }}
+          path: |
+            ftoe_scalar_action_completeness.json
+            ftoe_scalar_action_environment.txt
+            ftoe_scalar_action_sha256.txt
