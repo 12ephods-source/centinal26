@@ -1,6 +1,6 @@
 {
   "schema": "frost-account-goals/v1",
-  "updated_at": "2026-08-22T20:25:15Z",
+  "updated_at": "2026-08-22T21:08:00Z",
   "terminal_success_rule": "Every goal must reach the strongest legitimate verified terminal state supported by its evidence; external physical/provider/authorization dependencies remain BLOCKED_EXTERNAL without blocking independent goals.",
   "states": ["PROPOSED","IMPLEMENTED","TESTED","CI_VERIFIED","INDEPENDENTLY_VERIFIED","SOFTWARE_RELEASE_COMPLETE","DEVICE_TESTED","PERSISTENCE_VERIFIED","DEPLOYED_APP_COMPLETE","PRODUCTION_READY","BLOCKED_EXTERNAL","FAILED","REGRESSED","SUPERSEDED"],
   "goals": [
@@ -32,7 +32,7 @@
     {"id":"G26","name":"Policy-as-code authorization","state":"INDEPENDENTLY_VERIFIED","success_criteria":["observation and mutation trust domains separated","destructive actions require explicit bounded authority","audit and reversibility preserved"]},
     {"id":"G27","name":"Automatic value prioritization","state":"IMPLEMENTED","success_criteria":["rank by value/risk/dependency/information/labor reduction","activity is not treated as value","blocked work does not starve independent work"]},
     {"id":"G28","name":"Real economic-value and productization engine","state":"IMPLEMENTED","success_criteria":["candidate products ranked by measurable value","finished MVP and validation gate per candidate","realized revenue only from transaction evidence"]},
-    {"id":"G29","name":"Human-labor elimination metric","state":"CI_VERIFIED","success_criteria":["manual prompts/actions eliminated are measured","recurring decisions/failures automated","human intervention trend decreases"]},
+    {"id":"G29","name":"Human-labor elimination metric","state":"REGRESSED","success_criteria":["manual prompts/actions eliminated are measured","recurring decisions/failures automated","human intervention trend decreases"]},
     {"id":"G30","name":"Self-improving project factory","state":"IMPLEMENTED","success_criteria":["idea to requirements to build/test/verify/deploy loop","successful patterns feed common platform","domain modules share substrate without losing evidence boundaries"]}
   ]
 }
