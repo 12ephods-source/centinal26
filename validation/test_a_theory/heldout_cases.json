@@ -1,0 +1,64 @@
+{
+  "schema": "test-a-theory/host-heldout-v1",
+  "frozen_before_candidate_qualification": true,
+  "boundary": "Repository fixtures are held out from unit-test construction only; they are not external scientific evidence.",
+  "cases": [
+    {
+      "case_id": "heldout-consistent",
+      "expected_verdict": "PASS_DECLARED_GATES",
+      "model": {
+        "schema": "test-a-theory/model-v1",
+        "model_id": "heldout-consistent",
+        "provenance_refs": ["host-heldout:consistent"],
+        "symbol_dimensions": {
+          "force": [1, 1, -2],
+          "mass": [1, 0, 0],
+          "acceleration": [0, 1, -2]
+        },
+        "equations": [
+          {
+            "equation_id": "force-law-dimensions",
+            "left": {"force": 1},
+            "right": {"mass": 1, "acceleration": 1}
+          }
+        ],
+        "predictions": [
+          {
+            "prediction_id": "bounded-toy-measurement",
+            "predicted": 4.0,
+            "observed": 4.04,
+            "absolute_tolerance": 0.05
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "heldout-falsified",
+      "expected_verdict": "FAIL_DECLARED_GATES",
+      "model": {
+        "schema": "test-a-theory/model-v1",
+        "model_id": "heldout-falsified",
+        "provenance_refs": ["host-heldout:falsified"],
+        "symbol_dimensions": {
+          "length": [0, 1, 0],
+          "time": [0, 0, 1]
+        },
+        "equations": [
+          {
+            "equation_id": "intentional-dimension-mismatch",
+            "left": {"length": 1},
+            "right": {"time": 1}
+          }
+        ],
+        "predictions": [
+          {
+            "prediction_id": "intentional-out-of-tolerance",
+            "predicted": 1.0,
+            "observed": 2.0,
+            "absolute_tolerance": 0.1
+          }
+        ]
+      }
+    }
+  ]
+}
