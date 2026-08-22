@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "canonical_control_plane": "12ephods-source/centinal26",
+  "projects": [
+    {
+      "id": "automation",
+      "role": "control_plane",
+      "trust_domain": "mutation_and_orchestration",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": []
+    },
+    {
+      "id": "cybersecurity",
+      "role": "evidence_and_defense",
+      "trust_domain": "observe_verify_evidence",
+      "state_authority": "federated",
+      "depends_on": ["automation"]
+    },
+    {
+      "id": "physics",
+      "role": "research_and_validation",
+      "trust_domain": "analysis_and_empirical_validation",
+      "state_authority": "federated",
+      "depends_on": ["automation"]
+    },
+    {
+      "id": "openquestrpg",
+      "role": "application_project",
+      "trust_domain": "bounded_product_execution",
+      "state_authority": "federated",
+      "depends_on": ["automation"]
+    },
+    {
+      "id": "dedupe_organizer",
+      "role": "shared_capability",
+      "trust_domain": "canonicalization_and_provenance",
+      "state_authority": "github:12ephods-source/centinal26",
+      "depends_on": ["automation"]
+    }
+  ],
+  "shared_invariants": [
+    "no_information_bearing_transformation_without_provenance",
+    "detection_and_mutation_are_separate_trust_domains",
+    "host_evidence_never_substitutes_for_physical_device_evidence",
+    "signatures_and_hashes_attest_integrity_not_semantic_truth",
+    "projections_are_rebuildable_not_authoritative",
+    "completion_claims_are_release_scoped_and_requalifiable"
+  ]
+}
