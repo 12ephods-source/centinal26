@@ -1,1 +1,0 @@
-SKY NET repair note: the core update is being reapplied after GitHub correctly rejected a stale blob SHA. This marker exists only to preserve provenance of the failed write attempt; the final status is determined by the subsequent verified core commit and CI, not by this note.
