@@ -75,7 +75,7 @@ def validate_meta(value: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("goal must be non-empty and success must be an object")
     exit_code = success.get("exit_code", 0)
     if not isinstance(exit_code, int):
-        raise ValueError("success.exit_code must be an integer")
+        raise TypeError("success.exit_code must be an integer")
     for key in ("required_text", "forbidden_text"):
         items = success.get(key, [])
         if not isinstance(items, list) or any(not isinstance(x, str) for x in items):
@@ -192,9 +192,9 @@ def inspect_candidate(path: Path, language: str) -> GuardianReport:
     else:
         findings.append(GuardianFinding("language", "REJECT", "unsupported language"))
     for pattern, name in DANGEROUS:
-        if re.search(pattern, text, re.I): findings.append(GuardianFinding("dangerous_effect", "REJECT", name))
+        if re.search(pattern, text, re.IGNORECASE): findings.append(GuardianFinding("dangerous_effect", "REJECT", name))
     for pattern, name in VIBEWARE:
-        if re.search(pattern, text, re.I): findings.append(GuardianFinding("vibeware", "REVIEW", name))
+        if re.search(pattern, text, re.IGNORECASE): findings.append(GuardianFinding("vibeware", "REVIEW", name))
     verdict = "REJECT" if any(x.severity == "REJECT" for x in findings) else "REVIEW" if findings else "PASS"
     return GuardianReport(verdict, tuple(findings), sha256_file(path), language)
 
