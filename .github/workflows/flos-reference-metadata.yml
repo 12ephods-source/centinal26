@@ -1,0 +1,59 @@
+name: Frost Learning OS reference metadata
+
+on:
+  pull_request:
+    paths:
+      - 'external/frost-learning-os/**'
+      - '.github/workflows/flos-reference-metadata.yml'
+  push:
+    branches:
+      - 'agent/frost-learning-os-reference-v1.4'
+    paths:
+      - 'external/frost-learning-os/**'
+      - '.github/workflows/flos-reference-metadata.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-reference-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate boundary and manifest
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          root = Path('external/frost-learning-os')
+          boundary = json.loads((root / 'GITHUB_BOUNDARY.json').read_text())
+          manifest = json.loads((root / 'REFERENCE_MANIFEST.json').read_text())
+
+          assert boundary['project'] == 'Frost Learning OS'
+          assert boundary['automation_runtime_owner'] is False
+          assert boundary['canonical_automation_product'] == 'Wazoo26'
+          assert 'DO_NOT_MERGE_INTO_AUTOMATION_RUNTIME' in boundary['merge_policy']
+          assert manifest['snapshot'] == 'v1.4'
+          assert manifest['frozen'] is True
+          assert manifest['next_revision'] == 'NOT_AUTHORIZED_WITHOUT_NEW_EMPIRICAL_EVIDENCE'
+
+          sha = re.compile(r'^[0-9a-f]{64}$')
+          for name, item in manifest['artifacts'].items():
+              assert sha.fullmatch(item['sha256']), (name, item['sha256'])
+
+          gates = manifest['frozen_host_gates']
+          assert gates == {
+              'product_truth': '20/20 PASS',
+              'trajectory_safety': '18/18 PASS',
+              'efficiency_recovery': '12/12 PASS',
+              'delayed_retention': '12/12 PASS',
+          }
+
+          limits = manifest['epistemic_boundaries']
+          assert limits['android_device_validation'] == 'NOT_ESTABLISHED'
+          assert limits['classroom_learning_gain'] == 'NOT_ESTABLISHED'
+          assert limits['14_day_policy_empirical_optimality'] == 'NOT_ESTABLISHED'
+          assert limits['real_retention_observations'] == 'PENDING'
+          print('Frost Learning OS reference boundary: PASS')
+          PY
