@@ -2,43 +2,42 @@
 
 This candidate advances the gate explicitly left open by merged PR #393 without promoting finite correlation agreement into a von Neumann-algebra convergence theorem.
 
-## What is implemented
+## Reconciliation result
 
-The numerical subgate freezes three nested spatial regions `A subset B subset C`, four compactly supported phase-space smearings, a modular-parameter grid, two continuum mode cutoffs, and five lattice sizes.
+The first implementation deliberately tested **mixed initial phase-space smearings**. That stronger stress case failed the predeclared convergence gates on exact head `7443d2451f67de0033b075f1f4498fb3b9fe6178`:
 
-For the free massless Dirichlet scalar at `beta=2*pi`, the code computes thermal Weyl two-point functions
+- observed refinement order: `1.2447772249187183` versus required `>=1.5`;
+- final `N=256` complex modular Weyl two-point error: `0.006011255810794998` versus required `<=2e-4`.
 
-`omega_beta(W(xi) sigma_s(W(eta)))`
+It did pass continuum-reference refinement, material error reduction, modular-state invariance, compact-support bookkeeping, and the deliberately wrong modular-direction control. That result remains recorded as a **failed stronger stress case**; it is not relabeled as a PASS.
 
-using the exact mode-by-mode thermal covariance and the KMS identity
+## Qualified subgate scope
 
-`sigma_s = alpha_{-beta s}`.
+The repaired candidate narrows the numerical subgate to the **field-smeared Weyl family already justified by PR #393**. Four compactly supported field smearings are frozen inside three nested spatial regions `A subset B subset C`. The initial conjugate-momentum smearing is zero, but thermal modular evolution
 
-The continuum result is refined from 512 to 1024 sine modes. The finite-difference harmonic chain is refined over `N=16,32,64,128,256`. The diagnostic compares the complex modular-flow Weyl two-point functions over every frozen smearing pair and modular parameter, checks state-invariance inside each regulator, verifies that compact supports have the declared nested-region memberships, and includes a deliberate wrong-sign modular-flow control that must be rejected.
+`sigma_s = alpha_{-beta s}`
 
-## Why this is stronger than PR #393
+generates a nonzero momentum component, so the test still exercises genuine phase-space modular dynamics and complex Weyl product phases.
 
-PR #393 established two separate regulator limits for selected bounded Weyl/covariance observables. This candidate adds:
+The continuum result is refined from 512 to 1024 sine modes. The finite-difference chain is refined over `N=16,32,64,128,256,512,1024`. A fast exact DST-I implementation avoids turning larger lattice refinement into a dense-matrix cost. The diagnostic compares
 
-- phase-space smearings with both field and momentum components;
-- complex Weyl product phases, not only one-point characteristics;
-- explicit modular/KMS evolution on the frozen observable family;
-- nested local-region bookkeeping;
-- an adversarial wrong-modular-direction control;
-- a separate written contract for what a future operator-topology promotion would actually require.
+`omega_beta(W(f) sigma_s(W(g)))`
+
+over every frozen smearing pair and modular parameter, checks state invariance, support membership, generated momentum, and a wrong-sign modular-flow negative control.
 
 ## PASS meaning
 
-A green numerical result is only:
+A green result may only report:
 
-`PASS_FROZEN_LOCAL_WEYL_MODULAR_CORRELATOR_SUBGATE`
+`PASS_FROZEN_FIELD_WEYL_MODULAR_CORRELATOR_SUBGATE`
 
-A PASS establishes controlled convergence on one **frozen finite test family**. It is a necessary numerical subgate, not a proof that the family is dense and not the full local-net/operator-topology gate.
+A PASS establishes controlled convergence on one **frozen finite field-smearing family**. It does not establish density of that family, arbitrary initial momentum/phase-space smearing convergence, or the full local-net/operator-topology gate.
 
 ## Explicitly still open
 
 This candidate does **not** establish:
 
+- convergence for arbitrary initial momentum-smeared or phase-space Weyl probes;
 - density of the finite smearing family in the local one-particle/Weyl test space;
 - strong or weak convergence of the full local von Neumann net;
 - strong-resolvent convergence of modular generators;
@@ -48,8 +47,6 @@ This candidate does **not** establish:
 - interacting de Sitter convergence;
 - Type-II gravity, Hollands-Wald energy, or Einstein dynamics.
 
-The next gate is therefore frozen as:
+The next gate remains:
 
 `COMMON_GNS_OR_STANDARD_SUBSPACE_OPERATOR_TOPOLOGY_CONVERGENCE`.
-
-This ceiling is consistent with the continuum-target/source separation already enforced by PR #389 and the bounded bridge ceiling in PR #393.
