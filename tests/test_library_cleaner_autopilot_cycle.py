@@ -18,22 +18,53 @@ def load_module():
     return module
 
 
-def test_static_scan_detects_high_risk_patterns(tmp_path: Path) -> None:
+def test_shell_scan_detects_high_risk_patterns(tmp_path: Path) -> None:
     module = load_module()
     bad = tmp_path / "bad.sh"
     bad.write_text("#!/bin/sh\nrm -rf /\n", encoding="utf-8")
-    findings = module.scan_path(bad)
+    findings = module.scan_shell(bad)
     assert any(item["rule"] == "destructive_root_delete" for item in findings)
 
 
-def test_static_scan_accepts_bounded_subprocess_usage(tmp_path: Path) -> None:
+def test_python_scan_accepts_bounded_subprocess_usage(tmp_path: Path) -> None:
     module = load_module()
     good = tmp_path / "good.py"
     good.write_text(
         "import subprocess\nsubprocess.run(['adb', 'get-state'], check=False)\n",
         encoding="utf-8",
     )
-    assert module.scan_path(good) == []
+    assert module.scan_python(good) == []
+
+
+def test_python_scan_rejects_shell_true(tmp_path: Path) -> None:
+    module = load_module()
+    bad = tmp_path / "bad.py"
+    bad.write_text(
+        "import subprocess\nsubprocess.run('echo x', shell=True)\n",
+        encoding="utf-8",
+    )
+    findings = module.scan_python(bad)
+    assert any(item["rule"] == "SUBPROCESS_SHELL_TRUE" for item in findings)
+
+
+def test_scanner_does_not_self_match_rule_literals(tmp_path: Path) -> None:
+    module = load_module()
+    scanner = tmp_path / "scanner.py"
+    scanner.write_text(
+        "import re\nRULE = re.compile(r'/dev/tcp/|\\bnc\\s+[^\\n]*\\s-e\\s')\n",
+        encoding="utf-8",
+    )
+    assert module.scan_python(scanner) == []
+
+
+def test_adb_probe_normalizes_os_execution_errors(monkeypatch) -> None:
+    module = load_module()
+
+    def unavailable(*_args, **_kwargs):
+        raise PermissionError("blocked")
+
+    monkeypatch.setattr(module, "run", unavailable)
+    assert module.adb_connected() is False
 
 
 def test_disarm_forces_auto_delete_false(tmp_path: Path, monkeypatch) -> None:
