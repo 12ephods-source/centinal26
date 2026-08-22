@@ -1,0 +1,1 @@
+Audit note: GitHub rejected an attempted update to `skynet_core.py` because the supplied blob SHA was stale. The rejection prevented an ungrounded overwrite. The correct repair path is to fetch the current blob SHA and then update against that exact SHA.
