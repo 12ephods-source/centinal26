@@ -1,0 +1,44 @@
+name: dS Continuum Powers Control
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/ds-continuum-powers-control/**'
+      - '.github/workflows/ds-continuum-powers-control.yml'
+
+jobs:
+  powers-control:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Run control
+        run: python candidates/ds-continuum-powers-control/powers_type_iii_control.py --output ds_continuum_powers_control.json
+      - name: Run focused tests
+        run: python -m pytest -q candidates/ds-continuum-powers-control/test_powers_type_iii_control.py
+      - name: Capture hashes
+        shell: bash
+        run: |
+          python --version > ds_continuum_powers_environment.txt
+          git --version >> ds_continuum_powers_environment.txt
+          find candidates/ds-continuum-powers-control -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > ds_continuum_powers_sha256.txt
+          sha256sum ds_continuum_powers_control.json ds_continuum_powers_environment.txt >> ds_continuum_powers_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds-continuum-powers-control-${{ matrix.python-version }}
+          path: |
+            ds_continuum_powers_control.json
+            ds_continuum_powers_environment.txt
+            ds_continuum_powers_sha256.txt
