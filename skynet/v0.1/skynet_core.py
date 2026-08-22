@@ -54,24 +54,51 @@ def init():
 
 def cfg(): return json.loads(CFG.read_text())
 
-def git_ff(path):
+def _run(cmd, cwd):
+    return subprocess.run(cmd,cwd=cwd,text=True,capture_output=True)
+
+def git_state(path):
     p=Path(path)
     if not (p/'.git').exists(): return {'ok':False,'reason':'not_git_repo','path':str(p)}
-    dirty=subprocess.run(['git','-C',str(p),'status','--porcelain'],capture_output=True,text=True).stdout.strip()
+    dirty=_run(['git','status','--porcelain'],p).stdout.strip()
     if dirty: return {'ok':False,'reason':'dirty_worktree','path':str(p)}
-    r=subprocess.run(['git','-C',str(p),'fetch','--prune'],capture_output=True,text=True,timeout=60)
-    if r.returncode: return {'ok':False,'reason':'fetch_failed','stderr':r.stderr[-1000:]}
-    branch=subprocess.run(['git','-C',str(p),'rev-parse','--abbrev-ref','HEAD'],capture_output=True,text=True).stdout.strip()
-    upstream=f'origin/{branch}'
-    mb=subprocess.run(['git','-C',str(p),'merge-base','HEAD',upstream],capture_output=True,text=True)
-    if mb.returncode: return {'ok':False,'reason':'no_upstream'}
-    head=subprocess.run(['git','-C',str(p),'rev-parse','HEAD'],capture_output=True,text=True).stdout.strip()
-    remote=subprocess.run(['git','-C',str(p),'rev-parse',upstream],capture_output=True,text=True).stdout.strip()
+    branch=_run(['git','rev-parse','--abbrev-ref','HEAD'],p).stdout.strip()
+    fr=_run(['git','fetch','--prune','origin',branch],p)
+    if fr.returncode: return {'ok':False,'reason':'fetch_failed','stderr':fr.stderr[-1000:]}
+    head=_run(['git','rev-parse','HEAD'],p).stdout.strip(); remote=_run(['git','rev-parse',f'origin/{branch}'],p).stdout.strip()
+    if head==remote: return {'ok':True,'action':'unchanged','path':str(p),'branch':branch,'old':head,'remote':remote}
+    mb=_run(['git','merge-base',head,remote],p)
+    if mb.returncode: return {'ok':False,'reason':'merge_base_failed'}
     base=mb.stdout.strip()
-    if head==remote: return {'ok':True,'changed':False,'head':head}
-    if base!=head: return {'ok':False,'reason':'not_fast_forward','head':head,'remote':remote}
-    u=subprocess.run(['git','-C',str(p),'merge','--ff-only',upstream],capture_output=True,text=True)
-    return {'ok':u.returncode==0,'changed':u.returncode==0,'head_before':head,'head_after':remote,'stderr':u.stderr[-1000:]}
+    if base==head: return {'ok':True,'action':'fast_forward','path':str(p),'branch':branch,'old':head,'remote':remote}
+    if base==remote: return {'ok':False,'reason':'local_ahead','path':str(p)}
+    return {'ok':False,'reason':'diverged','path':str(p)}
+
+def promote(state):
+    if state.get('action')!='fast_forward': return True
+    p=Path(state['path']); r=_run(['git','merge','--ff-only',f"origin/{state['branch']}"],p)
+    if r.returncode: return False
+    state['new']=_run(['git','rev-parse','HEAD'],p).stdout.strip()
+    return state['new']==state['remote']
+
+def rollback(state):
+    if state.get('action')!='fast_forward' or not state.get('new'): return
+    p=Path(state['path']); cur=_run(['git','rev-parse','HEAD'],p).stdout.strip()
+    if cur==state['new']:
+        _run(['git','reset','--hard',state['old']],p); state['rolled_back']=True
+
+def paired_project_update(project_paths):
+    states={k:git_state(v) for k,v in project_paths.items()}
+    if not all(x.get('ok') for x in states.values()): return {'ok':False,'phase':'preflight','projects':states}
+    done=[]
+    try:
+        for name,state in states.items():
+            if not promote(state): raise RuntimeError(f'promotion_failed:{name}')
+            done.append(state)
+    except Exception as e:
+        for state in reversed(done): rollback(state)
+        return {'ok':False,'phase':'promotion','error':str(e),'projects':states}
+    return {'ok':True,'phase':'complete','projects':states}
 
 def run_task(t,payload):
     c=cfg()
@@ -82,8 +109,7 @@ def run_task(t,payload):
         for k,v in c['project_paths'].items(): checks[k]={'exists':Path(v).exists(),'git':(Path(v)/'.git').exists()}
         return {'ok':all(x['exists'] for x in checks.values()),'checks':checks}
     if t=='project_update':
-        results={k:git_ff(v) for k,v in c['project_paths'].items()}
-        return {'ok':all(x.get('ok') for x in results.values()),'projects':results}
+        return paired_project_update(c['project_paths'])
     if t=='snapshot':
         out=APP_HOME/'snapshots'/time.strftime('%Y%m%dT%H%M%SZ',time.gmtime()); out.mkdir(parents=True,exist_ok=True)
         manifests={}
