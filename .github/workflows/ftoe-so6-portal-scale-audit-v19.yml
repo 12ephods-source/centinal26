@@ -1,0 +1,44 @@
+name: FToE SO6 Portal Scale Relevance Gate
+
+on:
+  pull_request:
+    paths:
+      - 'research/ftoe/protected_i/so6_portal_scale_audit_v19.json'
+      - 'scripts/ftoe_so6_portal_scale_audit_v19.py'
+      - 'tests/test_ftoe_so6_portal_scale_audit_v19.py'
+      - '.github/workflows/ftoe-so6-portal-scale-audit-v19.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal pull-request head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependency
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_ftoe_so6_portal_scale_audit_v19.py
+      - name: Run frozen audit
+        run: python scripts/ftoe_so6_portal_scale_audit_v19.py | tee artifacts/ftoe_so6_portal_scale_audit_v19.stdout.txt
+      - name: Capture environment and hashes
+        run: |
+          python --version > artifacts/environment.txt
+          git --version >> artifacts/environment.txt
+          git rev-parse HEAD >> artifacts/environment.txt
+          sha256sum research/ftoe/protected_i/so6_portal_scale_audit_v19.json scripts/ftoe_so6_portal_scale_audit_v19.py tests/test_ftoe_so6_portal_scale_audit_v19.py artifacts/ftoe_so6_portal_scale_audit_v19.json > artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-so6-portal-scale-audit-v19-${{ matrix.python-version }}
+          path: artifacts/

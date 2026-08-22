@@ -1,0 +1,60 @@
+name: FToE Protected-I SO6 Minimal Disposition Gate
+
+on:
+  pull_request:
+    paths:
+      - 'physics/ftoe/protected_I_so6_minimal_disposition_v18.json'
+      - 'scripts/ftoe_so10_protected_i_so6_minimal_disposition_gate.py'
+      - 'tests/test_ftoe_so10_protected_i_so6_minimal_disposition_gate.py'
+      - '.github/workflows/ftoe-protected-i-so6-minimal-disposition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  disposition-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout literal PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal exact head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test environment
+        run: python -m pip install pytest
+      - name: Run frozen disposition gate
+        run: |
+          mkdir -p artifacts/ftoe-protected-i-so6-minimal-disposition
+          python scripts/ftoe_so10_protected_i_so6_minimal_disposition_gate.py \
+            --contract physics/ftoe/protected_I_so6_minimal_disposition_v18.json \
+            --json artifacts/ftoe-protected-i-so6-minimal-disposition/result.json
+      - name: Run focused tests
+        run: pytest -q tests/test_ftoe_so10_protected_i_so6_minimal_disposition_gate.py
+      - name: Capture provenance
+        shell: bash
+        run: |
+          {
+            echo "git_head=$(git rev-parse HEAD)"
+            echo "python=$(python --version 2>&1)"
+            echo "git=$(git --version)"
+            date -u +"finished_utc=%Y-%m-%dT%H:%M:%SZ"
+            cat /etc/os-release
+          } > artifacts/ftoe-protected-i-so6-minimal-disposition/environment.txt
+          sha256sum \
+            physics/ftoe/protected_I_so6_minimal_disposition_v18.json \
+            artifacts/ftoe-protected-i-so6-minimal-disposition/result.json \
+            artifacts/ftoe-protected-i-so6-minimal-disposition/environment.txt \
+            > artifacts/ftoe-protected-i-so6-minimal-disposition/SHA256SUMS.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-protected-i-so6-minimal-disposition-evidence
+          path: artifacts/ftoe-protected-i-so6-minimal-disposition
