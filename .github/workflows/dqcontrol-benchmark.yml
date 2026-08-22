@@ -1,0 +1,32 @@
+name: DQControl Benchmark
+
+on:
+  push:
+    branches:
+      - agent/dqcontrol-candidate-benchmark-v01
+  pull_request:
+    paths:
+      - 'experiments/dqcontrol/**'
+      - '.github/workflows/dqcontrol-benchmark.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests
+        working-directory: experiments/dqcontrol
+        run: python -m unittest -v test_models.py
+      - name: Fail-closed benchmark
+        working-directory: experiments/dqcontrol
+        run: python run_benchmark.py
+      - name: Hash frozen theory state
+        working-directory: experiments/dqcontrol
+        run: sha256sum theory_state.json
