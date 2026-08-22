@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -167,7 +166,6 @@ def evolve_for_time(
 def modular_evolve(
     vector: tuple[np.ndarray, np.ndarray], omegas: np.ndarray, s: float
 ) -> tuple[np.ndarray, np.ndarray]:
-    # sigma_s = alpha_{-beta s} for rho_beta proportional to exp(-beta H).
     return evolve_for_time(vector, omegas, -BETA * s)
 
 
