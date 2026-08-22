@@ -1,0 +1,31 @@
+name: OpenQuest Character Validator
+
+on:
+  pull_request:
+    paths:
+      - 'openquest/**'
+      - '.github/workflows/openquest-character-validator.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'openquest/**'
+      - '.github/workflows/openquest-character-validator.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run OpenQuest tests
+        run: python -m unittest discover -s openquest/tests -v
+      - name: Run deterministic demo export
+        run: python -m openquest.validator > /tmp/openquest-character.json
+      - name: Verify export is valid JSON
+        run: python -m json.tool /tmp/openquest-character.json > /dev/null
