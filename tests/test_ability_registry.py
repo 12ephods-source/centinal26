@@ -58,6 +58,12 @@ def test_canonical_registry_validates() -> None:
     assert "ABILITY_REGISTRY_VALID" in result.stdout
 
 
+def test_canonical_standalone_manifest_is_discoverable() -> None:
+    result = run_cli("list")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "frost-forge/dedupe-organizer/v2\tEXPERIMENTAL\tDedupe Organizer v2" in result.stdout
+
+
 def test_register_requires_verification_provenance_and_lifecycle(tmp_path: Path) -> None:
     registry = tmp_path / "registry.json"
     registry.write_text(json.dumps(registry_document()), encoding="utf-8")
@@ -153,6 +159,67 @@ def test_register_persists_valid_ability_and_list_reads_it(tmp_path: Path) -> No
     assert "test/reusable/v1\tVERIFIED\tReusable test ability" in listed.stdout
     data = json.loads(registry.read_text(encoding="utf-8"))
     assert data["abilities"] == [ability]
+
+
+def test_sync_manifests_adds_and_is_idempotent(tmp_path: Path) -> None:
+    registry = tmp_path / "registry.json"
+    registry.write_text(json.dumps(registry_document()), encoding="utf-8")
+    ability = valid_ability("test/manifest/v1")
+    (tmp_path / "manifest.json").write_text(json.dumps(ability), encoding="utf-8")
+
+    first = run_cli("--registry", str(registry), "sync-manifests")
+    second = run_cli("--registry", str(registry), "sync-manifests")
+
+    assert first.returncode == 0, first.stdout + first.stderr
+    assert "added=1" in first.stdout
+    assert second.returncode == 0, second.stdout + second.stderr
+    assert "added=0" in second.stdout
+    assert "existing=1" in second.stdout
+    assert json.loads(registry.read_text(encoding="utf-8"))["abilities"] == [ability]
+
+
+def test_list_discovers_manifest_without_mutating_registry(tmp_path: Path) -> None:
+    registry = tmp_path / "registry.json"
+    initial = registry_document()
+    registry.write_text(json.dumps(initial), encoding="utf-8")
+    ability = valid_ability("test/discovered/v1")
+    (tmp_path / "manifest.json").write_text(json.dumps(ability), encoding="utf-8")
+
+    listed = run_cli("--registry", str(registry), "list")
+
+    assert listed.returncode == 0, listed.stdout + listed.stderr
+    assert "test/discovered/v1\tVERIFIED\tReusable test ability" in listed.stdout
+    assert json.loads(registry.read_text(encoding="utf-8")) == initial
+
+
+def test_sync_rejects_conflicting_manifest_without_mutating_registry(tmp_path: Path) -> None:
+    registered = valid_ability("test/conflict/v1")
+    registry = tmp_path / "registry.json"
+    initial = registry_document([registered])
+    registry.write_text(json.dumps(initial, sort_keys=True), encoding="utf-8")
+    conflicting = valid_ability("test/conflict/v1")
+    conflicting["source"] = {"path": "different.py"}
+    (tmp_path / "manifest.json").write_text(json.dumps(conflicting), encoding="utf-8")
+
+    result = run_cli("--registry", str(registry), "sync-manifests")
+
+    assert result.returncode == 2
+    assert "conflicts with registry entry" in result.stdout
+    assert json.loads(registry.read_text(encoding="utf-8")) == initial
+
+
+def test_validate_rejects_invalid_standalone_manifest(tmp_path: Path) -> None:
+    registry = tmp_path / "registry.json"
+    registry.write_text(json.dumps(registry_document()), encoding="utf-8")
+    invalid = valid_ability("test/invalid/v1")
+    invalid["lifecycle"] = {"removal": ""}
+    (tmp_path / "manifest.json").write_text(json.dumps(invalid), encoding="utf-8")
+
+    result = run_cli("--registry", str(registry), "validate")
+
+    assert result.returncode == 2
+    assert "invalid ability manifest" in result.stdout
+    assert "rollback or removal path" in result.stdout
 
 
 def test_registry_policy_never_grants_authority() -> None:
