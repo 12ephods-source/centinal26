@@ -1,0 +1,37 @@
+{
+  "schema": "ftoe.phase1.single_patch_modular.consolidation.v1",
+  "project_classification": {
+    "primary": "Physics",
+    "secondary": "Automation",
+    "not_primary": "Cybersecurity"
+  },
+  "conversation_name": "FToE Phase I — Single-Patch Modular Dynamics, Clock Regulation, and Cocycle Gates",
+  "phase_i_lock_status": "NOT_FULLY_LOCKED",
+  "phase_ii_observer_overlap_status": "BLOCKED_PENDING_PHASE_I_CONTINUUM_AND_GATE7",
+  "continuum_connes_cocycle_status": "BLOCKED_NOT_ESTABLISHED_BY_FINITE_MATRICES",
+  "validated_sequence": [
+    {
+      "pr": 83,
+      "status": "MERGED_PASS_CONTINUUM_REGULATOR_SCALING",
+      "merge_commit": "58ca997a234ed0010fef30496ec4bbd4b7e99949"
+    },
+    {
+      "pr": 172,
+      "status": "MERGED_PASS_FINITE_TYPE_I_COCYCLE_CONSISTENCY",
+      "merge_commit": "11912a736c9a5e10828bc281af32e389b5c5a33b"
+    },
+    {
+      "pr": 173,
+      "status": "MERGED_PASS_TWO_MODE_FINITE_TYPE_I_STRESS",
+      "merge_commit": "c573b4cc252d84721648c912f399320dd1200ad5"
+    },
+    {
+      "pr": 240,
+      "status": "DRAFT_GREEN_UNMERGED",
+      "head_commit": "724aadc636fdd368369b7103ad91a0cc341df1b0",
+      "workflows": "6/6 success"
+    }
+  ],
+  "scientific_ceiling": "FINITE_REGULATOR_ONLY",
+  "next_critical_boundary": "GATE_7_INTERACTION_SCRAMBLING_KMS_TRACE_MODULAR_GEOMETRIC_STABILITY"
+}
