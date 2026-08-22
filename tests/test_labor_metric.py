@@ -1,12 +1,18 @@
+import math
+
 import pytest
 
 from centinal26.labor_metric import LaborEvent, summarize
 
 
-def test_summarize_counts_verified_labor_effects() -> None:
+def event(event_id: str, **kwargs: int | float) -> LaborEvent:
+    return LaborEvent(event_id, evidence_refs=(f"fixture:{event_id}",), **kwargs)
+
+
+def test_summarize_counts_referenced_labor_effects() -> None:
     summary = summarize(
         [
-            LaborEvent(
+            event(
                 "worker-self-recovery",
                 manual_actions_eliminated=4,
                 recurring_decisions_automated=2,
@@ -14,7 +20,7 @@ def test_summarize_counts_verified_labor_effects() -> None:
                 minutes_saved=45,
                 external_actions_required=1,
             ),
-            LaborEvent(
+            event(
                 "goal-ledger-routing",
                 manual_actions_eliminated=3,
                 recurring_decisions_automated=3,
@@ -34,8 +40,8 @@ def test_summarize_counts_verified_labor_effects() -> None:
 
 
 def test_identical_event_replay_is_idempotent() -> None:
-    event = LaborEvent("same", manual_actions_eliminated=2, minutes_saved=5)
-    summary = summarize([event, event])
+    item = event("same", manual_actions_eliminated=2, minutes_saved=5)
+    summary = summarize([item, item])
     assert summary.unique_events == 1
     assert summary.manual_actions_eliminated == 2
     assert summary.minutes_saved == 5
@@ -45,8 +51,8 @@ def test_conflicting_duplicate_identity_fails_closed() -> None:
     with pytest.raises(ValueError, match="conflicting labor event identity"):
         summarize(
             [
-                LaborEvent("same", manual_actions_eliminated=1),
-                LaborEvent("same", manual_actions_eliminated=2),
+                event("same", manual_actions_eliminated=1),
+                event("same", manual_actions_eliminated=2),
             ]
         )
 
@@ -63,9 +69,34 @@ def test_conflicting_duplicate_identity_fails_closed() -> None:
 )
 def test_negative_claims_are_rejected(kwargs: dict[str, int | float]) -> None:
     with pytest.raises(ValueError, match="cannot be negative"):
-        LaborEvent("invalid", **kwargs)
+        event("invalid", **kwargs)
 
 
 def test_empty_event_identity_is_rejected() -> None:
     with pytest.raises(ValueError, match="event_id must be non-empty"):
-        LaborEvent("   ")
+        LaborEvent("   ", evidence_refs=("fixture:empty-id",))
+
+
+def test_missing_evidence_reference_is_rejected() -> None:
+    with pytest.raises(ValueError, match="requires non-empty evidence_refs"):
+        LaborEvent("unsupported", evidence_refs=())
+
+
+def test_blank_evidence_reference_is_rejected() -> None:
+    with pytest.raises(ValueError, match="requires non-empty evidence_refs"):
+        LaborEvent("unsupported", evidence_refs=(" ",))
+
+
+@pytest.mark.parametrize("value", [math.inf, -math.inf, math.nan])
+def test_non_finite_time_claims_are_rejected(value: float) -> None:
+    with pytest.raises(ValueError, match="minutes_saved must be finite"):
+        event("bad-time", minutes_saved=value)
+
+
+def test_boolean_count_is_rejected() -> None:
+    with pytest.raises(TypeError, match="count metrics must be integers"):
+        LaborEvent(
+            "bad-count",
+            evidence_refs=("fixture:bad-count",),
+            manual_actions_eliminated=True,
+        )
