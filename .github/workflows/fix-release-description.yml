@@ -11,12 +11,13 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   sanitize-release-description:
     runs-on: ubuntu-latest
     steps:
-      - name: Sanitize and verify latest release description
+      - name: Sanitize, verify, and record latest release description
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -26,8 +27,8 @@ jobs:
 
           release_json="$(gh api "repos/${GH_REPO}/releases/latest")"
           release_id="$(jq -r '.id' <<<"$release_json")"
+          release_tag="$(jq -r '.tag_name // "unknown"' <<<"$release_json")"
           body="$(jq -r '.body // ""' <<<"$release_json")"
-
           cleaned="$(printf '%s' "$body" | sed -E 's/[Ww][Aa][Zz][Oo][Oo]/Centinal26/g')"
 
           if [[ "$body" != "$cleaned" ]]; then
@@ -44,4 +45,24 @@ jobs:
             exit 1
           fi
 
-          echo "Release description verification passed."
+          body_sha256="$(printf '%s' "$verified_body" | sha256sum | awk '{print $1}')"
+          evidence=$(cat <<EOF
+          Release description guard: PASS
+
+          - release_id: ${release_id}
+          - release_tag: ${release_tag}
+          - body_sha256: ${body_sha256}
+          - prohibited_wording_present: false
+          - workflow_run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - verified_commit: ${GITHUB_SHA}
+          EOF
+          )
+
+          issue_number="$(gh issue list --repo "$GH_REPO" --state open --search 'Release description guard status in:title' --json number,title --jq '.[] | select(.title == "Release description guard status") | .number' | head -n1)"
+          if [[ -n "$issue_number" ]]; then
+            gh issue edit "$issue_number" --repo "$GH_REPO" --body "$evidence" >/dev/null
+          else
+            gh issue create --repo "$GH_REPO" --title "Release description guard status" --body "$evidence" >/dev/null
+          fi
+
+          echo "Release description verification passed and evidence recorded."
