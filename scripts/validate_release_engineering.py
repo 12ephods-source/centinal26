@@ -45,6 +45,7 @@ def main() -> None:
     compatibility = _load("releases/COMPATIBILITY_MATRIX.json")
     deprecation = _load("releases/DEPRECATION_REGISTRY.json")
     rings = _load("releases/RELEASE_RINGS.json")
+    governance = _load("automation/governance/main_branch_protection.json")
     evidence = json.loads(Path(args.evidence).read_text(encoding="utf-8"))
     chaos = json.loads(Path(args.chaos).read_text(encoding="utf-8"))
 
@@ -52,8 +53,46 @@ def main() -> None:
     assert state["physical_gate"]["issue"] == release["physical_gate"]["tracker_issue"] == 208
     assert engineering["external_gates"]["physical_android_termux"]["tracker_issue"] == 208
     assert engineering["external_gates"]["deployment_authorization"]["tracker_issue"] == 228
-    assert engineering["external_gates"]["branch_protection"]["tracker_issue"] == 271
-    assert engineering["external_gates"]["branch_protection"]["workflow_substitution_allowed"] is False
+
+    branch_gate = engineering["external_gates"]["branch_protection"]
+    assert branch_gate["tracker_issue"] == governance["tracker_issue"] == 271
+    assert branch_gate["server_side_readback_required"] is True
+    assert branch_gate["workflow_substitution_allowed"] is False
+    assert branch_gate["policy"] == "automation/governance/main_branch_protection.json"
+    assert branch_gate["controller"] == "scripts/reconcile_main_branch_protection.py"
+    assert branch_gate["workflow"] == ".github/workflows/governance-enforcement.yml"
+    assert branch_gate["admin_token_secret"] == "FROST_GOVERNANCE_ADMIN_TOKEN"
+    assert branch_gate["autonomous_enforcement_when_admin_token_present"] is True
+    assert branch_gate["close_tracker_only_after_server_readback"] is True
+
+    assert governance["schema"] == "automation.main_branch_protection_policy/v1"
+    assert governance["repository"] == "12ephods-source/centinal26"
+    assert governance["branch"] == "main"
+    assert governance["required_pull_request"] is True
+    assert governance["enforce_admins"] is True
+    assert governance["required_status_checks"]["strict"] is True
+    assert governance["allow_force_pushes"] is False
+    assert governance["allow_deletions"] is False
+    assert governance["autonomous_reconciliation"]["server_readback_required"] is True
+    assert governance["autonomous_reconciliation"]["workflow_substitution_allowed"] is False
+    assert governance["emergency_override"]["ordinary_admin_bypass"] is False
+    assert governance["evidence_boundary"]["branch_protection_is_physical_device_evidence"] is False
+    assert governance["evidence_boundary"]["branch_protection_is_deployment_authorization"] is False
+    required_contexts = set(governance["required_status_checks"]["contexts"])
+    assert {
+        "baseline",
+        "callable-adapter",
+        "test (3.11)",
+        "test (3.12)",
+        "test (3.13)",
+        "vertical-slice",
+        "host-federation-gate",
+        "host-qualification",
+        "release-engineering",
+        "governance-policy",
+    }.issubset(required_contexts)
+
+    assert engineering["external_gates"]["library_cleaner_device_ui"]["tracker_issue"] == 245
     assert state["adjacent_external_tracks"]["base_ga_blocking"] is False
 
     assert release["promotion_order"] == [
@@ -125,7 +164,7 @@ def main() -> None:
     assert observed_scenarios == chaos_contract["required_scenarios"]
     assert all(item["status"] == "PASS" for item in chaos["scenarios"])
 
-    print("PASS: release engineering evidence, host chaos, and closeout contracts converge")
+    print("PASS: release engineering evidence, governance, host chaos, and closeout converge")
 
 
 if __name__ == "__main__":
