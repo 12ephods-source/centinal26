@@ -1,0 +1,35 @@
+name: Dedupe G08 Independent Verifier
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify_g08_dedupe.py'
+      - 'scripts/structured_semantic_dedupe.py'
+      - 'scripts/canonical_store.py'
+      - 'automation/account_goals/GOALS.json'
+      - '.github/workflows/dedupe-g08-independent-verifier.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify_g08_dedupe.py'
+      - 'scripts/structured_semantic_dedupe.py'
+      - 'scripts/canonical_store.py'
+      - 'automation/account_goals/GOALS.json'
+      - '.github/workflows/dedupe-g08-independent-verifier.yml'
+
+jobs:
+  independent-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run black-box G08 verifier
+        run: python scripts/verify_g08_dedupe.py | tee G08_INDEPENDENT_VERIFICATION.json
+      - name: Upload independent verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: g08-independent-verification
+          path: G08_INDEPENDENT_VERIFICATION.json
+          if-no-files-found: error
