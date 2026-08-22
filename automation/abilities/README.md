@@ -16,7 +16,11 @@ Use this sequence:
 
 ## Registry semantics
 
-`automation/abilities/registry.json` is the machine-readable catalog. Registration records discovery and reuse metadata; it does **not** grant additional authority.
+`automation/abilities/registry.json` is the persistent machine-readable catalog. Versioned standalone ability manifests may also live beside it as `automation/abilities/*.json`. The registry CLI validates and merges those manifests into its effective read-only catalog automatically, so a newly merged valid manifest is discoverable without a second manual catalog edit.
+
+`sync-manifests` persists any missing standalone manifests into `registry.json` atomically. Existing identical IDs are idempotent; a standalone manifest that disagrees with an existing registry entry fails closed rather than silently overwriting history.
+
+Registration records discovery and reuse metadata; it does **not** grant additional authority.
 
 Each ability requires:
 
@@ -30,16 +34,19 @@ Each ability requires:
 - `lifecycle`: non-empty object containing at least one explicit `rollback` or `removal` path.
 - `status`: `EXPERIMENTAL`, `VERIFIED`, `SUPERSEDED`, or `BLOCKED`.
 
-The registry document itself is schema- and policy-validated before registration. A new entry is validated both before and after insertion, duplicate IDs fail closed, and the updated registry is written by atomic replacement so an interrupted normal write does not leave a partially serialized registry.
+The registry document itself is schema- and policy-validated before registration or synchronization. Each standalone manifest is independently validated, duplicate IDs fail closed unless byte-semantically identical as JSON objects, and persistent updates use atomic replacement so an interrupted normal write does not leave a partially serialized registry.
 
-A registered ability remains subject to the same authorization, evidence, side-effect, and physical-vs-host boundaries as any other executor.
+A registered or discovered ability remains subject to the same authorization, evidence, side-effect, and physical-vs-host boundaries as any other executor.
 
 ## CLI
 
 ```bash
 python scripts/ability_registry.py validate
 python scripts/ability_registry.py list
+python scripts/ability_registry.py sync-manifests
 python scripts/ability_registry.py register path/to/ability.json
 ```
+
+`list` and `validate` use the effective catalog: persistent registry entries plus valid standalone manifests. `sync-manifests` makes the persistent catalog converge to that effective catalog without overwriting conflicting IDs.
 
 Registration is append-only by stable `id`; replacement requires an explicitly versioned successor rather than silently overwriting prior evidence.
