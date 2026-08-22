@@ -1,11 +1,11 @@
 {
   "schema": "frost-account-goals/v1",
-  "updated_at": "2026-08-22T17:55:00Z",
+  "updated_at": "2026-08-22T19:23:00Z",
   "terminal_success_rule": "Every goal must reach the strongest legitimate verified terminal state supported by its evidence; external physical/provider/authorization dependencies remain BLOCKED_EXTERNAL without blocking independent goals.",
   "states": ["PROPOSED","IMPLEMENTED","TESTED","CI_VERIFIED","INDEPENDENTLY_VERIFIED","SOFTWARE_RELEASE_COMPLETE","DEVICE_TESTED","PERSISTENCE_VERIFIED","DEPLOYED_APP_COMPLETE","PRODUCTION_READY","BLOCKED_EXTERNAL","FAILED","REGRESSED","SUPERSEDED"],
   "goals": [
     {"id":"G01","name":"Automation OS / Centinal26 canonical execution kernel","state":"INDEPENDENTLY_VERIFIED","success_criteria":["canonical bounded execution pipeline exists","authorization and verification are separate","evidence/provenance state is preserved"]},
-    {"id":"G02","name":"Persistent Autopilot and self-recovery","state":"CI_VERIFIED","success_criteria":["restart-safe persistence","self-refresh","bounded recovery","deduplicated controllers"]},
+    {"id":"G02","name":"Persistent Autopilot and self-recovery","state":"INDEPENDENTLY_VERIFIED","success_criteria":["restart-safe persistence","self-refresh","bounded recovery","deduplicated controllers"]},
     {"id":"G03","name":"Android/Termux bounded worker fleet","state":"BLOCKED_EXTERNAL","success_criteria":["legitimate worker enrollment","boot/restart/execution/audit/state-integrity/recovery evidence","persistence/endurance evidence"]},
     {"id":"G04","name":"AAARD autonomous research and development","state":"IMPLEMENTED","success_criteria":["source ingestion","claim/conflict/task handling","reproducible research execution","independent verification"]},
     {"id":"G05","name":"Frost Sentinel cybersecurity and DFIR","state":"IMPLEMENTED","success_criteria":["defensive observation","immutable evidence preservation","forensic timelines","independent corroboration"]},
