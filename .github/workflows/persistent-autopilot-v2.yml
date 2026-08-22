@@ -1,0 +1,51 @@
+name: Persistent Autopilot v2
+
+on:
+  push:
+    paths:
+      - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'automation/persistent/**'
+      - 'tests/test_persistent_autopilot_v2.sh'
+      - 'tests/test_persistent_kernel.py'
+      - '.github/workflows/persistent-autopilot-v2.yml'
+  pull_request:
+    paths:
+      - 'install/2026-08-22__PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh'
+      - 'automation/persistent/**'
+      - 'tests/test_persistent_autopilot_v2.sh'
+      - 'tests/test_persistent_kernel.py'
+      - '.github/workflows/persistent-autopilot-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax and deterministic installer self-test
+        run: bash tests/test_persistent_autopilot_v2.sh
+      - name: Transactional kernel adversarial tests
+        run: python3 tests/test_persistent_kernel.py
+      - name: Python syntax and lint
+        run: |
+          python3 -m py_compile automation/persistent/kernel.py tests/test_persistent_kernel.py
+          pip install ruff
+          ruff check automation/persistent/kernel.py tests/test_persistent_kernel.py
+      - name: Canonical migration matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('automation/persistent/MIGRATION_MATRIX.json')
+          data = json.loads(path.read_text())
+          assert data['schema'] == 1
+          assert data['canonical_runtime'] == 'automation/persistent/kernel.py'
+          assert data['canonical_supervisor_installer'].endswith('PERSISTENT_AUTOPILOT_TERMUX_v2.0.sh')
+          statuses = {entry['component']: entry['status'] for entry in data['components']}
+          assert statuses['termux_boot_persistence'] == 'CANONICALIZED'
+          assert 'physical-device qualification cannot be synthesized from host or CI evidence' in data['invariants']
+          print('migration_matrix=PASS')
+          PY
