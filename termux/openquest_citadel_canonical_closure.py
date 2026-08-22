@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Bounded exact-source canonical validation for The Devouring Citadel.
 
 This utility never installs over the user's normal OpenQuest tree. It locates the
