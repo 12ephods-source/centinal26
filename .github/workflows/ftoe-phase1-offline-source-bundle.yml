@@ -1,0 +1,50 @@
+name: FToE Phase I Offline Source Bundle
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ftoe-phase1-offline-source-bundle.yml'
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Assemble exact merged Phase-I source lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p offline_sources
+          cp candidates/clock-regulator-harness/clock_regulator_scan.py offline_sources/
+          cp candidates/finite-type-i-cocycle-harness/cocycle_scan.py offline_sources/
+          cp candidates/two-mode-cocycle-stress/two_mode_scan.py offline_sources/
+          cp candidates/multi-mode-cocycle-regulator/multi_mode_scan.py offline_sources/
+          cp candidates/ds-continuum-powers-control/powers_type_iii_control.py offline_sources/
+          cp candidates/ds2-continuum-typeiii1-anchor/check_anchor.py offline_sources/
+          cp candidates/ds2-continuum-typeiii1-anchor/continuum_typeiii1_anchor.json offline_sources/
+          cp candidates/ds2-two-axis-weyl-bridge/two_axis_weyl_bridge.py offline_sources/
+          cat > offline_sources/SOURCE_LINEAGE.txt <<'EOF'
+          clock-regulator-harness: PR #83
+          finite-type-i-cocycle-harness: PR #172
+          two-mode-cocycle-stress: PR #173
+          multi-mode-cocycle-regulator: PR #240
+          ds-continuum-powers-control: PR #387
+          ds2-continuum-typeiii1-anchor: PR #389
+          ds2-two-axis-weyl-bridge: PR #393
+          EOF
+          sha256sum offline_sources/* | sort > offline_sources/SHA256SUMS.txt
+          printf 'bundle_head_sha=%s\n' "${{ github.event.pull_request.head.sha }}" > offline_sources/BUNDLE_PROVENANCE.txt
+          git rev-parse HEAD >> offline_sources/BUNDLE_PROVENANCE.txt
+      - name: Verify Python sources compile
+        shell: bash
+        run: python -m py_compile offline_sources/*.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ftoe-phase1-offline-sources
+          path: offline_sources/
+          if-no-files-found: error
