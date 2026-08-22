@@ -1,10 +1,16 @@
-#!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, os, sqlite3, time, uuid
+
+import argparse
+import hashlib
+import json
+import os
+import sqlite3
+import time
+import uuid
 from pathlib import Path
 
-ROOT = Path(os.environ.get("CENTINAL26_HOME", str(Path.home()/".centinal26")))
-DB = ROOT/"state"/"daemon.sqlite3"
+ROOT = Path(os.environ.get("CENTINAL26_HOME", str(Path.home() / ".centinal26")))
+DB = ROOT / "state" / "daemon.sqlite3"
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -18,44 +24,120 @@ CREATE TABLE IF NOT EXISTS evidence (
 CREATE TABLE IF NOT EXISTS daemon_state (key TEXT PRIMARY KEY,value TEXT NOT NULL);
 """
 
-def con():
+
+def connect() -> sqlite3.Connection:
     DB.parent.mkdir(parents=True, exist_ok=True)
-    c=sqlite3.connect(DB); c.row_factory=sqlite3.Row; c.executescript(SCHEMA); return c
+    con = sqlite3.connect(DB)
+    con.row_factory = sqlite3.Row
+    con.executescript(SCHEMA)
+    return con
 
-def enqueue(args):
-    payload=json.loads(args.payload)
-    now=int(time.time())
-    idem=args.idempotency_key or hashlib.sha256(json.dumps({"intent":args.intent,"capability":args.capability,"payload":payload},sort_keys=True).encode()).hexdigest()
-    task_id=args.task_id or str(uuid.uuid4())
-    c=con()
+
+def enqueue(args: argparse.Namespace) -> None:
+    payload = json.loads(args.payload)
+    now = int(time.time())
+    canonical = json.dumps(
+        {"intent": args.intent, "capability": args.capability, "payload": payload},
+        sort_keys=True,
+    ).encode()
+    idem = args.idempotency_key or hashlib.sha256(canonical).hexdigest()
+    task_id = args.task_id or str(uuid.uuid4())
+    con = connect()
     try:
-        c.execute("INSERT INTO task(id,intent,capability,payload_json,idempotency_key,state,created_at,updated_at,next_attempt_at,source_revision) VALUES(?,?,?,?,?,'QUEUED',?,?,?,?,?)",
-                  (task_id,args.intent,args.capability,json.dumps(payload,sort_keys=True),idem,now,now,0,args.source_revision))
-        c.commit()
-        print(json.dumps({"status":"QUEUED","task_id":task_id,"idempotency_key":idem},sort_keys=True))
+        con.execute(
+            "INSERT INTO task(id,intent,capability,payload_json,idempotency_key,state,created_at,updated_at,next_attempt_at,source_revision) "
+            "VALUES(?,?,?,?,?,'QUEUED',?,?,?,?,?)",
+            (
+                task_id,
+                args.intent,
+                args.capability,
+                json.dumps(payload, sort_keys=True),
+                idem,
+                now,
+                now,
+                0,
+                args.source_revision,
+            ),
+        )
+        con.commit()
+        print(json.dumps({"status": "QUEUED", "task_id": task_id, "idempotency_key": idem}, sort_keys=True))
     except sqlite3.IntegrityError:
-        row=c.execute("SELECT id,state FROM task WHERE idempotency_key=?",(idem,)).fetchone()
-        print(json.dumps({"status":"ALREADY_EXISTS","task_id":row["id"],"state":row["state"],"idempotency_key":idem},sort_keys=True))
+        row = con.execute("SELECT id,state FROM task WHERE idempotency_key=?", (idem,)).fetchone()
+        print(
+            json.dumps(
+                {
+                    "status": "ALREADY_EXISTS",
+                    "task_id": row["id"],
+                    "state": row["state"],
+                    "idempotency_key": idem,
+                },
+                sort_keys=True,
+            )
+        )
 
-def status(args):
-    c=con()
+
+def status(args: argparse.Namespace) -> None:
+    con = connect()
     if args.task_id:
-        row=c.execute("SELECT * FROM task WHERE id=?",(args.task_id,)).fetchone()
-        print(json.dumps(dict(row) if row else {"status":"NOT_FOUND"},sort_keys=True))
-    else:
-        rows=[dict(r) for r in c.execute("SELECT id,intent,capability,state,attempt_count,updated_at,last_error FROM task ORDER BY created_at DESC LIMIT ?",(args.limit,))]
-        health=c.execute("SELECT value FROM daemon_state WHERE key='health'").fetchone()
-        print(json.dumps({"health":json.loads(health[0]) if health else None,"tasks":rows},sort_keys=True))
+        row = con.execute("SELECT * FROM task WHERE id=?", (args.task_id,)).fetchone()
+        print(json.dumps(dict(row) if row else {"status": "NOT_FOUND"}, sort_keys=True))
+        return
+    rows = [
+        dict(row)
+        for row in con.execute(
+            "SELECT id,intent,capability,state,attempt_count,updated_at,last_error "
+            "FROM task ORDER BY created_at DESC LIMIT ?",
+            (args.limit,),
+        )
+    ]
+    health = con.execute("SELECT value FROM daemon_state WHERE key='health'").fetchone()
+    print(
+        json.dumps(
+            {"health": json.loads(health[0]) if health else None, "tasks": rows},
+            sort_keys=True,
+        )
+    )
 
-def evidence(args):
-    c=con(); rows=[dict(r) for r in c.execute("SELECT ts,kind,payload_json,sha256 FROM evidence WHERE task_id=? ORDER BY id",(args.task_id,))]
-    for r in rows: r["payload"]=json.loads(r.pop("payload_json"))
-    print(json.dumps({"task_id":args.task_id,"evidence":rows},sort_keys=True))
 
-def main():
-    p=argparse.ArgumentParser(); sub=p.add_subparsers(dest="cmd",required=True)
-    q=sub.add_parser("enqueue"); q.add_argument("--intent",required=True); q.add_argument("--capability",required=True); q.add_argument("--payload",required=True); q.add_argument("--idempotency-key"); q.add_argument("--task-id"); q.add_argument("--source-revision"); q.set_defaults(fn=enqueue)
-    s=sub.add_parser("status"); s.add_argument("--task-id"); s.add_argument("--limit",type=int,default=20); s.set_defaults(fn=status)
-    e=sub.add_parser("evidence"); e.add_argument("task_id"); e.set_defaults(fn=evidence)
-    a=p.parse_args(); a.fn(a)
-if __name__=="__main__": main()
+def show_evidence(args: argparse.Namespace) -> None:
+    con = connect()
+    rows = [
+        dict(row)
+        for row in con.execute(
+            "SELECT ts,kind,payload_json,sha256 FROM evidence WHERE task_id=? ORDER BY id",
+            (args.task_id,),
+        )
+    ]
+    for row in rows:
+        row["payload"] = json.loads(row.pop("payload_json"))
+    print(json.dumps({"task_id": args.task_id, "evidence": rows}, sort_keys=True))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    queue = sub.add_parser("enqueue")
+    queue.add_argument("--intent", required=True)
+    queue.add_argument("--capability", required=True)
+    queue.add_argument("--payload", required=True)
+    queue.add_argument("--idempotency-key")
+    queue.add_argument("--task-id")
+    queue.add_argument("--source-revision")
+    queue.set_defaults(fn=enqueue)
+
+    stat = sub.add_parser("status")
+    stat.add_argument("--task-id")
+    stat.add_argument("--limit", type=int, default=20)
+    stat.set_defaults(fn=status)
+
+    ev = sub.add_parser("evidence")
+    ev.add_argument("task_id")
+    ev.set_defaults(fn=show_evidence)
+
+    args = parser.parse_args()
+    args.fn(args)
+
+
+if __name__ == "__main__":
+    main()
