@@ -48,7 +48,7 @@ class FederationResult:
 def _load_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
-        raise ValueError(f"{path}:root_not_object")
+        raise TypeError(f"{path}:root_not_object")
     return payload
 
 
@@ -218,7 +218,7 @@ def validate_registry(
     goals_file = goals_path or DEFAULT_GOALS
     try:
         goal_payload = _load_json(goals_file)
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, json.JSONDecodeError, TypeError) as exc:
         errors.append(f"cannot_load_goal_ledger:{exc}")
         ledger_goals: set[str] = set()
     else:
