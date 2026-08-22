@@ -1,0 +1,60 @@
+{
+  "schema": "frost.physics.phase1-canonical-chain-state.v1",
+  "updated_utc": "2026-08-22T20:13:44Z",
+  "canonical_repo": "12ephods-source/centinal26",
+  "claim_policy": "Finite numerical/software PASS never promotes continuum factor type, spacetime reconstruction, gravitational canonical energy, or Einstein dynamics without separately defined evidence.",
+  "chain": [
+    {
+      "stage": "phase1_regulated_kms_cocycle_bkm",
+      "status": "PASS_FINITE_TYPE_I_BASELINE",
+      "commit": "80204576dc8506bfb6254e12ac471536886111bf",
+      "evidence": "Canonical Phase-I v2 plus orthogonal eigenbasis/divided-difference BKM oracle; Python 3.11-3.13 and repository workflows PASS.",
+      "continuum_claim": false
+    },
+    {
+      "stage": "clock_regulator",
+      "status": "PASS_CONTINUUM_REGULATOR_SCALING_FINITE_MODEL",
+      "commit": "58ca997a234ed0010fef30496ec4bbd4b7e99949",
+      "evidence": "Eight strict coupled T-delta_q regulator-scaling gates PASS in the finite Type-I GNS-clock model.",
+      "continuum_cocycle_physics_validated": false
+    },
+    {
+      "stage": "ds2_relational_geometry_bearing_baseline",
+      "status": "PASS_DS2_DIAMOND_REGULATED_RELATIONAL_BASELINE",
+      "commit": "02e23a4c25c43f24220869876c778683a6cbe326",
+      "evidence": "Current-main requalification, 9/9 strict gates PASS on Python 3.11-3.13 and all repository workflows.",
+      "continuum_claim": false
+    },
+    {
+      "stage": "regional_modular_overlap_obstruction",
+      "status": "PASS_DS2_REGIONAL_MODULAR_OVERLAP_OBSTRUCTION_BASELINE",
+      "commit": "6516782bc97f8d19baa32930f1d945c798a03692",
+      "evidence": "Current-main requalification, 6/6 strict gates PASS on Python 3.11-3.13 and all repository workflows.",
+      "continuum_claim": false
+    },
+    {
+      "stage": "regional_markov_network_invariant_candidate",
+      "status": "PASS_CANDIDATE_MARKOV_NETWORK_INVARIANT_BASELINE",
+      "commit": "e9440b427fb89e0ddc693b5506837f71381fd356",
+      "evidence": "State-only sum of adjacent conditional mutual informations; repaired head PASS on Python 3.11-3.13 and all repository workflows.",
+      "qualification_class": "POST_EXPLORATORY_FROZEN_BEFORE_CI",
+      "blinded_preregistration": false,
+      "continuum_claim": false
+    }
+  ],
+  "preserved_negative_results": [
+    {
+      "result": "Raw quadrature modular-leakage edge weight is cutoff-sensitive and is not promoted as the network invariant.",
+      "disposition": "PRESERVED_AS_FAILED_CANDIDATE_OBSERVABLE"
+    }
+  ],
+  "remaining_boundaries": [
+    "Continuum local-algebra realization and factor-type evidence are not supplied by finite matrix models.",
+    "A continuum modular-inclusion/global-gluing theorem is not established.",
+    "An independently derived state-to-geometry dictionary sufficient for gravitational promotion remains unresolved.",
+    "Hollands-Wald/gravitational canonical-energy normalization, gauge fixing, and horizon boundary terms remain unqualified.",
+    "Einstein or other gravitational dynamics are not reconstructed by the finite Phase-I chain.",
+    "Gate 5 and Gate 6 scientific promotion criteria remain PROPOSED unless separately frozen by a canonical specification."
+  ],
+  "next_legal_promotion": "Define and preregister the next continuum/state-geometry scientific gate before interpreting the finite network candidate as geometry or dynamics."
+}
