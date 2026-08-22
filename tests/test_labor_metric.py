@@ -87,6 +87,11 @@ def test_blank_evidence_reference_is_rejected() -> None:
         LaborEvent("unsupported", evidence_refs=(" ",))
 
 
+def test_mutable_evidence_reference_container_is_rejected() -> None:
+    with pytest.raises(TypeError, match="evidence_refs must be an immutable tuple"):
+        LaborEvent("mutable", evidence_refs=["fixture:mutable"])  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize("value", [math.inf, -math.inf, math.nan])
 def test_non_finite_time_claims_are_rejected(value: float) -> None:
     with pytest.raises(ValueError, match="minutes_saved must be finite"):

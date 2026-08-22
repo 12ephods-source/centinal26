@@ -20,6 +20,8 @@ class LaborEvent:
     def __post_init__(self) -> None:
         if not self.event_id.strip():
             raise ValueError("event_id must be non-empty")
+        if not isinstance(self.evidence_refs, tuple):
+            raise TypeError("evidence_refs must be an immutable tuple")
         if not self.evidence_refs or any(
             not isinstance(ref, str) or not ref.strip() for ref in self.evidence_refs
         ):
