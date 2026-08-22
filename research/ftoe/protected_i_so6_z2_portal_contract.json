@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "gate_id": "FTOE_PROTECTED_I_SO6_Z2_PORTAL_V16",
+  "parent_head": "dbde5d5aa0d971f901aca47c96e8f21a25038904",
+  "question": "Does the role-separating Z2 symmetry H2 -> -H2 forbid the renormalizable norm portal (H1^dagger H1)(H2^dagger H2)?",
+  "frozen_fields": {
+    "H1_role": "SM_HIGGS_REFERENCE",
+    "H2_role": "PROTECTED_I_CANDIDATE_REFERENCE_ONLY",
+    "role_separating_symmetry": "Z2: H1 -> +H1, H2 -> -H2",
+    "portal_operator": "(H1^dagger H1)(H2^dagger H2)",
+    "operator_dimension": 4,
+    "decision_rule": "FAIL_Z2_ONLY_PORTAL_SUPPRESSION if both norms and their product are Z2 invariant"
+  },
+  "primary_sources": [
+    "arXiv:1105.5403"
+  ],
+  "repository_dependency": "PR #105 generalized linear-internal-symmetry norm-portal no-go",
+  "expected_algebra": {
+    "H1_norm_parity": 1,
+    "H2_norm_parity": 1,
+    "portal_parity": 1
+  },
+  "scientific_scope": "Candidate-specific adjudication of Z2-only portal suppression in the role-separated SO6 reference mechanism.",
+  "not_established": [
+    "absence of all collective or nonlinear portal suppression",
+    "SO10 embedding or sequestering",
+    "mu_I or 13.5 TeV mass matching",
+    "representation-specific radiative stability",
+    "precision or partner viability",
+    "publication readiness"
+  ],
+  "post_result_retuning_allowed": false
+}
