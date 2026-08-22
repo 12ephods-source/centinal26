@@ -72,6 +72,10 @@ recover_once(){
     return 0
   fi
   log 'worker not running; attempting bounded recovery'
+  if start_existing_worker; then
+    write_status "RECOVERED" "restarted existing authenticated worker"
+    return 0
+  fi
   local rc
   if install_or_repair_worker; then
     write_status "RECOVERED" "installed/repaired worker from trusted canonical bootstrap"
