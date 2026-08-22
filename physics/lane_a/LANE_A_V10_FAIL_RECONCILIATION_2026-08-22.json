@@ -1,0 +1,38 @@
+{
+  "reconciliation_id": "lane-a-v10-fail-2026-08-22-v1",
+  "source_pr": 156,
+  "source_head": "bf9d513ecfdb81c0e16103cdadff57923243feed",
+  "status": "SCIENTIFIC_FAIL_PRESERVED",
+  "repository_qualification": {
+    "CI": "PASS",
+    "validate": "PASS",
+    "automation-gates": "PASS",
+    "federation-gates": "PASS",
+    "Mature Product Qualification": "PASS",
+    "geometric-symbolic-v10": "FAIL"
+  },
+  "experiment_execution": "PASS",
+  "checker_execution": "PASS_AND_REJECTED_RESULT",
+  "evidence_hashing": "PASS",
+  "evidence_upload": "PASS",
+  "summary_metrics": {
+    "exact_c4_train_pair_mean": 0.5,
+    "exact_c4_near_pair_mean": 0.4444444444444444,
+    "exact_c4_far_pair_mean": 0.4444444444444444,
+    "exact_c4_token_grounding_mean": 0.3333333333333333,
+    "wrong_v4_far_pair_mean": 0.19295247395833334,
+    "gru_far_pair_mean": 0.1509060329861111
+  },
+  "frozen_checks": {
+    "structured_fits_paired_training": false,
+    "latent_grounding": false,
+    "structured_near_pair": false,
+    "structured_far_pair": false,
+    "structured_beats_wrong_far": true,
+    "structured_beats_gru_far": true,
+    "structured_not_larger_than_gru": true
+  },
+  "interpretation": "Paired counterfactual supervision alone was not a reliable grounding mechanism across the three frozen seeds. One seed achieved a perfect exact-C4 solution, but two seeds failed badly, so the stronger reliability claim is falsified under the frozen v10 setup.",
+  "relation_to_later_lane_a": "This negative predecessor motivates the later sequence-level singleton-anchor intervention. It supplements the merged Lane-A reconciliation for v11-v18 and does not alter those preserved outcomes.",
+  "scope_ceiling": "No natural-language reasoning, frontier-model generalization, training-FLOP efficiency, Sophontic replication, 60x/1000x efficiency, or data-center obsolescence claim follows."
+}
