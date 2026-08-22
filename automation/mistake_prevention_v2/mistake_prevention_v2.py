@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 import json
 from pathlib import Path
@@ -32,9 +31,9 @@ def eval_guard(t,c):
     return {'result':'BLOCK' if r else 'PASS','reasons':r}
 
 if __name__ == '__main__':
-    import argparse, hashlib, json, sys
+    import argparse
+    import hashlib
     from collections import defaultdict, deque
-    from pathlib import Path
 
     def canon(o): return json.dumps(o,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()
     def verify_event(e):
