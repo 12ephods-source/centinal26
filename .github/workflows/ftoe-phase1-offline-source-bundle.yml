@@ -21,6 +21,9 @@ jobs:
           set -euo pipefail
           mkdir -p offline_sources
           cp candidates/clock-regulator-harness/clock_regulator_scan.py offline_sources/
+          cp candidates/kms-modular-cocycle-harness/kms_modular_cocycle_scan.py offline_sources/
+          cp candidates/ds-diamond-relational-harness/ds_diamond_relational_scan.py offline_sources/
+          cp candidates/ds-regional-modular-overlap/regional_modular_overlap_scan.py offline_sources/
           cp candidates/finite-type-i-cocycle-harness/cocycle_scan.py offline_sources/
           cp candidates/two-mode-cocycle-stress/two_mode_scan.py offline_sources/
           cp candidates/multi-mode-cocycle-regulator/multi_mode_scan.py offline_sources/
@@ -30,6 +33,9 @@ jobs:
           cp candidates/ds2-two-axis-weyl-bridge/two_axis_weyl_bridge.py offline_sources/
           cat > offline_sources/SOURCE_LINEAGE.txt <<'EOF'
           clock-regulator-harness: PR #83
+          kms-modular-cocycle-harness: PR #87
+          ds-diamond-relational-harness: PR #102
+          ds-regional-modular-overlap: PR #104
           finite-type-i-cocycle-harness: PR #172
           two-mode-cocycle-stress: PR #173
           multi-mode-cocycle-regulator: PR #240
