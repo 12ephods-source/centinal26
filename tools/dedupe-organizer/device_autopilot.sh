@@ -1,0 +1,181 @@
+set -euo pipefail
+umask 077
+
+PROJECT="dedupe-organizer"
+RELEASE="2.1.0"
+ROOT="${HOME}/dedupe-organizer"
+OUT_ROOT="${HOME}/storage/shared/Download"
+TS="$(date -u +%Y%m%dT%H%M%SZ)"
+BUNDLE="${OUT_ROOT}/dedupe-organizer-device-evidence-${TS}"
+
+mkdir -p "$BUNDLE"
+
+is_android=false
+is_termux=false
+[[ -n "${ANDROID_ROOT:-}" || -n "${ANDROID_DATA:-}" ]] && is_android=true
+[[ "${PREFIX:-}" == *"com.termux"* ]] && is_termux=true
+
+if [[ "$is_android" != true || "$is_termux" != true ]]; then
+  echo "FAIL: this collector must run in authentic Android/Termux."
+  exit 2
+fi
+
+if [[ ! -x "$ROOT/dedupe-organizer" && ! -f "$ROOT/dedupe_organizer.py" ]]; then
+  echo "FAIL: Dedupe/Organizer v2.1.0 is not installed at $ROOT"
+  exit 3
+fi
+
+boot_id="$(cat /proc/sys/kernel/random/boot_id 2>/dev/null || true)"
+[[ -n "$boot_id" ]] || {
+  echo "FAIL: boot ID unavailable"
+  exit 4
+}
+
+{
+  echo "manufacturer=$(getprop ro.product.manufacturer 2>/dev/null || true)"
+  echo "model=$(getprop ro.product.model 2>/dev/null || true)"
+  echo "fingerprint=$(getprop ro.build.fingerprint 2>/dev/null || true)"
+  echo "android_release=$(getprop ro.build.version.release 2>/dev/null || true)"
+  echo "sdk=$(getprop ro.build.version.sdk 2>/dev/null || true)"
+  echo "prefix=${PREFIX:-}"
+  echo "boot_id=$boot_id"
+  uname -a 2>/dev/null || true
+} > "$BUNDLE/device_profile.txt"
+
+run_cli() {
+  if command -v dedupe-organizer >/dev/null 2>&1; then
+    dedupe-organizer "$@"
+  elif [[ -x "$ROOT/dedupe-organizer" ]]; then
+    "$ROOT/dedupe-organizer" "$@"
+  else
+    python "$ROOT/dedupe_organizer.py" "$@"
+  fi
+}
+
+pass_or_fail() {
+  local file="$1"
+  shift
+  if "$@" > "$BUNDLE/$file" 2>&1; then
+    printf 'PASS\n' >> "$BUNDLE/$file"
+    return 0
+  fi
+  printf 'FAIL\n' >> "$BUNDLE/$file"
+  return 1
+}
+
+self_test=FAIL
+sqlite_integrity=FAIL
+audit_verify=FAIL
+storage_probe=FAIL
+process_restart=FAIL
+boot_probe=FAIL
+
+if pass_or_fail self_test.txt run_cli self-test; then self_test=PASS; fi
+if pass_or_fail sqlite_integrity.txt run_cli doctor; then sqlite_integrity=PASS; fi
+if pass_or_fail audit_verify.txt run_cli verify-audit; then audit_verify=PASS; fi
+
+probe_dir="${OUT_ROOT}/AAARD_DEVICE_PROBE_${TS}"
+mkdir -p "$probe_dir"
+printf 'device-probe-%s\n' "$TS" > "$probe_dir/probe.txt"
+if [[ -s "$probe_dir/probe.txt" ]]; then
+  printf 'PASS scoped storage write/read: %s\n' "$probe_dir" > "$BUNDLE/storage_probe.txt"
+  storage_probe=PASS
+else
+  printf 'FAIL scoped storage write/read\n' > "$BUNDLE/storage_probe.txt"
+fi
+
+if run_cli daemon --once > "$BUNDLE/process_restart.txt" 2>&1; then
+  printf 'PASS\n' >> "$BUNDLE/process_restart.txt"
+  process_restart=PASS
+else
+  printf 'FAIL\n' >> "$BUNDLE/process_restart.txt"
+fi
+
+boot_hook="$HOME/.termux/boot/dedupe-organizer.sh"
+if [[ -f "$boot_hook" ]]; then
+  printf 'PASS boot hook present: %s\n' "$boot_hook" > "$BUNDLE/boot_probe.txt"
+  boot_probe=PASS
+else
+  printf 'FAIL boot hook absent: %s\n' "$boot_hook" > "$BUNDLE/boot_probe.txt"
+fi
+
+cat > "$BUNDLE/acceptance.json" <<EOF
+{
+  "schema_version": "1.0",
+  "project": "$PROJECT",
+  "release": "$RELEASE",
+  "device_originated": true,
+  "android_detected": true,
+  "termux_detected": true,
+  "boot_id": "$boot_id",
+  "collected_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "tests": {
+    "self_test": "$self_test",
+    "sqlite_integrity": "$sqlite_integrity",
+    "audit_verify": "$audit_verify",
+    "storage_probe": "$storage_probe",
+    "process_restart": "$process_restart",
+    "boot_probe": "$boot_probe"
+  }
+}
+EOF
+
+(
+  cd "$BUNDLE"
+  sha256sum \
+    acceptance.json \
+    device_profile.txt \
+    self_test.txt \
+    sqlite_integrity.txt \
+    audit_verify.txt \
+    storage_probe.txt \
+    process_restart.txt \
+    boot_probe.txt > SHA256SUMS.txt
+)
+
+printf 'Evidence bundle: %s\n' "$BUNDLE"
+
+all_pass=true
+for value in \
+  "$self_test" \
+  "$sqlite_integrity" \
+  "$audit_verify" \
+  "$storage_probe" \
+  "$process_restart" \
+  "$boot_probe"; do
+  [[ "$value" == PASS ]] || all_pass=false
+done
+
+if [[ "$all_pass" != true ]]; then
+  echo "DEVICE_ACCEPTANCE_INCOMPLETE"
+  exit 10
+fi
+
+echo "DEVICE_ACCEPTANCE_COLLECTED"
+
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+  git clone --quiet https://github.com/12ephods-source/centinal26.git "$tmp/repo"
+  cd "$tmp/repo"
+  branch="device-evidence-${TS}"
+  git switch -c "$branch" >/dev/null
+  target="tools/dedupe-organizer/device-evidence/runs/${TS}"
+  mkdir -p "$target"
+  cp -a "$BUNDLE"/. "$target"/
+  git add "$target"
+  git -c user.name="Dedupe Device Worker" \
+      -c user.email="device-worker@localhost" \
+      commit -m "Submit Dedupe Organizer device evidence ${TS}" >/dev/null
+  git push --quiet origin "$branch"
+  gh pr create \
+    --repo 12ephods-source/centinal26 \
+    --base main \
+    --head "$branch" \
+    --title "Submit Dedupe Organizer device evidence ${TS}" \
+    --body "Authentic Android/Termux evidence bundle generated by device_autopilot.sh. Merge only after Dedupe Organizer Device Evidence and repository gates pass."
+  echo "DEVICE_EVIDENCE_PR_CREATED"
+else
+  echo "SUBMISSION_NOT_AUTOMATED: gh is unavailable or unauthenticated."
+  echo "Bundle preserved in Android Downloads for later submission."
+fi

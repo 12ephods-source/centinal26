@@ -1,0 +1,49 @@
+name: Dedupe Organizer Device Evidence
+
+on:
+  pull_request:
+    paths:
+      - "tools/dedupe-organizer/device-evidence/runs/**"
+      - "tools/dedupe-organizer/verify_device_evidence.py"
+      - "tests/test_dedupe_device_evidence.py"
+      - ".github/workflows/dedupe-device-evidence.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/dedupe-organizer/device-evidence/runs/**"
+      - "tools/dedupe-organizer/verify_device_evidence.py"
+      - "tests/test_dedupe_device_evidence.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check tools/dedupe-organizer/verify_device_evidence.py tests/test_dedupe_device_evidence.py
+      - run: pytest -q tests/test_dedupe_device_evidence.py
+      - name: Verify submitted device evidence bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="tools/dedupe-organizer/device-evidence/runs"
+          if [[ ! -d "$root" ]]; then
+            echo "No device evidence runs submitted; contract tests only."
+            exit 0
+          fi
+          found=0
+          while IFS= read -r -d '' bundle; do
+            found=1
+            python tools/dedupe-organizer/verify_device_evidence.py "$bundle"
+          done < <(find "$root" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+          if [[ "$found" -eq 0 ]]; then
+            echo "No device evidence runs submitted; contract tests only."
+          fi
