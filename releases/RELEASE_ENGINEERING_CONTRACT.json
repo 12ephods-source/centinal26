@@ -18,6 +18,7 @@
     "rollback_preserves_prior_state",
     "deterministic_host_chaos_campaign",
     "release_ring_non_substitution",
+    "branch_protection_policy_static_validation",
     "fail_closed_unknown_or_stale_state"
   ],
   "required_generated_evidence": {
@@ -36,7 +37,8 @@
     "releases/CURRENT_RELEASE_STATE.json",
     "releases/COMPATIBILITY_MATRIX.json",
     "releases/DEPRECATION_REGISTRY.json",
-    "releases/RELEASE_RINGS.json"
+    "releases/RELEASE_RINGS.json",
+    "automation/governance/main_branch_protection.json"
   ],
   "recovery_semantics": {
     "host_primitive": "frost_core.sqlite_recovery",
@@ -74,7 +76,13 @@
     "branch_protection": {
       "tracker_issue": 271,
       "server_side_readback_required": true,
-      "workflow_substitution_allowed": false
+      "workflow_substitution_allowed": false,
+      "policy": "automation/governance/main_branch_protection.json",
+      "controller": "scripts/reconcile_main_branch_protection.py",
+      "workflow": ".github/workflows/governance-enforcement.yml",
+      "admin_token_secret": "FROST_GOVERNANCE_ADMIN_TOKEN",
+      "autonomous_enforcement_when_admin_token_present": true,
+      "close_tracker_only_after_server_readback": true
     },
     "library_cleaner_device_ui": {
       "tracker_issue": 245,
