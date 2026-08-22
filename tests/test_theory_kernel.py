@@ -1,51 +1,160 @@
-from centinal26.physics.local_eft4d import ScalarOperator, evaluate_basic_consistency, make_scalar_candidate
-from centinal26.physics.theory_kernel import CandidateStatus, TestStatus, promotion_allowed
+import pytest
+
+from centinal26.physics.local_eft4d import (
+    LocalScalarEFT4D,
+    MetricConvention,
+    Parameter,
+    ScalarTerm,
+    make_scalar_candidate,
+)
+from centinal26.physics.theory_kernel import CandidateStatus, PropositionEvidence, TestStatus
+from centinal26.physics.theory_testing import PhysicsTheoryTestingEngine, SCOPE
 
 
-def test_candidate_identity_is_deterministic():
-    ops = [ScalarOperator("chi2", 2, 2), ScalarOperator("chi4", 4, 0)]
-    a = make_scalar_candidate(operators=ops, z2=True)
-    b = make_scalar_candidate(operators=ops, z2=True)
-    assert a.candidate_id == b.candidate_id
-    assert a.theory.theory_id == b.theory.theory_id
+def kinetic(sign: int = -1) -> ScalarTerm:
+    return ScalarTerm("kinetic", 2, 2, Parameter("half", 0), sign)
 
 
-def test_valid_fixture_passes_basic_consistency():
-    c = make_scalar_candidate(
-        operators=[ScalarOperator("kinetic", 4, 0), ScalarOperator("mass", 2, 2), ScalarOperator("quartic", 4, 0)],
+def test_phi4_model_passes_structural_engine():
+    model = LocalScalarEFT4D(
+        terms=(
+            kinetic(),
+            ScalarTerm("mass", 2, 0, Parameter("m2", 2), -1),
+            ScalarTerm("quartic", 4, 0, Parameter("lambda", 0), -1),
+        ),
         z2=True,
     )
-    results = evaluate_basic_consistency(c)
-    assert all(r.status is TestStatus.PASS for r in results)
-    assert c.evidence_debt() == 0
-    assert promotion_allowed(CandidateStatus.GENERATED, CandidateStatus.WELL_FORMED, c.evidence)
-    assert promotion_allowed(CandidateStatus.WELL_FORMED, CandidateStatus.CONSISTENCY_SURVIVOR, c.evidence)
+    candidate = make_scalar_candidate(model)
+    results = PhysicsTheoryTestingEngine().evaluate(candidate)
+    assert all(result.status is TestStatus.PASS for result in results)
+    candidate.transition(CandidateStatus.WELL_FORMED)
+    candidate.transition(CandidateStatus.STRUCTURALLY_CHECKED)
+    assert candidate.evidence_debt() == 0
 
 
-def test_dimensionally_invalid_fixture_fails_for_explicit_reason():
-    c = make_scalar_candidate(operators=[ScalarOperator("bad_phi6", 6, 0)])
-    results = evaluate_basic_consistency(c)
-    dim = next(r for r in results if r.proposition == "dimensions_consistent")
-    assert dim.status is TestStatus.FAIL
-    assert dim.details["failing_operators"] == ["bad_phi6"]
-    assert not promotion_allowed(CandidateStatus.WELL_FORMED, CandidateStatus.CONSISTENCY_SURVIVOR, c.evidence)
+def test_phi6_suppressed_by_cutoff_passes_dimension_gate():
+    model = LocalScalarEFT4D(
+        terms=(kinetic(), ScalarTerm("phi6", 6, 0, Parameter("c6_over_lambda2", -2), -1)),
+        z2=True,
+    )
+    candidate = make_scalar_candidate(model)
+    results = PhysicsTheoryTestingEngine().evaluate(candidate)
+    dimension = next(result for result in results if result.proposition == "dimensions_consistent")
+    assert dimension.status is TestStatus.PASS
 
 
-def test_nonreal_fixture_fails_reality_gate():
-    c = make_scalar_candidate(operators=[ScalarOperator("complex_term", 4, 0, real=False)])
-    results = evaluate_basic_consistency(c)
-    reality = next(r for r in results if r.proposition == "reality_consistent")
-    assert reality.status is TestStatus.FAIL
+def test_phi6_with_dimensionless_coefficient_fails_dimension_gate():
+    model = LocalScalarEFT4D(
+        terms=(kinetic(), ScalarTerm("bad_phi6", 6, 0, Parameter("c6", 0), -1)),
+        z2=True,
+    )
+    candidate = make_scalar_candidate(model)
+    results = PhysicsTheoryTestingEngine().evaluate(candidate)
+    dimension = next(result for result in results if result.proposition == "dimensions_consistent")
+    assert dimension.status is TestStatus.FAIL
+    assert dimension.details["failing_terms"] == ["bad_phi6"]
 
 
-def test_empirical_promotion_fails_closed():
-    c = make_scalar_candidate(operators=[ScalarOperator("kinetic", 4, 0)])
-    evaluate_basic_consistency(c)
-    assert not promotion_allowed(CandidateStatus.NUMERICAL_SURVIVOR, CandidateStatus.EMPIRICALLY_COMPARED, c.evidence)
-    assert not promotion_allowed(CandidateStatus.EMPIRICALLY_COMPARED, CandidateStatus.SURVIVES_CURRENT_EVIDENCE, c.evidence)
+def test_declared_z2_rejects_phi3():
+    model = LocalScalarEFT4D(
+        terms=(kinetic(), ScalarTerm("phi3", 3, 0, Parameter("mu", 1), -1)),
+        z2=True,
+    )
+    candidate = make_scalar_candidate(model)
+    results = PhysicsTheoryTestingEngine().evaluate(candidate)
+    symmetry = next(result for result in results if result.proposition == "declared_symmetries_respected")
+    assert symmetry.status is TestStatus.FAIL
+    assert symmetry.details["failing_terms"] == ["phi3"]
 
 
-def test_evidence_debt_counts_unresolved_obligations():
-    c = make_scalar_candidate(operators=[ScalarOperator("bad", 6, 0)])
-    evaluate_basic_consistency(c)
-    assert c.evidence_debt({"dimensions_consistent": 5.0}) == 5.0
+def test_wrong_kinetic_sign_fails_under_declared_metric():
+    model = LocalScalarEFT4D(
+        terms=(kinetic(sign=1),),
+        metric=MetricConvention.MOSTLY_PLUS,
+    )
+    candidate = make_scalar_candidate(model)
+    results = PhysicsTheoryTestingEngine().evaluate(candidate)
+    kinetic_result = next(result for result in results if result.proposition == "kinetic_sign_consistent")
+    assert kinetic_result.status is TestStatus.FAIL
+
+
+def test_operator_order_does_not_change_theory_identity():
+    a = ScalarTerm("mass", 2, 0, Parameter("m2", 2), -1)
+    b = ScalarTerm("quartic", 4, 0, Parameter("lambda", 0), -1)
+    first = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(), a, b)))
+    second = make_scalar_candidate(LocalScalarEFT4D(terms=(b, kinetic(), a)))
+    assert first.theory_content_id == second.theory_content_id
+
+
+def test_lineage_changes_instance_identity_not_theory_identity():
+    model = LocalScalarEFT4D(terms=(kinetic(),))
+    first = make_scalar_candidate(model)
+    second = make_scalar_candidate(model)
+    second.parents.append("parent")
+    second.lineage_event_id = "mutation-1"
+    assert first.theory_content_id == second.theory_content_id
+    assert first.candidate_instance_id != second.candidate_instance_id
+
+
+def test_engine_is_idempotent_for_same_inputs():
+    candidate = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(),)))
+    engine = PhysicsTheoryTestingEngine()
+    engine.evaluate(candidate)
+    first_count = len(candidate.evidence)
+    engine.evaluate(candidate)
+    assert len(candidate.evidence) == first_count
+
+
+def test_illegal_lifecycle_skip_is_rejected():
+    candidate = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(),)))
+    PhysicsTheoryTestingEngine().evaluate(candidate)
+    with pytest.raises(ValueError, match="illegal transition"):
+        candidate.transition(CandidateStatus.STRUCTURALLY_CHECKED)
+
+
+def test_scoped_pass_cannot_discharge_obligation():
+    candidate = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(),)))
+    foreign = PropositionEvidence(
+        proposition="well_formed",
+        scope="different scope",
+        assumptions=(),
+        method="fixture",
+        status=TestStatus.PASS,
+        evidence_type="structural_check",
+        validator_id="fixture",
+        validator_version="1",
+        input_hash="x",
+    )
+    candidate.add_evidence(foreign)
+    assert candidate.evidence_debt() == 4.0
+    with pytest.raises(ValueError, match="proof obligations"):
+        candidate.transition(CandidateStatus.WELL_FORMED)
+
+
+def test_active_fail_blocks_obligation_even_with_pass():
+    candidate = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(),)))
+    PhysicsTheoryTestingEngine().evaluate(candidate)
+    failing = PropositionEvidence(
+        proposition="well_formed",
+        scope=SCOPE,
+        assumptions=(),
+        method="adversarial recheck",
+        status=TestStatus.FAIL,
+        evidence_type="structural_check",
+        validator_id="physics.local_scalar_eft.well_formed",
+        validator_version="2.1",
+        input_hash=candidate.domain_model.input_hash,
+        details={"reason": "deliberate contradiction fixture"},
+    )
+    candidate.add_evidence(failing)
+    obligation = next(o for o in candidate.obligations if o.proposition == "well_formed")
+    assert not candidate.obligation_discharged(obligation)
+
+
+def test_empirical_promotion_is_not_available_in_theory_kernel():
+    candidate = make_scalar_candidate(LocalScalarEFT4D(terms=(kinetic(),)))
+    PhysicsTheoryTestingEngine().evaluate(candidate)
+    candidate.transition(CandidateStatus.WELL_FORMED)
+    candidate.transition(CandidateStatus.STRUCTURALLY_CHECKED)
+    with pytest.raises(ValueError, match="illegal transition"):
+        candidate.transition(CandidateStatus.EMPIRICALLY_COMPARED)
