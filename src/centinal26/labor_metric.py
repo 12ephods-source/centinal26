@@ -35,10 +35,10 @@ class LaborEvent:
             raise TypeError("labor count metrics must be integers")
         if not isinstance(self.minutes_saved, (int, float)) or isinstance(self.minutes_saved, bool):
             raise TypeError("minutes_saved must be numeric")
-        if any(value < 0 for value in integer_fields) or self.minutes_saved < 0:
-            raise ValueError("labor metrics cannot be negative")
         if not math.isfinite(float(self.minutes_saved)):
             raise ValueError("minutes_saved must be finite")
+        if any(value < 0 for value in integer_fields) or self.minutes_saved < 0:
+            raise ValueError("labor metrics cannot be negative")
 
 
 @dataclass(frozen=True)
