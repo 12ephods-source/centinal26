@@ -43,12 +43,18 @@ jobs:
           bash -n tools/dedupe-organizer/device_autopilot.sh
           python tools/dedupe-organizer/materialize.py
           runtime="tools/dedupe-organizer/generated/dedupe_organizer.py"
-          python "$runtime" --help > /tmp/dedupe-help.txt
+          python "$runtime" --help | tee /tmp/dedupe-help.txt
           for command in self-test doctor verify-audit daemon; do
-            grep -q -- "$command" /tmp/dedupe-help.txt
+            if ! grep -q -- "$command" /tmp/dedupe-help.txt; then
+              echo "Missing required CLI command: $command"
+              exit 1
+            fi
           done
-          python "$runtime" --root /tmp/dedupe-device-compat daemon --help > /tmp/daemon-help.txt
-          grep -q -- "--once" /tmp/daemon-help.txt
+          python "$runtime" --root /tmp/dedupe-device-compat daemon --help | tee /tmp/daemon-help.txt
+          if ! grep -q -- "--once" /tmp/daemon-help.txt; then
+            echo "Missing required daemon flag: --once"
+            exit 1
+          fi
           fake_home="$RUNNER_TEMP/dedupe-host-guard"
           mkdir -p "$fake_home"
           set +e
@@ -56,7 +62,11 @@ jobs:
             bash tools/dedupe-organizer/device_autopilot.sh > /tmp/host-guard.txt 2>&1
           code=$?
           set -e
-          test "$code" -eq 2
+          cat /tmp/host-guard.txt
+          if [[ "$code" -ne 2 ]]; then
+            echo "Host guard returned $code; expected 2"
+            exit 1
+          fi
           grep -q -- "authentic Android/Termux" /tmp/host-guard.txt
       - name: Verify submitted device evidence bundles
         shell: bash
