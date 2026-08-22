@@ -141,7 +141,7 @@ class CreativeCanon:
             if len(values) > 1:
                 contradictions[key] = tuple(sorted(fact.fact_id for fact in facts))
                 continue
-            chosen = sorted(facts, key=lambda fact: fact.fact_id)[0]
+            chosen = min(facts, key=lambda fact: fact.fact_id)
             resolved.setdefault(entity_id, {})[attribute] = chosen.value
         return CanonView(branch_id=branch_id, resolved=resolved, contradictions=contradictions)
 
