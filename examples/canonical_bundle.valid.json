@@ -1,0 +1,85 @@
+{
+  "objects": [
+    {
+      "object_id": "obj_raw_a",
+      "schema_version": "1.0.0",
+      "type": "FILE",
+      "subtype": null,
+      "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "identity_hash": null,
+      "created_at": "2026-08-22T17:00:00Z",
+      "observed_at": "2026-08-22T17:00:00Z",
+      "ingested_at": "2026-08-22T17:00:01Z",
+      "modified_at_source": null,
+      "source_id": "source_upload",
+      "parent_ids": [],
+      "related_ids": [],
+      "status": "CANONICAL",
+      "epistemic_status": "OBSERVED",
+      "verification_status": "UNVERIFIED",
+      "confidence": 1.0,
+      "authority_class": "AUTHORITATIVE_RECORD",
+      "authoritative": true,
+      "provenance_ids": [],
+      "tag_ids": [],
+      "project_ids": ["dedupe-organizer"],
+      "payload": {"filename": "example.txt"},
+      "extensions": {}
+    },
+    {
+      "object_id": "obj_summary",
+      "schema_version": "1.0.0",
+      "type": "ARTIFACT",
+      "subtype": "SUMMARY",
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "identity_hash": null,
+      "created_at": "2026-08-22T17:00:02Z",
+      "observed_at": null,
+      "ingested_at": "2026-08-22T17:00:02Z",
+      "modified_at_source": null,
+      "source_id": null,
+      "parent_ids": [],
+      "related_ids": ["obj_raw_a"],
+      "status": "CANONICAL",
+      "epistemic_status": "DERIVED",
+      "verification_status": "UNVERIFIED",
+      "confidence": 0.9,
+      "authority_class": "DERIVED_RECORD",
+      "authoritative": false,
+      "provenance_ids": ["prov_summary"],
+      "tag_ids": [],
+      "project_ids": ["dedupe-organizer"],
+      "payload": {"summary": "derived example"},
+      "extensions": {}
+    }
+  ],
+  "provenance_events": [
+    {
+      "provenance_event_id": "prov_summary",
+      "input_ids": ["obj_raw_a"],
+      "operation": "SUMMARIZE",
+      "tool_id": "example",
+      "tool_version": "1",
+      "rule_id": null,
+      "parameters": {},
+      "output_ids": ["obj_summary"],
+      "timestamp": "2026-08-22T17:00:02Z",
+      "operator": "test",
+      "deterministic": false
+    }
+  ],
+  "filter_decisions": [
+    {
+      "filter_decision_id": "filter_1",
+      "input_object_id": "obj_raw_a",
+      "rule_id": "dedupe-v1",
+      "rule_version": "1",
+      "score": 1.0,
+      "threshold": 1.0,
+      "decision": "RETAIN",
+      "reason": "canonical fixture",
+      "canonical_target_id": null,
+      "review_status": "APPROVED"
+    }
+  ]
+}
