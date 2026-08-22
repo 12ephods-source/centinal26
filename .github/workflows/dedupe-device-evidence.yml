@@ -4,14 +4,20 @@ on:
   pull_request:
     paths:
       - "tools/dedupe-organizer/device-evidence/runs/**"
+      - "tools/dedupe-organizer/device_autopilot.sh"
       - "tools/dedupe-organizer/verify_device_evidence.py"
+      - "tools/dedupe-organizer/materialize.py"
+      - "tools/dedupe-organizer/payload/**"
       - "tests/test_dedupe_device_evidence.py"
       - ".github/workflows/dedupe-device-evidence.yml"
   push:
     branches: ["main"]
     paths:
       - "tools/dedupe-organizer/device-evidence/runs/**"
+      - "tools/dedupe-organizer/device_autopilot.sh"
       - "tools/dedupe-organizer/verify_device_evidence.py"
+      - "tools/dedupe-organizer/materialize.py"
+      - "tools/dedupe-organizer/payload/**"
       - "tests/test_dedupe_device_evidence.py"
   workflow_dispatch:
 
@@ -30,6 +36,28 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check tools/dedupe-organizer/verify_device_evidence.py tests/test_dedupe_device_evidence.py
       - run: pytest -q tests/test_dedupe_device_evidence.py
+      - name: Qualify device autopilot against exact v2.1 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n tools/dedupe-organizer/device_autopilot.sh
+          python tools/dedupe-organizer/materialize.py
+          runtime="tools/dedupe-organizer/generated/dedupe_organizer.py"
+          python "$runtime" --help > /tmp/dedupe-help.txt
+          for command in self-test doctor verify-audit daemon; do
+            grep -q -- "$command" /tmp/dedupe-help.txt
+          done
+          python "$runtime" --root /tmp/dedupe-device-compat daemon --help > /tmp/daemon-help.txt
+          grep -q -- "--once" /tmp/daemon-help.txt
+          fake_home="$RUNNER_TEMP/dedupe-host-guard"
+          mkdir -p "$fake_home"
+          set +e
+          HOME="$fake_home" PREFIX="/tmp/not-termux" ANDROID_ROOT="" ANDROID_DATA="" \
+            bash tools/dedupe-organizer/device_autopilot.sh > /tmp/host-guard.txt 2>&1
+          code=$?
+          set -e
+          test "$code" -eq 2
+          grep -q -- "authentic Android/Termux" /tmp/host-guard.txt
       - name: Verify submitted device evidence bundles
         shell: bash
         run: |
