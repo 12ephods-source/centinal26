@@ -30,6 +30,11 @@ def test_device_zero_precondition_requires_real_termux() -> None:
     assert "shared storage permission not yet granted" in text
 
 
+def test_device_zero_precondition_installs_submission_dependency() -> None:
+    text = _script_text()
+    assert "pkg install -y git python coreutils gh" in text
+
+
 def test_device_zero_precondition_preserves_bounded_execution() -> None:
     text = _script_text()
     assert "eval " not in text
