@@ -1,0 +1,27 @@
+{
+  "schema": "centinal26.ftoe.10c_self_sector_reconciliation.v1",
+  "date": "2026-08-22",
+  "source_pr": 157,
+  "source_head_sha": "df6707bb0b806107c571aa32ec783666bfb3babb",
+  "qualification": "PASS",
+  "dedicated_gate": "FToE Scalar Action 10C Self-Sector Gate",
+  "scientific_transition": "10_C,H self-sector unenumerated -> PARTIAL_ACTION_10_C_H_SELF_SECTOR_SOURCE_ENUMERATED / REVIEW",
+  "source_basis": "Jarkovska, Malinsky, and Susic, arXiv:2304.14227 Eq. (6), as recorded in PR #157.",
+  "enumerated_scope": {
+    "quadratic": "one hermitian norm plus one complex holomorphic quadratic structure and conjugate",
+    "cubic": "no cubic self-interaction",
+    "quartic": "two real quartic structures plus two complex quartic structures and conjugates"
+  },
+  "fail_closed_boundary": [
+    "not the complete FToE scalar action",
+    "mixed 210_H-45_H unresolved",
+    "mixed 210_H-126_H unresolved",
+    "mixed 210_H-10_C,H unresolved",
+    "mixed 210_H-protected-I unresolved",
+    "mixed 45_H-protected-I unresolved",
+    "protected-I self/portal sector unresolved",
+    "vacuum/Hessian/heavy spectrum downstream",
+    "threshold calculation downstream"
+  ],
+  "no_retuning": true
+}
