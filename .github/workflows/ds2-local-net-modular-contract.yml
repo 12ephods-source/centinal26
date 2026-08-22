@@ -1,0 +1,49 @@
+name: dS2 Local-Net Modular Contract
+
+on:
+  pull_request:
+    paths:
+      - 'candidates/ds2-local-net-modular-contract/**'
+      - '.github/workflows/ds2-local-net-modular-contract.yml'
+
+jobs:
+  local-net-modular:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert literal PR head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: python -m pip install numpy pytest
+      - name: Run frozen diagnostic
+        run: |
+          cd candidates/ds2-local-net-modular-contract
+          python local_net_modular_diagnostic.py --output ../../ds2_local_net_modular_diagnostic.json
+      - name: Run focused tests
+        run: |
+          cd candidates/ds2-local-net-modular-contract
+          python -m pytest -q test_local_net_modular_diagnostic.py
+      - name: Capture provenance
+        shell: bash
+        run: |
+          python --version > ds2_local_net_modular_environment.txt
+          python -c 'import numpy; print(numpy.__version__)' >> ds2_local_net_modular_environment.txt
+          git --version >> ds2_local_net_modular_environment.txt
+          find candidates/ds2-local-net-modular-contract -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > ds2_local_net_modular_sha256.txt
+          sha256sum ds2_local_net_modular_diagnostic.json ds2_local_net_modular_environment.txt >> ds2_local_net_modular_sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ds2-local-net-modular-${{ matrix.python-version }}
+          path: |
+            ds2_local_net_modular_diagnostic.json
+            ds2_local_net_modular_environment.txt
+            ds2_local_net_modular_sha256.txt
