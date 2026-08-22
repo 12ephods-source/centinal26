@@ -1,0 +1,43 @@
+{
+  "schema": "frost-project-artifact-mirror/v1",
+  "project": "Automation",
+  "artifact": {
+    "name": "g02-independent-verification.zip",
+    "mime_type": "application/zip",
+    "size_bytes": 576,
+    "sha256": "99d1e1881dc64178449820ecef1f9f04850289d782b602829d890f73ef3f2154",
+    "contained_files": [
+      {
+        "name": "G02_INDEPENDENT_VERIFICATION.json",
+        "size_bytes": 808,
+        "schema": "g02-independent-verification/v1",
+        "verdict": "VERIFIED"
+      }
+    ]
+  },
+  "source": {
+    "repository": "12ephods-source/centinal26",
+    "goal_id": "G02",
+    "workflow_run_id": 32593518477,
+    "github_artifact_id": 9480946121,
+    "verification_head": "8f865ca37686ef7503e42275687e0e5b6f875d66",
+    "verification_merge_commit": "9590c24fe8e5ac8d521da4959731e0f78e592caa"
+  },
+  "project_mirror": {
+    "provider": "google_drive",
+    "folder_name": "Automation",
+    "folder_id": "1lt_61Stv0ZufxuGmNbzqsLOoONX4asm7",
+    "file_id": "15Szy9HRHoh-ykkDqsDaEfI4LNM56ULKU",
+    "file_name": "g02-independent-verification.zip",
+    "roundtrip_size_bytes": 576,
+    "roundtrip_sha256": "99d1e1881dc64178449820ecef1f9f04850289d782b602829d890f73ef3f2154",
+    "zip_integrity": "PASS"
+  },
+  "epistemic_scope": {
+    "software_verification": "INDEPENDENTLY_VERIFIED",
+    "android_device_execution": "NOT_ESTABLISHED",
+    "physical_reboot_persistence": "NOT_ESTABLISHED",
+    "device_validated": false,
+    "persistent_validated": false
+  }
+}
